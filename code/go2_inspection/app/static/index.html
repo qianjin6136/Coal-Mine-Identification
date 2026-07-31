@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="GO2 图片传输、识别参数调试与巡检结果复核工作台">
+  <title>GO2 图片传输与参数调试工作台</title>
+  <link rel="stylesheet" href="/static/ui.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand-lockup">
+        <div class="brand-mark" aria-hidden="true">G2</div>
+        <div>
+          <p class="eyebrow">GO2 VISION LAB</p>
+          <h1>图片传输与参数调试工作台</h1>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <div id="health-badge" class="health-badge" aria-live="polite">
+          <span class="status-dot"></span>
+          <span>正在连接上位机</span>
+        </div>
+        <a class="button button-quiet" href="/api/v1/export?format=csv">导出 CSV</a>
+        <a class="button button-quiet" href="/api/v1/export?format=json">导出 JSON</a>
+      </div>
+    </header>
+
+    <main>
+      <section class="workspace-grid" aria-label="上传和参数设置">
+        <article class="panel upload-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="section-kicker">02 · 图片传输</p>
+              <h2>上传一组巡检图片</h2>
+              <p>每次任务可包含 1–5 张连拍图片，上传后自动进入识别流程。</p>
+            </div>
+            <span id="file-count" class="count-pill">0 / 5</span>
+          </div>
+
+          <input id="image-input" class="visually-hidden" type="file" multiple
+                 accept=".jpg,.jpeg,.png,.bmp,image/jpeg,image/png,image/bmp">
+          <div id="drop-zone" class="drop-zone" tabindex="0" role="button"
+               aria-label="拖入图片或选择图片">
+            <div class="drop-icon" aria-hidden="true">＋</div>
+            <strong>拖入巡检图片</strong>
+            <span>或点击选择 JPG、PNG、BMP 文件</span>
+            <small>单张图片不超过 <span id="max-file-size">20 MB</span></small>
+          </div>
+
+          <div id="image-list" class="image-list" aria-live="polite"></div>
+
+          <div class="metadata-row">
+            <div>
+              <strong>任务元数据</strong>
+              <span id="metadata-status">未选择，将自动生成基础记录</span>
+            </div>
+            <label class="button button-quiet compact" for="metadata-input">
+              选择 metadata.json
+            </label>
+            <input id="metadata-input" class="visually-hidden" type="file"
+                   accept=".json,application/json">
+          </div>
+          <details id="metadata-details" class="metadata-details">
+            <summary>查看只读元数据</summary>
+            <pre id="metadata-preview">上传时将自动生成抓拍 ID、时间和空位姿。</pre>
+          </details>
+
+          <div id="upload-progress-wrap" class="progress-wrap" hidden>
+            <div class="progress-copy">
+              <span id="upload-stage">准备上传</span>
+              <strong id="upload-percent">0%</strong>
+            </div>
+            <div class="progress-track" aria-hidden="true">
+              <div id="upload-progress" class="progress-value"></div>
+            </div>
+          </div>
+
+          <div class="panel-actions">
+            <button id="clear-upload" class="button button-quiet" type="button">清空</button>
+            <button id="retry-upload" class="button button-warning" type="button" hidden>
+              重试上传
+            </button>
+            <button id="start-upload" class="button button-primary" type="button" disabled>
+              上传并识别
+            </button>
+          </div>
+        </article>
+
+        <aside class="panel settings-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="section-kicker">01 · 识别参数</p>
+              <h2>当前运行参数</h2>
+              <p>保存后对新任务生效；历史记录需手动重新处理。</p>
+            </div>
+            <span id="settings-state" class="save-state">读取中</span>
+          </div>
+
+          <div class="settings-content-grid">
+            <div class="setting-list">
+              <label class="setting-control" for="detector-confidence">
+                <span>
+                  <strong>检测置信度</strong>
+                  <small>过滤模型的低置信度目标</small>
+                </span>
+                <output id="detector-confidence-output">0.35</output>
+                <input id="detector-confidence" type="range" min="0" max="1" step="0.01" value="0.35">
+              </label>
+              <label class="setting-control" for="fusion-iou">
+                <span>
+                  <strong>三帧融合 IoU</strong>
+                  <small>控制跨帧目标的合并严格度</small>
+                </span>
+                <output id="fusion-iou-output">0.45</output>
+                <input id="fusion-iou" type="range" min="0" max="1" step="0.01" value="0.45">
+              </label>
+              <label class="setting-control" for="meter-confidence">
+                <span>
+                  <strong>数字表单帧置信度</strong>
+                  <small>低于此值的读数视为不可读</small>
+                </span>
+                <output id="meter-confidence-output">0.55</output>
+                <input id="meter-confidence" type="range" min="0" max="1" step="0.01" value="0.55">
+              </label>
+            </div>
+
+            <div class="modules-column">
+              <div class="module-heading">
+                <strong>识别模块</strong>
+                <span>开关与就绪状态</span>
+              </div>
+              <div id="module-list" class="module-list"></div>
+            </div>
+          </div>
+
+          <div class="panel-actions settings-actions">
+            <button id="reset-settings" class="button button-quiet" type="button">恢复默认值</button>
+            <button id="save-settings" class="button button-primary" type="button">保存参数</button>
+          </div>
+        </aside>
+      </section>
+
+      <section class="stats-grid" aria-label="传输统计">
+        <article class="stat-card">
+          <span>全部任务</span><strong id="stat-total">—</strong><small>已进入上位机</small>
+        </article>
+        <article class="stat-card">
+          <span>识别中</span><strong id="stat-received">—</strong><small>图片已安全接收</small>
+        </article>
+        <article class="stat-card success">
+          <span>已完成</span><strong id="stat-processed">—</strong><small>结果可以复核</small>
+        </article>
+        <article class="stat-card danger">
+          <span>失败</span><strong id="stat-failed">—</strong><small>可重新处理</small>
+        </article>
+      </section>
+
+      <section class="panel records-panel">
+        <div class="records-heading">
+          <div>
+            <p class="section-kicker">03 · 传输监控</p>
+            <h2>最近巡检任务</h2>
+          </div>
+          <div class="records-tools">
+            <label>
+              <span class="visually-hidden">按抓拍 ID 搜索</span>
+              <input id="capture-search" type="search" placeholder="搜索抓拍 ID">
+            </label>
+            <label>
+              <span class="visually-hidden">按工位筛选</span>
+              <input id="station-filter" type="search" placeholder="工位">
+            </label>
+            <label>
+              <span class="visually-hidden">按状态筛选</span>
+              <select id="status-filter">
+                <option value="">全部状态</option>
+                <option value="received">识别中</option>
+                <option value="processed">已完成</option>
+                <option value="failed">失败</option>
+              </select>
+            </label>
+            <label class="auto-refresh">
+              <input id="auto-refresh" type="checkbox" checked>
+              <span>自动刷新</span>
+            </label>
+            <button id="refresh-records" class="button button-quiet compact" type="button">刷新</button>
+            <button id="delete-selected-records" class="button button-danger compact"
+                    type="button" disabled>删除所选</button>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th class="selection-column">
+                  <label class="record-select">
+                    <input id="select-all-records" type="checkbox" aria-label="选择本页全部任务">
+                  </label>
+                </th>
+                <th>抓拍时间</th>
+                <th>抓拍 ID</th>
+                <th>来源 / 工位</th>
+                <th>图片</th>
+                <th>目标</th>
+                <th>状态</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="record-rows">
+              <tr><td class="empty-cell" colspan="8">正在读取任务记录…</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="table-footer">
+          <span id="record-summary">—</span>
+          <div class="pagination">
+            <button id="previous-page" class="button button-quiet compact" type="button">上一页</button>
+            <span id="page-label">第 1 页</span>
+            <button id="next-page" class="button button-quiet compact" type="button">下一页</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="drawer-overlay" class="drawer-overlay" hidden></div>
+  <aside id="result-drawer" class="result-drawer" aria-label="巡检结果复核"
+         aria-hidden="true">
+    <div class="drawer-header">
+      <div>
+        <p class="section-kicker">任务结果</p>
+        <h2 id="detail-title">选择一条记录</h2>
+      </div>
+      <button id="close-drawer" class="icon-button" type="button" aria-label="关闭结果面板">×</button>
+    </div>
+    <div id="detail-content" class="drawer-content">
+      <div class="drawer-empty">从任务列表中选择一条记录进行复核。</div>
+    </div>
+  </aside>
+
+  <div id="toast-region" class="toast-region" aria-live="polite" aria-atomic="true"></div>
+  <script src="/static/ui.js" defer></script>
+</body>
+</html>

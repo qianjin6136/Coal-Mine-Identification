@@ -1,0 +1,50 @@
+{
+  "tool_wrench": {
+    "id": "wrench",
+    "type": "tool",
+    "name_cn": "扳手",
+    "train": false,
+    "min_confidence": 0.55,
+    "attributes": {
+      "surface": "conveyor"
+    }
+  },
+  "tool_hammer": {
+    "id": "hammer",
+    "type": "tool",
+    "name_cn": "锤子",
+    "train": false,
+    "min_confidence": 0.55,
+    "attributes": {
+      "surface": "conveyor"
+    }
+  },
+  "unknown_tool": {
+    "id": "unknown_tool",
+    "type": "tool",
+    "name_cn": "未知工具",
+    "train": false
+  },
+  "coal_pile": {
+    "id": "coal_pile",
+    "type": "coal_pile",
+    "name_cn": "煤堆"
+  },
+  "analog_meter": {
+    "id": "analog_meter",
+    "type": "analog_meter",
+    "name_cn": "指针式仪表",
+    "train": false
+  },
+  "digital_meter": {
+    "id": "digital_meter",
+    "type": "digital_meter",
+    "name_cn": "数字式仪表"
+  },
+  "station_marker": {
+    "id": "station_marker",
+    "type": "station_marker",
+    "name_cn": "区段编号牌",
+    "train": false
+  }
+}
