@@ -34,6 +34,7 @@ const state = {
   selectedCapture: null,
   correctedObjects: [],
   uploading: false,
+  switchingMode: false,
   retryJob: null,
   pollTimer: null,
   searchTimer: null,
@@ -365,12 +366,69 @@ function renderRuntimeSettings(payload) {
   state.limits = payload.limits;
   byId("max-file-size").textContent = formatBytes(payload.limits.max_image_bytes);
   const current = payload.current;
+  renderInferenceMode(payload);
   setRangeValue("detector-confidence", current.detector.confidence);
   setRangeValue("fusion-iou", current.pipeline.fusion_iou);
   setRangeValue("meter-confidence", current.digital_meter.minimum_frame_confidence);
   renderModules(current.modules, payload.module_status);
   markSettingsSaved();
   renderImages();
+}
+
+function renderInferenceMode(payload) {
+  const inference = payload.inference || {};
+  const activeMode = inference.active_mode || payload.current.detector.mode || "noop";
+  const gpu = inference.gpu || {available: false, reason: "GPU 状态未知"};
+  const noopButton = byId("mode-noop");
+  const gpuButton = byId("mode-gpu");
+  const status = byId("inference-mode-status");
+
+  noopButton.classList.toggle("active", activeMode === "noop");
+  gpuButton.classList.toggle("active", activeMode === "gpu");
+  noopButton.setAttribute("aria-pressed", String(activeMode === "noop"));
+  gpuButton.setAttribute("aria-pressed", String(activeMode === "gpu"));
+  noopButton.disabled = state.switchingMode;
+  gpuButton.disabled = state.switchingMode || (!gpu.available && activeMode !== "gpu");
+  gpuButton.title = gpu.available ? "切换到 NVIDIA GPU 模型识别" : (gpu.reason || "GPU 不可用");
+
+  status.className = "";
+  if (state.switchingMode) {
+    status.textContent = "正在切换推理模式，请稍候…";
+  } else if (activeMode === "gpu") {
+    status.textContent = `GPU 模型识别已启用 · ${gpu.device_name || "CUDA 设备 0"}`;
+  } else if (activeMode === "json_replay") {
+    status.textContent = "当前为 JSON 回放模式，可切换到 NOOP 或 GPU";
+  } else if (gpu.available) {
+    status.textContent = `当前仅记录 · GPU 已就绪：${gpu.device_name || "CUDA 设备 0"}`;
+  } else {
+    status.textContent = `当前仅记录 · GPU 不可用：${gpu.reason || "环境未就绪"}`;
+    status.className = "error";
+  }
+}
+
+async function switchInferenceMode(mode) {
+  if (!state.runtime || state.switchingMode) return;
+  const activeMode = state.runtime.inference?.active_mode
+    || state.runtime.current.detector.mode;
+  if (activeMode === mode) return;
+
+  state.switchingMode = true;
+  renderInferenceMode(state.runtime);
+  try {
+    const payload = await apiFetch("/api/v1/runtime-settings", {
+      method: "PATCH",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({detector: {mode}}),
+    });
+    state.switchingMode = false;
+    renderRuntimeSettings(payload);
+    showToast(mode === "gpu" ? "GPU 模型识别已启用" : "已切换到 NOOP 仅记录模式");
+    await loadHealth();
+  } catch (error) {
+    state.switchingMode = false;
+    showToast(error.message, true);
+    await loadRuntimeSettings();
+  }
 }
 
 function setRangeValue(id, value) {
@@ -500,7 +558,10 @@ async function loadHealth() {
   try {
     const health = await apiFetch("/health");
     badge.className = "health-badge online";
-    badge.lastElementChild.textContent = `${health.detector} · 上位机在线`;
+    const modeLabel = health.inference_mode === "gpu"
+      ? "GPU"
+      : String(health.inference_mode || health.detector).toUpperCase();
+    badge.lastElementChild.textContent = `${modeLabel} · 上位机在线`;
     byId("stat-total").textContent = health.captures_total;
     byId("stat-processed").textContent = health.captures_processed;
     byId("stat-failed").textContent = health.captures_failed;
@@ -1269,6 +1330,8 @@ function bindEvents() {
   });
   byId("save-settings").addEventListener("click", saveRuntimeSettings);
   byId("reset-settings").addEventListener("click", resetRuntimeSettings);
+  byId("mode-noop").addEventListener("click", () => switchInferenceMode("noop"));
+  byId("mode-gpu").addEventListener("click", () => switchInferenceMode("gpu"));
 
   byId("refresh-records").addEventListener("click", loadMonitoring);
   byId("select-all-records").addEventListener("change", (event) => {

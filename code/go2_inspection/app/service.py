@@ -7,6 +7,7 @@ from typing import Any, Callable, Mapping, Sequence
 
 from .domain import BoundingBox, CaptureMetadata
 from .errors import ValidationError
+from .inference import detector_runtime_mode
 from .pipeline import InspectionPipeline
 from .runtime_settings import RuntimeSettingsManager
 from .storage import CaptureRepository
@@ -22,12 +23,14 @@ class InspectionService:
         max_image_bytes: int,
         runtime_settings: RuntimeSettingsManager | None = None,
         apply_runtime_settings: Callable[[Mapping[str, Any]], None] | None = None,
+        inference_status_provider: Callable[[], Mapping[str, Any]] | None = None,
     ) -> None:
         self.repository = repository
         self.pipeline = pipeline
         self.max_image_bytes = max_image_bytes
         self.runtime_settings = runtime_settings
         self._apply_runtime_settings = apply_runtime_settings
+        self._inference_status_provider = inference_status_provider
         self._runtime_lock = RLock()
 
     def ingest_capture(
@@ -244,6 +247,7 @@ class InspectionService:
                 "status": "ok",
                 "detector": self.pipeline.detector.name,
                 "detector_configured": self.pipeline.detector.configured,
+                "inference_mode": detector_runtime_mode(self.pipeline.detector),
                 **self.repository.health(),
             }
             if self.pipeline.module_registry is not None:
@@ -263,7 +267,7 @@ class InspectionService:
                 if self.pipeline.module_registry is not None
                 else {}
             )
-            return {
+            payload = {
                 "current": self.runtime_settings.snapshot(),
                 "defaults": self.runtime_settings.defaults,
                 "limits": {
@@ -277,6 +281,9 @@ class InspectionService:
                 },
                 "module_status": module_status,
             }
+            if self._inference_status_provider is not None:
+                payload["inference"] = dict(self._inference_status_provider())
+            return payload
 
     def update_runtime_settings(
         self,

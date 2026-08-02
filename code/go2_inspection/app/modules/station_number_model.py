@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import json
 from pathlib import Path
+import re
 from typing import Any, Mapping, Sequence
 
 from ..errors import ConfigurationError, ValidationError
@@ -171,30 +172,12 @@ def train_station_number_model(
 
     import numpy as np
 
-    config_path = Path(samples_config_path).resolve()
-    config = json.loads(config_path.read_text(encoding="utf-8"))
-    if not isinstance(config, Mapping):
-        raise ValidationError("station number sample configuration must be an object")
-    project_root = Path(__file__).resolve().parents[2]
+    configured_samples = load_station_number_samples(samples_config_path)
     templates: list[object] = []
     labels: list[int] = []
     sources: list[str] = []
     source_images: list[tuple[int, str, object]] = []
-    for configured_label, source_value in config.items():
-        try:
-            label = int(configured_label)
-        except (TypeError, ValueError) as exc:
-            raise ValidationError(
-                f"station number label must be an integer: {configured_label}"
-            ) from exc
-        source_path = Path(str(source_value))
-        if not source_path.is_absolute():
-            source_path = (project_root / source_path).resolve()
-        if source_path.stem != str(label):
-            raise ValidationError(
-                f"station sample filename must match its label: "
-                f"{source_path.name} != {label}.png"
-            )
+    for label, source_path in configured_samples:
         image = read_bgr_image(source_path)
         if image is None:
             raise ValidationError(f"station number sample cannot be read: {source_path}")
@@ -207,8 +190,6 @@ def train_station_number_model(
         labels.append(label)
         sources.append(str(source_path))
         source_images.append((label, str(source_path), image))
-    if len(set(labels)) != len(labels):
-        raise ValidationError("station number sample labels must be unique")
 
     model = StationNumberTemplateModel(np.asarray(templates), labels, sources)
     recognizer = StationNumberRecognizer(model, minimum_confidence=0.0)
@@ -245,10 +226,77 @@ def train_station_number_model(
                         "reason": variant_result.reason,
                     }
                 )
+    class_counts = {
+        label: labels.count(label)
+        for label in sorted(set(labels))
+    }
+    validation_rows: list[dict[str, Any]] = []
+    validation_failures: list[dict[str, Any]] = []
+    validation_correct = 0
+    validation_robustness_correct = 0
+    validation_robustness_total = 0
+    validation_robustness_failures: list[dict[str, Any]] = []
+    for excluded_index, (expected, source, image) in enumerate(source_images):
+        if class_counts[expected] < 2:
+            continue
+        validation_model = StationNumberTemplateModel(
+            np.delete(model.templates, excluded_index, axis=0),
+            [
+                label
+                for index, label in enumerate(model.labels)
+                if index != excluded_index
+            ],
+            [
+                item
+                for index, item in enumerate(model.sources)
+                if index != excluded_index
+            ],
+        )
+        validation_recognizer = StationNumberRecognizer(
+            validation_model,
+            minimum_confidence=0.55,
+        )
+        result = validation_recognizer.read_image(image)
+        correct = result.status == "confirmed" and result.number == expected
+        validation_correct += int(correct)
+        validation_row = {
+            "file": source,
+            "expected": expected,
+            "predicted": result.number,
+            "status": result.status,
+            "confidence": result.confidence,
+            "correct": correct,
+        }
+        validation_rows.append(validation_row)
+        if not correct:
+            validation_failures.append(validation_row)
+        for variant_name, variant in _robustness_variants(image):
+            variant_result = validation_recognizer.read_image(variant)
+            variant_correct = (
+                variant_result.status == "confirmed"
+                and variant_result.number == expected
+            )
+            validation_robustness_correct += int(variant_correct)
+            validation_robustness_total += 1
+            if not variant_correct:
+                validation_robustness_failures.append(
+                    {
+                        "file": source,
+                        "variant": variant_name,
+                        "expected": expected,
+                        "predicted": variant_result.number,
+                        "status": variant_result.status,
+                        "confidence": variant_result.confidence,
+                        "reason": variant_result.reason,
+                    }
+                )
     metrics = {
         "model_type": "supervised_station_number_templates",
         "samples": len(labels),
-        "classes": sorted(labels),
+        "classes": sorted(set(labels)),
+        "samples_per_class": {
+            str(label): count for label, count in class_counts.items()
+        },
         "training_accuracy": training_correct / len(labels) if labels else 0.0,
         "robustness_cases": robustness_total,
         "robustness_accuracy": (
@@ -256,8 +304,202 @@ def train_station_number_model(
         ),
         "samples_detail": training_rows,
         "robustness_failures": robustness_failures,
+        "validation_method": "leave_one_source_out",
+        "validation_minimum_confidence": 0.55,
+        "validation_samples": len(validation_rows),
+        "validation_accuracy": (
+            validation_correct / len(validation_rows) if validation_rows else None
+        ),
+        "validation_samples_detail": validation_rows,
+        "validation_failures": validation_failures,
+        "validation_robustness_cases": validation_robustness_total,
+        "validation_robustness_accuracy": (
+            validation_robustness_correct / validation_robustness_total
+            if validation_robustness_total
+            else None
+        ),
+        "validation_robustness_failures": validation_robustness_failures,
     }
     return model, metrics
+
+
+def load_station_number_samples(
+    samples_config_path: Path,
+) -> list[tuple[int, Path]]:
+    """加载旧版单文件映射或按数字子目录自动发现的多样本配置。"""
+
+    config_path = Path(samples_config_path).resolve()
+    config = json.loads(config_path.read_text(encoding="utf-8"))
+    if not isinstance(config, Mapping):
+        raise ValidationError("station number sample configuration must be an object")
+    project_root = Path(__file__).resolve().parents[2]
+    if "dataset_root" in config:
+        return _discover_station_number_samples(config, project_root)
+
+    samples: list[tuple[int, Path]] = []
+    for configured_label, source_value in config.items():
+        try:
+            label = int(configured_label)
+        except (TypeError, ValueError) as exc:
+            raise ValidationError(
+                f"station number label must be an integer: {configured_label}"
+            ) from exc
+        values = (
+            list(source_value)
+            if isinstance(source_value, Sequence)
+            and not isinstance(source_value, (str, bytes))
+            else [source_value]
+        )
+        for value in values:
+            source_path = _resolve_station_path(value, project_root)
+            if source_path.is_dir():
+                directory_samples = _image_files(source_path, _default_extensions())
+                if not directory_samples:
+                    raise ValidationError(
+                        f"station sample directory contains no images: {source_path}"
+                    )
+                samples.extend((label, path) for path in directory_samples)
+                continue
+            if len(values) == 1 and source_path.stem != str(label):
+                raise ValidationError(
+                    f"station sample filename must match its label: "
+                    f"{source_path.name} != {label}{source_path.suffix}"
+                )
+            _validate_sample_filename(label, source_path)
+            samples.append((label, source_path))
+    return _validate_discovered_samples(samples)
+
+
+def _discover_station_number_samples(
+    config: Mapping[str, Any],
+    project_root: Path,
+) -> list[tuple[int, Path]]:
+    dataset_root = _resolve_station_path(config["dataset_root"], project_root)
+    if not dataset_root.is_dir():
+        raise ValidationError(
+            f"station number dataset root is not a directory: {dataset_root}"
+        )
+    extensions_value = config.get("extensions", list(_default_extensions()))
+    if not isinstance(extensions_value, Sequence) or isinstance(
+        extensions_value, (str, bytes)
+    ):
+        raise ValidationError("station number extensions must be an array")
+    extensions = {
+        str(value).lower()
+        if str(value).startswith(".")
+        else f".{str(value).lower()}"
+        for value in extensions_value
+    }
+    excluded_value = config.get("exclude", [])
+    if not isinstance(excluded_value, Sequence) or isinstance(
+        excluded_value, (str, bytes)
+    ):
+        raise ValidationError("station number exclude must be an array")
+    excluded_paths = {
+        (dataset_root / str(value)).resolve()
+        for value in excluded_value
+    }
+    missing_exclusions = [path for path in excluded_paths if not path.is_file()]
+    if missing_exclusions:
+        raise ValidationError(
+            f"excluded station number sample does not exist: "
+            f"{missing_exclusions[0]}"
+        )
+    configured_labels = config.get("labels")
+    if configured_labels is None:
+        label_directories = sorted(
+            (
+                (int(path.name), path)
+                for path in dataset_root.iterdir()
+                if path.is_dir() and path.name.isdigit()
+            ),
+            key=lambda item: item[0],
+        )
+    else:
+        if not isinstance(configured_labels, Sequence) or isinstance(
+            configured_labels, (str, bytes)
+        ):
+            raise ValidationError("station number labels must be an array")
+        label_directories = [
+            (int(value), dataset_root / str(int(value)))
+            for value in configured_labels
+        ]
+    if not label_directories:
+        raise ValidationError(
+            f"station number dataset has no numeric class directories: {dataset_root}"
+        )
+
+    samples: list[tuple[int, Path]] = []
+    for label, directory in label_directories:
+        if not directory.is_dir():
+            raise ValidationError(
+                f"station number class directory is missing: {directory}"
+            )
+        class_samples = [
+            path
+            for path in _image_files(directory, extensions)
+            if path not in excluded_paths
+        ]
+        if not class_samples:
+            raise ValidationError(
+                f"station number class directory contains no images: {directory}"
+            )
+        for source_path in class_samples:
+            _validate_sample_filename(label, source_path)
+            samples.append((label, source_path))
+    return _validate_discovered_samples(samples)
+
+
+def _resolve_station_path(value: object, project_root: Path) -> Path:
+    source_path = Path(str(value))
+    if not source_path.is_absolute():
+        source_path = (project_root / source_path).resolve()
+    return source_path
+
+
+def _default_extensions() -> set[str]:
+    return {".jpg", ".jpeg", ".png"}
+
+
+def _image_files(directory: Path, extensions: set[str]) -> list[Path]:
+    return sorted(
+        (
+            path.resolve()
+            for path in directory.iterdir()
+            if path.is_file() and path.suffix.lower() in extensions
+        ),
+        key=lambda path: _natural_sort_key(path.name),
+    )
+
+
+def _natural_sort_key(value: str) -> tuple[tuple[int, object], ...]:
+    return tuple(
+        (0, int(part)) if part.isdigit() else (1, part.lower())
+        for part in re.split(r"(\d+)", value)
+    )
+
+
+def _validate_sample_filename(label: int, source_path: Path) -> None:
+    leading_number = re.match(r"^(\d+)(?:\D|$)", source_path.stem)
+    if leading_number and int(leading_number.group(1)) != label:
+        raise ValidationError(
+            f"station sample filename disagrees with its class directory: "
+            f"{source_path.name} is not label {label}"
+        )
+
+
+def _validate_discovered_samples(
+    samples: list[tuple[int, Path]],
+) -> list[tuple[int, Path]]:
+    if not samples:
+        raise ValidationError("at least one station number sample is required")
+    missing = [str(path) for _, path in samples if not path.is_file()]
+    if missing:
+        raise ValidationError(f"station number sample does not exist: {missing[0]}")
+    paths = [path for _, path in samples]
+    if len(set(paths)) != len(paths):
+        raise ValidationError("station number sample paths must be unique")
+    return samples
 
 
 def segment_station_number(image: object) -> dict[str, Any]:

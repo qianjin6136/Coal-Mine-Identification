@@ -16,6 +16,7 @@ class JsonReplayDetector:
     """读取约定格式的伴随 JSON，并转换为统一 Detection 对象。"""
 
     name = "json_replay"
+    runtime_mode = "json_replay"
     configured = True
 
     def detect(

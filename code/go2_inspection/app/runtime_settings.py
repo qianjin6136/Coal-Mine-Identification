@@ -20,6 +20,8 @@ MODULE_IDS = (
     "analog_meter",
 )
 
+INFERENCE_MODES = {"noop", "gpu", "json_replay"}
+
 
 class RuntimeSettingsManager:
     """维护一份可原子保存、可恢复默认值的运行时参数。"""
@@ -94,7 +96,7 @@ class RuntimeSettingsManager:
 
     def _validate_complete(self, settings: Mapping[str, Any]) -> dict[str, Any]:
         expected = {
-            "detector": {"confidence"},
+            "detector": {"confidence", "mode"},
             "pipeline": {"fusion_iou"},
             "digital_meter": {"minimum_frame_confidence"},
             "modules": set(MODULE_IDS),
@@ -117,7 +119,7 @@ class RuntimeSettingsManager:
         patch: Mapping[str, Any],
     ) -> dict[str, Any]:
         allowed = {
-            "detector": {"confidence"},
+            "detector": {"confidence", "mode"},
             "pipeline": {"fusion_iou"},
             "digital_meter": {"minimum_frame_confidence"},
             "modules": set(MODULE_IDS),
@@ -142,6 +144,11 @@ class RuntimeSettingsManager:
 
     @staticmethod
     def _normalize(settings: Mapping[str, Any]) -> dict[str, Any]:
+        detector_mode = str(settings["detector"]["mode"]).strip()
+        if detector_mode not in INFERENCE_MODES:
+            raise ValidationError(
+                "detector.mode must be noop, gpu or json_replay"
+            )
         detector_confidence = _bounded_float(
             settings["detector"]["confidence"],
             "detector.confidence",
@@ -161,7 +168,10 @@ class RuntimeSettingsManager:
                 raise ValidationError(f"modules.{module_id} must be a boolean")
             modules[module_id] = enabled
         return {
-            "detector": {"confidence": detector_confidence},
+            "detector": {
+                "mode": detector_mode,
+                "confidence": detector_confidence,
+            },
             "pipeline": {"fusion_iou": fusion_iou},
             "digital_meter": {
                 "minimum_frame_confidence": meter_confidence,
@@ -175,12 +185,16 @@ def build_runtime_defaults(
     detector_confidence: float,
     fusion_iou: float,
     module_config: Mapping[str, Any],
+    detector_mode: str = "noop",
 ) -> dict[str, Any]:
     """从项目默认配置提取 UI 允许调整的安全子集。"""
 
     digital_config = module_config.get("digital_meter", {})
     return {
-        "detector": {"confidence": detector_confidence},
+        "detector": {
+            "mode": detector_mode,
+            "confidence": detector_confidence,
+        },
         "pipeline": {"fusion_iou": fusion_iou},
         "digital_meter": {
             "minimum_frame_confidence": float(

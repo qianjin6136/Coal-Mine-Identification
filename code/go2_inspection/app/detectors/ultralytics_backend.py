@@ -14,6 +14,7 @@ class UltralyticsDetector:
     """加载一次 YOLO 权重，并按类别配置转换每张图的预测结果。"""
 
     name = "ultralytics"
+    runtime_mode = "gpu"
     configured = True
 
     def __init__(
@@ -22,6 +23,8 @@ class UltralyticsDetector:
         class_config: Mapping[str, Any],
         confidence: float = 0.35,
         config_dir: Path | None = None,
+        device: int | str | None = None,
+        require_cuda: bool = False,
     ) -> None:
         if not weights.exists():
             raise ConfigurationError(f"detector weights not found: {weights}")
@@ -35,17 +38,36 @@ class UltralyticsDetector:
             raise ConfigurationError(
                 "ultralytics is not installed; install the 'vision' dependencies"
             ) from exc
+        if require_cuda:
+            try:
+                import torch
+            except ImportError as exc:
+                raise ConfigurationError(
+                    "PyTorch is required for GPU inference"
+                ) from exc
+            if not torch.cuda.is_available():
+                raise ConfigurationError(
+                    "CUDA GPU is not available to PyTorch"
+                )
+            if device is None:
+                device = 0
         self.model = YOLO(str(weights))
         self.class_config = class_config
         self.confidence = confidence
+        self.device = device
 
     def detect(
         self, image_path: Path, metadata: CaptureMetadata, frame_index: int
     ) -> list[Detection]:
+        predict_options: dict[str, Any] = {
+            "source": str(image_path),
+            "conf": self.confidence,
+            "verbose": False,
+        }
+        if self.device is not None:
+            predict_options["device"] = self.device
         predictions = self.model.predict(
-            source=str(image_path),
-            conf=self.confidence,
-            verbose=False,
+            **predict_options,
         )
         detections: list[Detection] = []
         if not predictions:

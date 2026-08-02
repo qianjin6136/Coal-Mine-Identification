@@ -98,6 +98,25 @@
             <span id="settings-state" class="save-state">读取中</span>
           </div>
 
+          <div class="inference-mode-panel" aria-labelledby="inference-mode-title">
+            <div class="inference-mode-copy">
+              <strong id="inference-mode-title">推理模式</strong>
+              <span id="inference-mode-status">正在检查模型与显卡状态…</span>
+            </div>
+            <div class="mode-selector" role="group" aria-label="选择推理模式">
+              <button id="mode-noop" class="mode-button" type="button"
+                      aria-pressed="false">
+                <span class="mode-code">NOOP</span>
+                <span>仅记录</span>
+              </button>
+              <button id="mode-gpu" class="mode-button" type="button"
+                      aria-pressed="false">
+                <span class="mode-code">GPU</span>
+                <span>模型识别</span>
+              </button>
+            </div>
+          </div>
+
           <div class="settings-content-grid">
             <div class="setting-list">
               <label class="setting-control" for="detector-confidence">

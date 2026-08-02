@@ -5,6 +5,11 @@ from __future__ import annotations
 from .detectors.noop import NoopDetector
 from .detectors.replay import JsonReplayDetector
 from .errors import ConfigurationError
+from .inference import (
+    detector_runtime_mode,
+    gpu_inference_status,
+    runtime_mode_for_backend,
+)
 from .modules.registry import build_module_registry_from_config
 from .pipeline import InspectionPipeline
 from .runtime_settings import (
@@ -30,6 +35,7 @@ def build_service(settings_path: str | None = None) -> InspectionService:
             detector_confidence=settings.detector_confidence,
             fusion_iou=settings.fusion_iou,
             module_config=base_module_config,
+            detector_mode=runtime_mode_for_backend(settings.detector_backend),
         ),
     )
     runtime_snapshot = runtime_settings.snapshot()
@@ -39,28 +45,45 @@ def build_service(settings_path: str | None = None) -> InspectionService:
         settings.project_root,
     )
 
-    if settings.detector_backend == "noop":
-        detector = NoopDetector()
-    elif settings.detector_backend == "json_replay":
-        detector = JsonReplayDetector()
-    elif settings.detector_backend == "ultralytics":
-        if settings.detector_weights is None:
+    def build_detector(mode: str, confidence: float):
+        if mode == "noop":
+            return NoopDetector()
+        if mode == "json_replay":
+            return JsonReplayDetector()
+        if mode != "gpu":
+            raise ConfigurationError(f"unsupported inference mode: {mode}")
+
+        gpu_status = gpu_inference_status(settings.detector_weights)
+        if not gpu_status["available"]:
             raise ConfigurationError(
-                "detector.weights is required for the ultralytics backend"
+                f"GPU 模式不可用：{gpu_status['reason']}"
             )
-        # 模型后端是可选能力，延迟导入可让无模型环境正常使用 noop/回放模式。
+        # 大型依赖和模型只在实际切换到 GPU 时加载，noop 启动保持轻量。
         from .detectors.ultralytics_backend import UltralyticsDetector
 
-        detector = UltralyticsDetector(
+        return UltralyticsDetector(
             weights=settings.detector_weights,
             class_config=class_config,
-            confidence=runtime_snapshot["detector"]["confidence"],
+            confidence=confidence,
             config_dir=settings.storage_root,
+            device=0,
+            require_cuda=True,
         )
-    else:
-        raise ConfigurationError(
-            f"unsupported detector backend: {settings.detector_backend}"
+
+    startup_inference_error: str | None = None
+    try:
+        detector = build_detector(
+            str(runtime_snapshot["detector"]["mode"]),
+            float(runtime_snapshot["detector"]["confidence"]),
         )
+    except ConfigurationError as exc:
+        if runtime_snapshot["detector"]["mode"] != "gpu":
+            raise
+        # GPU 环境或权重在重启后失效时自动回退，确保控制台仍能打开。
+        startup_inference_error = str(exc)
+        runtime_settings.update({"detector": {"mode": "noop"}})
+        runtime_snapshot = runtime_settings.snapshot()
+        detector = NoopDetector()
 
     repository = CaptureRepository(
         database_path=settings.database_path,
@@ -75,19 +98,43 @@ def build_service(settings_path: str | None = None) -> InspectionService:
     )
 
     def apply_runtime(values: dict[str, object]) -> None:
+        nonlocal detector, startup_inference_error
         detector_values = values["detector"]
         pipeline_values = values["pipeline"]
         if not isinstance(detector_values, dict) or not isinstance(
             pipeline_values, dict
         ):
             raise ConfigurationError("invalid runtime settings snapshot")
-        if hasattr(detector, "confidence"):
-            detector.confidence = float(detector_values["confidence"])
+        requested_mode = str(detector_values["mode"])
+        confidence = float(detector_values["confidence"])
+        if requested_mode != detector_runtime_mode(detector):
+            try:
+                replacement = build_detector(requested_mode, confidence)
+            except ConfigurationError as exc:
+                startup_inference_error = str(exc)
+                raise
+            pipeline.detector = replacement
+            detector = replacement
+            startup_inference_error = None
+        elif hasattr(detector, "confidence"):
+            detector.confidence = confidence
         pipeline.fusion_iou = float(pipeline_values["fusion_iou"])
         pipeline.module_registry = build_module_registry_from_config(
             merge_module_runtime_settings(base_module_config, values),
             settings.project_root,
         )
+
+    def inference_status() -> dict[str, object]:
+        gpu_status = gpu_inference_status(settings.detector_weights)
+        return {
+            "active_mode": detector_runtime_mode(pipeline.detector),
+            "noop": {
+                "available": True,
+                "reason": None,
+            },
+            "gpu": gpu_status,
+            "last_error": startup_inference_error,
+        }
 
     return InspectionService(
         repository,
@@ -95,4 +142,5 @@ def build_service(settings_path: str | None = None) -> InspectionService:
         settings.max_image_bytes,
         runtime_settings=runtime_settings,
         apply_runtime_settings=apply_runtime,
+        inference_status_provider=inference_status,
     )
