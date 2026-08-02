@@ -10,3 +10,4 @@ venv/
 .mypy_cache/
 *.log
 Thumbs.db
+runtime_data/

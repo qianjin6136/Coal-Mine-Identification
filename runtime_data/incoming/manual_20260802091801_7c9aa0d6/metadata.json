@@ -1,0 +1,16 @@
+{
+  "capture_id": "manual_20260802091801_7c9aa0d6",
+  "capture_time": "2026-08-02T09:18:01.932Z",
+  "station_id": "manual",
+  "robot_pose": {
+    "frame": "map",
+    "x_m": null,
+    "y_m": null,
+    "yaw_deg": null
+  },
+  "camera_id": "browser_upload",
+  "images": [
+    "8 (27).jpg"
+  ],
+  "batch_id": null
+}
