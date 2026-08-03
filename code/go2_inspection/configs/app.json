@@ -8,7 +8,7 @@
   "max_image_bytes": 20971520,
   "detector": {
     "backend": "noop",
-    "weights": null,
+    "weights": "models/station_marker_best.pt",
     "confidence": 0.35
   },
   "pipeline": {

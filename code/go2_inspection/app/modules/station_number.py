@@ -1,4 +1,4 @@
-"""固定 1～10 号工位编号模块。"""
+"""固定工位编号模块。"""
 
 from __future__ import annotations
 
@@ -27,6 +27,10 @@ class StationNumberModule:
         }
         self.recognition_mode = str(
             config.get("recognition_mode", "capture_metadata")
+        )
+        self.use_detector_roi = bool(config.get("use_detector_roi", True))
+        self.allow_full_frame_fallback = bool(
+            config.get("allow_full_frame_fallback", False)
         )
         model_value = str(config.get("model_path", "")).strip()
         model_path = Path(model_value)
@@ -64,8 +68,32 @@ class StationNumberModule:
                 "model_path": str(self.model_path),
                 "frames": [],
             }
+        station_marker_bbox = (
+            _best_station_marker_bbox(context.objects)
+            if self.use_detector_roi
+            else None
+        )
+        if (
+            self.use_detector_roi
+            and station_marker_bbox is None
+            and not self.allow_full_frame_fallback
+        ):
+            return {
+                "enabled": True,
+                "status": "unreadable",
+                "number": None,
+                "confidence": 0.0,
+                "votes": 0,
+                "reason": "station_marker_not_detected",
+                "roi_source": "yolo_station_marker",
+                "station_marker_bbox_xyxy": None,
+                "frames": [],
+            }
+        roi_source = (
+            "yolo_station_marker" if station_marker_bbox is not None else "full_frame"
+        )
         frame_results = [
-            self.recognizer.read(path)
+            self.recognizer.read(path, roi_bbox_xyxy=station_marker_bbox)
             for path in context.image_paths
         ]
         confirmed = [
@@ -84,6 +112,10 @@ class StationNumberModule:
                 "confidence": 0.0,
                 "votes": 0,
                 "reason": "no_confirmed_station_number_readings",
+                "roi_source": roi_source,
+                "station_marker_bbox_xyxy": (
+                    list(station_marker_bbox) if station_marker_bbox else None
+                ),
                 "frames": [result.to_dict() for result in frame_results],
             }
         number, votes = vote_counts.most_common(1)[0]
@@ -98,6 +130,10 @@ class StationNumberModule:
                 "confidence": confidence,
                 "votes": votes,
                 "reason": "multi_frame_station_numbers_do_not_agree",
+                "roi_source": roi_source,
+                "station_marker_bbox_xyxy": (
+                    list(station_marker_bbox) if station_marker_bbox else None
+                ),
                 "frames": [result.to_dict() for result in frame_results],
             }
         metadata_number: int | None
@@ -113,6 +149,10 @@ class StationNumberModule:
             "votes": votes,
             "reason": "multi_frame_majority_confirmed",
             "source": "image_classifier",
+            "roi_source": roi_source,
+            "station_marker_bbox_xyxy": (
+                list(station_marker_bbox) if station_marker_bbox else None
+            ),
             "metadata_number": metadata_number,
             "metadata_matches": metadata_number == number,
             "frames": [result.to_dict() for result in frame_results],
@@ -133,7 +173,7 @@ class StationNumberModule:
                 "enabled": True,
                 "status": "unavailable",
                 "number": None,
-                "reason": "station_number_outside_1_to_10",
+                "reason": "station_number_outside_allowed_range",
             }
         return {
             "enabled": True,
@@ -141,3 +181,29 @@ class StationNumberModule:
             "number": number,
             "source": "capture_metadata",
         }
+
+
+def _best_station_marker_bbox(
+    objects: object,
+) -> tuple[float, float, float, float] | None:
+    candidates: list[tuple[float, tuple[float, float, float, float]]] = []
+    for item in objects if isinstance(objects, (list, tuple)) else ():
+        if not isinstance(item, Mapping):
+            continue
+        if (
+            item.get("type") != "station_marker"
+            and item.get("class") != "station_marker"
+        ):
+            continue
+        bbox = item.get("bbox_xyxy")
+        if not isinstance(bbox, (list, tuple)) or len(bbox) != 4:
+            continue
+        try:
+            values = tuple(float(value) for value in bbox)
+            confidence = float(item.get("confidence", 0.0))
+        except (TypeError, ValueError):
+            continue
+        if values[2] <= values[0] or values[3] <= values[1]:
+            continue
+        candidates.append((confidence, values))
+    return max(candidates, key=lambda item: item[0])[1] if candidates else None

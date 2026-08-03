@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import json
+import math
 from pathlib import Path
 import re
 from typing import Any, Mapping, Sequence
@@ -134,18 +135,34 @@ class StationNumberRecognizer:
         self.model = model
         self.minimum_confidence = minimum_confidence
 
-    def read(self, path: str | Path) -> StationNumberRecognition:
+    def read(
+        self,
+        path: str | Path,
+        roi_bbox_xyxy: Sequence[float] | None = None,
+    ) -> StationNumberRecognition:
         image = read_bgr_image(path)
         if image is None:
             return _unreadable("image_cannot_be_read")
-        return self.read_image(image)
+        return self.read_image(image, roi_bbox_xyxy=roi_bbox_xyxy)
 
-    def read_image(self, image: object) -> StationNumberRecognition:
-        segmentation = segment_station_number(image)
+    def read_image(
+        self,
+        image: object,
+        roi_bbox_xyxy: Sequence[float] | None = None,
+    ) -> StationNumberRecognition:
+        target_image = image
+        offset = (0, 0)
+        if roi_bbox_xyxy is not None:
+            cropped = _crop_station_roi(image, roi_bbox_xyxy)
+            if cropped is None:
+                return _unreadable("invalid_station_marker_bbox")
+            target_image, offset = cropped
+        segmentation = segment_station_number(target_image)
+        sign_bbox = _translate_bbox(segmentation.get("sign_bbox"), offset)
         if segmentation["error"]:
             return _unreadable(
                 str(segmentation["error"]),
-                segmentation.get("sign_bbox"),
+                sign_bbox,
             )
         number, confidence = self.model.predict(segmentation["feature"])
         if confidence < self.minimum_confidence:
@@ -153,14 +170,14 @@ class StationNumberRecognizer:
                 status="unreadable",
                 number=number,
                 confidence=confidence,
-                sign_bbox_xyxy=segmentation["sign_bbox"],
+                sign_bbox_xyxy=sign_bbox,
                 reason="station_number_confidence_below_threshold",
             )
         return StationNumberRecognition(
             status="confirmed",
             number=number,
             confidence=confidence,
-            sign_bbox_xyxy=segmentation["sign_bbox"],
+            sign_bbox_xyxy=sign_bbox,
             reason="station_number_template_confirmed",
         )
 
@@ -567,6 +584,41 @@ def segment_station_number(image: object) -> dict[str, Any]:
         "feature": (feature > 0).astype(np.uint8),
         "sign_bbox": bbox,
     }
+
+
+def _crop_station_roi(
+    image: object,
+    bbox_xyxy: Sequence[float],
+) -> tuple[object, tuple[int, int]] | None:
+    """把检测框裁剪到图像范围内，并返回用于还原全图坐标的偏移。"""
+
+    if image is None or not hasattr(image, "shape"):
+        return None
+    try:
+        values = [float(value) for value in bbox_xyxy]
+    except (TypeError, ValueError):
+        return None
+    if len(values) != 4 or not all(math.isfinite(value) for value in values):
+        return None
+    height, width = image.shape[:2]
+    x1 = max(0, min(width, math.floor(values[0])))
+    y1 = max(0, min(height, math.floor(values[1])))
+    x2 = max(0, min(width, math.ceil(values[2])))
+    y2 = max(0, min(height, math.ceil(values[3])))
+    if x2 <= x1 or y2 <= y1:
+        return None
+    return image[y1:y2, x1:x2], (x1, y1)
+
+
+def _translate_bbox(
+    bbox: tuple[int, int, int, int] | None,
+    offset: tuple[int, int],
+) -> tuple[int, int, int, int] | None:
+    if bbox is None:
+        return None
+    offset_x, offset_y = offset
+    x1, y1, x2, y2 = bbox
+    return x1 + offset_x, y1 + offset_y, x2 + offset_x, y2 + offset_y
 
 
 def _robustness_variants(image: object) -> list[tuple[str, object]]:

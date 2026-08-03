@@ -13,10 +13,12 @@
   "station_number": {
     "enabled": true,
     "training_enabled": true,
-    "allowed_numbers": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    "allowed_numbers": [7, 8, 9, 10],
     "samples_path": "configs/station_number_samples.json",
-    "model_path": "../../runtime_data/models/station_number_templates.npz",
+    "model_path": "../../runtime_data/models/station_number_templates_7_10.npz",
     "recognition_mode": "image_classifier",
+    "use_detector_roi": true,
+    "allow_full_frame_fallback": false,
     "minimum_frame_confidence": 0.55
   },
   "digital_meter": {

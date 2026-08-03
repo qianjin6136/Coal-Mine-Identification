@@ -526,6 +526,39 @@ class CaptureRepository:
             "offset": offset,
         }
 
+    def effective_results(
+        self, capture_ids: Sequence[str]
+    ) -> dict[str, dict[str, Any] | None]:
+        """批量读取列表页所需的有效结果，避免逐条查询数据库。"""
+
+        unique_ids = list(dict.fromkeys(capture_ids))
+        if not unique_ids:
+            return {}
+        placeholders = ", ".join("?" for _ in unique_ids)
+        with self._connection() as connection:
+            rows = connection.execute(
+                f"""
+                SELECT
+                    c.capture_id,
+                    c.result_json,
+                    (
+                        SELECT x.corrected_result_json
+                        FROM corrections x
+                        WHERE x.capture_id = c.capture_id AND x.active = 1
+                        ORDER BY x.id DESC
+                        LIMIT 1
+                    ) AS corrected_result_json
+                FROM captures c
+                WHERE c.capture_id IN ({placeholders})
+                """,
+                unique_ids,
+            ).fetchall()
+        results: dict[str, dict[str, Any] | None] = {}
+        for row in rows:
+            payload = row["corrected_result_json"] or row["result_json"]
+            results[row["capture_id"]] = json.loads(payload) if payload else None
+        return results
+
     def save_correction(
         self,
         capture_id: str,

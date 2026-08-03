@@ -9,6 +9,7 @@ from .domain import BoundingBox, CaptureMetadata
 from .errors import ValidationError
 from .inference import detector_runtime_mode
 from .pipeline import InspectionPipeline
+from .result_summary import build_recognition_summary
 from .runtime_settings import RuntimeSettingsManager
 from .storage import CaptureRepository
 
@@ -43,7 +44,7 @@ class InspectionService:
         # GO2 断网补传可能重复提交同一任务，以 capture_id 作为幂等键避免重复推理。
         if self.repository.capture_exists(metadata.capture_id):
             self.repository.assert_replay_matches(metadata, images)
-            existing = self.repository.get_capture(metadata.capture_id)
+            existing = self.get_capture(metadata.capture_id)
             existing["idempotent_replay"] = True
             return existing
 
@@ -60,10 +61,11 @@ class InspectionService:
             # 图片和任务已入库时保留失败状态，便于诊断或后续离线重跑。
             self.repository.save_error(metadata.capture_id, str(exc))
             raise
-        return self.repository.get_capture(metadata.capture_id)
+        return self.get_capture(metadata.capture_id)
 
     def get_capture(self, capture_id: str) -> dict[str, Any]:
-        return self.repository.get_capture(capture_id)
+        capture = self.repository.get_capture(capture_id)
+        return self._attach_recognition_summary(capture)
 
     def delete_capture(self, capture_id: str) -> dict[str, Any]:
         """删除一条巡检任务及其关联文件。"""
@@ -92,13 +94,22 @@ class InspectionService:
             limit=limit,
             offset=offset,
         )
+        effective_results = self.repository.effective_results(
+            [item["capture_id"] for item in result["items"]]
+        )
         # 人工修正不覆盖模型原始 objects 表；列表中对已修正记录显示有效对象数。
         for item in result["items"]:
+            effective_result = effective_results.get(item["capture_id"])
             if item["manually_corrected"]:
-                capture = self.repository.get_capture(item["capture_id"])
                 item["object_count"] = len(
-                    (capture.get("result") or {}).get("objects") or []
+                    (effective_result or {}).get("objects") or []
                 )
+            item["recognition_summary"] = build_recognition_summary(
+                capture_status=item["status"],
+                result=effective_result,
+                error=item.get("error"),
+                manually_corrected=item["manually_corrected"],
+            )
         return result
 
     def correct_capture(
@@ -140,7 +151,7 @@ class InspectionService:
             operator=operator,
             reason=reason,
         )
-        return self.repository.get_capture(capture_id)
+        return self.get_capture(capture_id)
 
     def reprocess_capture(self, capture_id: str) -> dict[str, Any]:
         """使用当前模型和配置重跑既有原图，并停用旧人工修正但保留审计。"""
@@ -156,7 +167,17 @@ class InspectionService:
         except Exception as exc:
             self.repository.save_error(capture_id, str(exc))
             raise
-        return self.repository.get_capture(capture_id)
+        return self.get_capture(capture_id)
+
+    @staticmethod
+    def _attach_recognition_summary(capture: dict[str, Any]) -> dict[str, Any]:
+        capture["recognition_summary"] = build_recognition_summary(
+            capture_status=capture["status"],
+            result=capture.get("result"),
+            error=capture.get("error"),
+            manually_corrected=bool(capture.get("manually_corrected")),
+        )
+        return capture
 
     def export_captures(
         self,

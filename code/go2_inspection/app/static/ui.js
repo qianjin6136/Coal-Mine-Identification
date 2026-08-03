@@ -14,6 +14,36 @@ const STATUS_LABELS = {
   failed: "失败",
 };
 
+const RECOGNITION_STATUS_LABELS = {
+  processing: "识别中",
+  recognized: "识别成功",
+  partial: "部分识别",
+  unrecognized: "未识别成功",
+  failed: "任务失败",
+  detected: "检测成功",
+};
+
+const REASON_LABELS = {
+  no_confirmed_station_number_readings: "没有获得可信的工位编号读数",
+  station_number_confidence_below_threshold: "编号候选置信度低于阈值",
+  multi_frame_station_numbers_do_not_agree: "多帧工位编号结果不一致",
+  multi_frame_majority_confirmed: "多帧多数结果已确认",
+  station_number_template_confirmed: "编号模板匹配已确认",
+  station_image_classifier_not_trained: "工位编号识别模型尚未训练",
+  station_id_is_not_numeric: "任务工位不是数字编号",
+  station_number_outside_1_to_10: "工位编号不在允许范围内",
+  station_number_outside_allowed_range: "工位编号不在当前模型支持范围内",
+  station_marker_not_detected: "YOLO 未检测到编号牌，未执行编号读取",
+  invalid_station_marker_bbox: "YOLO 编号牌目标框无效",
+  no_confirmed_frame_readings: "没有获得可信的数字表读数",
+  coal_detector_not_configured: "煤堆检测模型未配置",
+  normal_and_abnormal_reference_images_are_not_available: "缺少正常与异常参考图",
+  final_class_list_is_not_frozen: "最终类别清单尚未冻结",
+  "normal and abnormal reference images are not available": "缺少正常与异常参考图",
+  "final class list is not frozen": "最终类别清单尚未冻结",
+  disabled_by_configuration: "已在配置中停用",
+};
+
 const state = {
   files: [],
   metadata: null,
@@ -449,7 +479,7 @@ function renderModules(values, statuses) {
     const strong = document.createElement("strong");
     strong.textContent = label;
     const reason = document.createElement("small");
-    reason.textContent = status.reason || statusText(status.status);
+    reason.textContent = reasonText(status.reason) || statusText(status.status);
     reason.title = reason.textContent;
     name.append(strong, reason);
 
@@ -478,9 +508,21 @@ function statusText(status) {
     ready: "就绪",
     disabled: "已停用",
     unavailable: "不可用",
+    unreadable: "未识别成功",
+    confirmed: "识别成功",
+    detected: "检测成功",
     metadata_only: "仅元数据",
     unknown: "未知",
   }[status] || status;
+}
+
+function reasonText(reason) {
+  if (!reason) return "";
+  if (REASON_LABELS[reason]) return REASON_LABELS[reason];
+  if (String(reason).startsWith("expected_4_digits_but_found_")) {
+    return "检测到的数字位数与预期 4 位不一致";
+  }
+  return String(reason).replaceAll("_", " ");
 }
 
 function markSettingsDirty() {
@@ -605,7 +647,7 @@ async function loadRecords() {
     const row = document.createElement("tr");
     const cell = document.createElement("td");
     cell.className = "empty-cell";
-    cell.colSpan = 8;
+    cell.colSpan = 9;
     cell.textContent = error.message;
     row.appendChild(cell);
     body.appendChild(row);
@@ -620,7 +662,7 @@ function renderRecords() {
     const row = document.createElement("tr");
     const cell = document.createElement("td");
     cell.className = "empty-cell";
-    cell.colSpan = 8;
+    cell.colSpan = 9;
     cell.textContent = "暂无匹配的任务记录";
     row.appendChild(cell);
     body.appendChild(row);
@@ -687,6 +729,7 @@ function recordRow(item) {
   row.appendChild(source);
   appendTextCell(row, String(item.image_count));
   appendTextCell(row, String(item.object_count));
+  row.appendChild(buildRecognitionTableCell(item.recognition_summary));
 
   const statusCell = document.createElement("td");
   const status = document.createElement("span");
@@ -726,6 +769,54 @@ function recordRow(item) {
   actionCell.appendChild(actions);
   row.appendChild(actionCell);
   return row;
+}
+
+function buildRecognitionTableCell(summary) {
+  const cell = document.createElement("td");
+  cell.className = "recognition-cell";
+  const headline = document.createElement("strong");
+  headline.textContent = recognitionHeadline(summary);
+  const status = document.createElement("span");
+  const summaryStatus = summary?.status || "unrecognized";
+  status.className = `recognition-inline-status ${summaryStatus}`;
+  status.textContent = RECOGNITION_STATUS_LABELS[summaryStatus] || summaryStatus;
+  const note = document.createElement("small");
+  note.textContent = recognitionNote(summary);
+  cell.append(headline, status, note);
+  return cell;
+}
+
+function recognitionHeadline(summary) {
+  if (!summary || summary.status === "unrecognized") return "未识别成功";
+  if (summary.status === "processing") return "正在识别";
+  if (summary.status === "failed") return "识别任务失败";
+  const primary = summary.primary;
+  if (!primary) return "未识别成功";
+  if (primary.source_kind === "module" || primary.source_kind === "manual") {
+    return `${primary.source_name}：${primary.display_value || primary.label}`;
+  }
+  return `${primary.source_name}：检测到${primary.label}`;
+}
+
+function recognitionNote(summary) {
+  if (!summary) return "没有最终识别摘要";
+  if (summary.status === "processing") return "等待模型返回结果";
+  if (summary.status === "failed") return summary.error || "处理过程发生错误";
+  const notes = [];
+  if (summary.primary?.confidence > 0) {
+    notes.push(`置信度 ${formatConfidence(summary.primary.confidence)}`);
+  }
+  const failures = (summary.items || [])
+    .filter((item) => item.status === "unrecognized")
+    .map((item) => item.source_name);
+  if (failures.length) notes.push(`${failures.join("、")}未识别成功`);
+  if (!notes.length && !summary.primary) notes.push("没有检测到可确认的目标或读数");
+  return notes.join(" · ") || "已获得可信结果";
+}
+
+function formatConfidence(value) {
+  const confidence = Number(value);
+  return Number.isFinite(confidence) ? `${(confidence * 100).toFixed(1)}%` : "—";
 }
 
 function updateRecordSelection() {
@@ -887,6 +978,7 @@ function renderDetail() {
     content.appendChild(thumbnails);
   }
 
+  content.appendChild(buildRecognitionSummarySection(capture));
   content.appendChild(buildMetadataSection(capture));
   if (capture.error) {
     const error = document.createElement("div");
@@ -904,6 +996,69 @@ function makeStatusChip(statusValue) {
   status.className = `status-chip ${statusValue}`;
   status.textContent = STATUS_LABELS[statusValue] || statusValue;
   return status;
+}
+
+function buildRecognitionSummarySection(capture) {
+  const section = detailSection("最终识别结果");
+  const summary = capture.recognition_summary || {
+    status: capture.status === "failed" ? "failed" : "unrecognized",
+    primary: null,
+    items: [],
+    error: capture.error,
+  };
+  const hero = document.createElement("div");
+  hero.className = `recognition-summary ${summary.status}`;
+  const status = document.createElement("span");
+  status.className = `recognition-summary-status ${summary.status}`;
+  status.textContent = RECOGNITION_STATUS_LABELS[summary.status] || summary.status;
+  const headline = document.createElement("strong");
+  headline.textContent = recognitionHeadline(summary);
+  const description = document.createElement("p");
+  description.textContent = {
+    recognized: "本次任务已获得可确认的最终结果。",
+    partial: "已检测到目标，但部分启用模块没有获得可信结果。",
+    unrecognized: "本次任务没有获得可确认的目标或读数。",
+    processing: "模型正在处理本次任务。",
+    failed: summary.error || "本次任务处理失败。",
+  }[summary.status] || recognitionNote(summary);
+  hero.append(status, headline, description);
+  section.appendChild(hero);
+
+  const items = summary.items || [];
+  if (!items.length) return section;
+  const list = document.createElement("div");
+  list.className = "recognition-result-list";
+  items.forEach((item) => {
+    const card = document.createElement("article");
+    card.className = `recognition-result-item ${item.status}`;
+    const header = document.createElement("div");
+    const source = document.createElement("strong");
+    source.textContent = item.source_name;
+    const itemStatus = document.createElement("span");
+    itemStatus.textContent = RECOGNITION_STATUS_LABELS[item.status]
+      || statusText(item.raw_status);
+    header.append(source, itemStatus);
+    const value = document.createElement("p");
+    if (item.status === "unrecognized") {
+      value.textContent = "未识别成功";
+    } else if (item.source_kind === "detector") {
+      value.textContent = `检测到：${item.label}`;
+    } else {
+      value.textContent = `最终结果：${item.display_value || item.label}`;
+    }
+    const metadata = document.createElement("small");
+    const details = [];
+    if (item.source_kind === "detector" && item.value) {
+      details.push(`类别 ${item.value}`);
+    }
+    if (item.confidence > 0) details.push(`置信度 ${formatConfidence(item.confidence)}`);
+    if (item.reason) details.push(reasonText(item.reason));
+    metadata.textContent = details.join(" · ") || "—";
+    card.append(header, value, metadata);
+    list.appendChild(card);
+  });
+  section.appendChild(list);
+  return section;
 }
 
 function buildMetadataSection(capture) {
@@ -969,17 +1124,37 @@ function buildModuleSection(capture) {
     const title = document.createElement("strong");
     title.textContent = MODULE_LABELS[moduleId] || moduleId;
     const status = document.createElement("span");
-    status.textContent = result.status || "—";
+    status.textContent = statusText(result.status || "unknown");
     const summary = document.createElement("p");
-    const preferred = result.raw_text ?? result.number ?? result.present ?? result.reason;
-    summary.textContent = preferred === null || preferred === undefined
-      ? "无附加结果"
-      : String(preferred);
+    summary.textContent = moduleResultText(moduleId, result);
     card.append(title, status, summary);
     list.appendChild(card);
   });
   section.appendChild(list);
   return section;
+}
+
+function moduleResultText(moduleId, result) {
+  if (result.status === "disabled" || result.enabled === false) {
+    return `未启用${result.reason ? `：${reasonText(result.reason)}` : ""}`;
+  }
+  if (["unreadable", "unavailable"].includes(result.status)) {
+    return `未识别成功${result.reason ? `：${reasonText(result.reason)}` : ""}`;
+  }
+  if (moduleId === "station_number" && result.number !== null && result.number !== undefined) {
+    return `最终结果：${result.number} 号`;
+  }
+  if (moduleId === "digital_meter") {
+    const value = result.raw_text ?? result.value;
+    return value === null || value === undefined ? "未识别成功" : `最终结果：${value}`;
+  }
+  if (moduleId === "coal_presence" && typeof result.present === "boolean") {
+    return result.present ? "检测到煤堆" : "未检测到煤堆";
+  }
+  const objects = result.objects ?? result.meters;
+  if (Array.isArray(objects)) return `识别目标：${objects.length} 个`;
+  const preferred = result.raw_text ?? result.number ?? result.value ?? result.present;
+  return preferred === null || preferred === undefined ? "识别完成" : `最终结果：${preferred}`;
 }
 
 function buildCorrectionSection(capture) {
