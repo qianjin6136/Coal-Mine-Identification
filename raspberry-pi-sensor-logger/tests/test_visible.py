@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from sensor_logger.visible import VisibleCameraLogger, VisiblePackageWriter
+from sensor_logger.usbcamera import VisibleCameraLogger, VisiblePackageWriter
 
 
 NOW = datetime(2026, 8, 4, 15, 30, 5, 123456, tzinfo=timezone(timedelta(hours=8)))

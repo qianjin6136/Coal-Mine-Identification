@@ -16,7 +16,7 @@ from sensor_logger.gas import FourGasReader
 from sensor_logger.service import SensorLogger, run_periodic
 from sensor_logger.storage import GasCsvWriter
 from sensor_logger.thermal import Mlx90640Camera, ThermalImageWriter
-from sensor_logger.visible import UsbCamera, VisibleCameraLogger, VisiblePackageWriter
+from sensor_logger.usbcamera import UsbCamera, VisibleCameraLogger, VisiblePackageWriter
 
 LOGGER = logging.getLogger("sensor_logger")
 

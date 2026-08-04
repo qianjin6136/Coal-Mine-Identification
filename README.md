@@ -1,7 +1,7 @@
 # Coal Mine Identification
 
 本项目用于煤矿巡检比赛中的离线数据采集与识别，分为树莓派采集端和上位机识别端。
-树莓派在约 20 分钟的巡检过程中只负责采集和保存；比赛结束后通过 U 盘把完整数据复制到上位机，再进行三帧融合识别和结果复核。
+树莓派在约 20 分钟的巡检过程中只负责采集和保存；比赛结束后通过 U 盘把完整数据复制到上位机，再进行图像识别、结果处理与报告生成。
 
 ## 项目结构
 
@@ -205,11 +205,11 @@ python .\scripts\upload_queue.py `
 
 更详细的部署、标注和训练说明见：
 
-- `go2_inspection/docs/源码运行与工作台使用说明.md`
-- `go2_inspection/docs/部署与安装指南.md`
-- `go2_inspection/docs/Ubuntu20.04与22.04部署指南.md`
-- `go2_inspection/docs/标注规范.md`
-- `go2_inspection/docs/编号牌YOLO数据集与GPU训练.md`
+- [源码运行与工作台使用说明](go2_inspection/docs/源码运行与工作台使用说明.md)
+- [部署与安装指南](go2_inspection/docs/部署与安装指南.md)
+- [Ubuntu20.04与22.04部署指南](go2_inspection/docs/Ubuntu20.04与22.04部署指南.md)
+- [标注规范](go2_inspection/docs/标注规范.md)
+- [编号牌YOLO数据集与GPU训练](go2_inspection/docs/编号牌YOLO数据集与GPU训练.md)
 
 ## 测试
 
