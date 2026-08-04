@@ -1,0 +1,5 @@
+{
+  "dataset_root": "sample/编号",
+  "extensions": [".jpg", ".jpeg", ".png"],
+  "exclude": []
+}

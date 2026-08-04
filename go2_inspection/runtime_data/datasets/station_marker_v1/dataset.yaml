@@ -1,0 +1,6 @@
+path: 'E:/视觉识别/runtime_data/datasets/station_marker_v1'
+train: images/train
+val: images/val
+test: images/test
+names:
+  0: station_marker

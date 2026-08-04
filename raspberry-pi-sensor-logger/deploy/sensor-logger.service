@@ -1,0 +1,16 @@
+[Unit]
+Description=MLX90640, 4MZ-HH4 and USB Camera Logger
+After=local-fs.target
+
+[Service]
+Type=simple
+User=aabb942218
+WorkingDirectory=/home/aabb942218/sensor-reader
+EnvironmentFile=/etc/default/sensor-logger
+ExecStart=/home/aabb942218/sensor-reader/.venv/bin/python -m sensor_logger --interval 5 --camera-interval 2
+Restart=on-failure
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

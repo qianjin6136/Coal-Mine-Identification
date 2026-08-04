@@ -1,0 +1,8 @@
+{
+  "samples_config": "configs/station_marker_samples_v2.json",
+  "annotation_manifest": "runtime_data/datasets/station_marker_v2/manifest.jsonl",
+  "output_root": "runtime_data/datasets/station_number_v2",
+  "bbox_selection": "largest_area",
+  "padding_fraction": 0.08,
+  "skip_segmentation_failures": true
+}

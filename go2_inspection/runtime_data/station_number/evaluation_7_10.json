@@ -1,0 +1,952 @@
+{
+  "samples": 63,
+  "correct": 63,
+  "accuracy": 1.0,
+  "results": [
+    {
+      "file": "sample\\编号\\7\\7 (1).jpg",
+      "expected": 7,
+      "status": "confirmed",
+      "number": 7,
+      "confidence": 0.922765,
+      "sign_bbox_xyxy": [
+        1009,
+        655,
+        1441,
+        1093
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\7\\7 (5).jpg",
+      "expected": 7,
+      "status": "confirmed",
+      "number": 7,
+      "confidence": 0.921162,
+      "sign_bbox_xyxy": [
+        1020,
+        599,
+        1340,
+        915
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\7\\7 (6).jpg",
+      "expected": 7,
+      "status": "confirmed",
+      "number": 7,
+      "confidence": 0.923699,
+      "sign_bbox_xyxy": [
+        1152,
+        515,
+        1499,
+        854
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\7\\7 (7).jpg",
+      "expected": 7,
+      "status": "confirmed",
+      "number": 7,
+      "confidence": 0.919402,
+      "sign_bbox_xyxy": [
+        1154,
+        620,
+        1465,
+        933
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\7\\7 (8).jpg",
+      "expected": 7,
+      "status": "confirmed",
+      "number": 7,
+      "confidence": 0.924948,
+      "sign_bbox_xyxy": [
+        1207,
+        724,
+        1480,
+        1009
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\7\\7 (9).jpg",
+      "expected": 7,
+      "status": "confirmed",
+      "number": 7,
+      "confidence": 0.932326,
+      "sign_bbox_xyxy": [
+        872,
+        702,
+        1136,
+        963
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\7\\7 (12).jpg",
+      "expected": 7,
+      "status": "confirmed",
+      "number": 7,
+      "confidence": 0.91689,
+      "sign_bbox_xyxy": [
+        977,
+        534,
+        1279,
+        828
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\7\\7 (13).jpg",
+      "expected": 7,
+      "status": "confirmed",
+      "number": 7,
+      "confidence": 0.934131,
+      "sign_bbox_xyxy": [
+        995,
+        651,
+        1359,
+        1013
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\7\\7 (14).jpg",
+      "expected": 7,
+      "status": "confirmed",
+      "number": 7,
+      "confidence": 0.924546,
+      "sign_bbox_xyxy": [
+        1049,
+        583,
+        1274,
+        804
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\7\\7 (16).jpg",
+      "expected": 7,
+      "status": "confirmed",
+      "number": 7,
+      "confidence": 0.916495,
+      "sign_bbox_xyxy": [
+        949,
+        456,
+        1311,
+        818
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\7\\7 (17).jpg",
+      "expected": 7,
+      "status": "confirmed",
+      "number": 7,
+      "confidence": 0.910774,
+      "sign_bbox_xyxy": [
+        1095,
+        403,
+        1467,
+        784
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\7\\7.png",
+      "expected": 7,
+      "status": "confirmed",
+      "number": 7,
+      "confidence": 0.983108,
+      "sign_bbox_xyxy": [
+        801,
+        910,
+        1029,
+        1166
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (1).jpg",
+      "expected": 8,
+      "status": "confirmed",
+      "number": 8,
+      "confidence": 0.840898,
+      "sign_bbox_xyxy": [
+        1071,
+        790,
+        1251,
+        980
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (11).jpg",
+      "expected": 8,
+      "status": "confirmed",
+      "number": 8,
+      "confidence": 0.831106,
+      "sign_bbox_xyxy": [
+        1127,
+        817,
+        1374,
+        1068
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (12).jpg",
+      "expected": 8,
+      "status": "confirmed",
+      "number": 8,
+      "confidence": 0.828701,
+      "sign_bbox_xyxy": [
+        1284,
+        742,
+        1542,
+        1005
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (13).jpg",
+      "expected": 8,
+      "status": "confirmed",
+      "number": 8,
+      "confidence": 0.826955,
+      "sign_bbox_xyxy": [
+        1107,
+        779,
+        1323,
+        1034
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (14).jpg",
+      "expected": 8,
+      "status": "confirmed",
+      "number": 8,
+      "confidence": 0.826449,
+      "sign_bbox_xyxy": [
+        936,
+        985,
+        1178,
+        1206
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (15).jpg",
+      "expected": 8,
+      "status": "confirmed",
+      "number": 8,
+      "confidence": 0.820334,
+      "sign_bbox_xyxy": [
+        1086,
+        890,
+        1276,
+        1115
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (16).jpg",
+      "expected": 8,
+      "status": "confirmed",
+      "number": 8,
+      "confidence": 0.978987,
+      "sign_bbox_xyxy": [
+        1083,
+        795,
+        1287,
+        998
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (17).jpg",
+      "expected": 8,
+      "status": "confirmed",
+      "number": 8,
+      "confidence": 0.825361,
+      "sign_bbox_xyxy": [
+        1136,
+        894,
+        1355,
+        1121
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (18).jpg",
+      "expected": 8,
+      "status": "confirmed",
+      "number": 8,
+      "confidence": 0.839623,
+      "sign_bbox_xyxy": [
+        805,
+        832,
+        1032,
+        1053
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (21).jpg",
+      "expected": 8,
+      "status": "confirmed",
+      "number": 8,
+      "confidence": 0.831388,
+      "sign_bbox_xyxy": [
+        1136,
+        616,
+        1669,
+        1230
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (22).jpg",
+      "expected": 8,
+      "status": "confirmed",
+      "number": 8,
+      "confidence": 0.836277,
+      "sign_bbox_xyxy": [
+        1269,
+        496,
+        1578,
+        812
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (23).jpg",
+      "expected": 8,
+      "status": "confirmed",
+      "number": 8,
+      "confidence": 0.830294,
+      "sign_bbox_xyxy": [
+        777,
+        702,
+        1026,
+        947
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (24).jpg",
+      "expected": 8,
+      "status": "confirmed",
+      "number": 8,
+      "confidence": 0.823687,
+      "sign_bbox_xyxy": [
+        406,
+        981,
+        728,
+        1266
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (25).jpg",
+      "expected": 8,
+      "status": "confirmed",
+      "number": 8,
+      "confidence": 0.83353,
+      "sign_bbox_xyxy": [
+        1690,
+        861,
+        1845,
+        992
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (26).jpg",
+      "expected": 8,
+      "status": "confirmed",
+      "number": 8,
+      "confidence": 0.812784,
+      "sign_bbox_xyxy": [
+        905,
+        949,
+        1163,
+        1216
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (27).jpg",
+      "expected": 8,
+      "status": "confirmed",
+      "number": 8,
+      "confidence": 0.831509,
+      "sign_bbox_xyxy": [
+        895,
+        668,
+        1140,
+        910
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8.png",
+      "expected": 8,
+      "status": "confirmed",
+      "number": 8,
+      "confidence": 0.832905,
+      "sign_bbox_xyxy": [
+        799,
+        910,
+        1030,
+        1166
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\9\\9 (1).jpg",
+      "expected": 9,
+      "status": "confirmed",
+      "number": 9,
+      "confidence": 0.820334,
+      "sign_bbox_xyxy": [
+        865,
+        481,
+        1179,
+        789
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\9\\9 (7).jpg",
+      "expected": 9,
+      "status": "confirmed",
+      "number": 9,
+      "confidence": 0.813887,
+      "sign_bbox_xyxy": [
+        1032,
+        1033,
+        1328,
+        1347
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\9\\9 (9).jpg",
+      "expected": 9,
+      "status": "confirmed",
+      "number": 9,
+      "confidence": 0.812784,
+      "sign_bbox_xyxy": [
+        1050,
+        1058,
+        1312,
+        1335
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\9\\9 (10).jpg",
+      "expected": 9,
+      "status": "confirmed",
+      "number": 9,
+      "confidence": 0.823687,
+      "sign_bbox_xyxy": [
+        829,
+        769,
+        1060,
+        997
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\9\\9 (11).jpg",
+      "expected": 9,
+      "status": "confirmed",
+      "number": 9,
+      "confidence": 0.828261,
+      "sign_bbox_xyxy": [
+        1066,
+        845,
+        1469,
+        1265
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\9\\9 (12).jpg",
+      "expected": 9,
+      "status": "confirmed",
+      "number": 9,
+      "confidence": 0.910581,
+      "sign_bbox_xyxy": [
+        961,
+        692,
+        1360,
+        1034
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\9\\9 (13).jpg",
+      "expected": 9,
+      "status": "confirmed",
+      "number": 9,
+      "confidence": 0.879037,
+      "sign_bbox_xyxy": [
+        1174,
+        895,
+        1533,
+        1300
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\9\\9 (14).jpg",
+      "expected": 9,
+      "status": "confirmed",
+      "number": 9,
+      "confidence": 0.908014,
+      "sign_bbox_xyxy": [
+        1067,
+        839,
+        1363,
+        1150
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\9\\9 (15).jpg",
+      "expected": 9,
+      "status": "confirmed",
+      "number": 9,
+      "confidence": 0.822876,
+      "sign_bbox_xyxy": [
+        1179,
+        890,
+        1392,
+        1107
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\9\\9 (16).jpg",
+      "expected": 9,
+      "status": "confirmed",
+      "number": 9,
+      "confidence": 0.830149,
+      "sign_bbox_xyxy": [
+        942,
+        792,
+        1172,
+        1026
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\9\\9 (17).jpg",
+      "expected": 9,
+      "status": "confirmed",
+      "number": 9,
+      "confidence": 0.824044,
+      "sign_bbox_xyxy": [
+        1459,
+        719,
+        1688,
+        933
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\9\\9.png",
+      "expected": 9,
+      "status": "confirmed",
+      "number": 9,
+      "confidence": 0.832905,
+      "sign_bbox_xyxy": [
+        801,
+        910,
+        1029,
+        1165
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (1).jpg",
+      "expected": 10,
+      "status": "confirmed",
+      "number": 10,
+      "confidence": 1.0,
+      "sign_bbox_xyxy": [
+        1029,
+        979,
+        1258,
+        1244
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (2).jpg",
+      "expected": 10,
+      "status": "confirmed",
+      "number": 10,
+      "confidence": 1.0,
+      "sign_bbox_xyxy": [
+        961,
+        670,
+        1287,
+        988
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (3).jpg",
+      "expected": 10,
+      "status": "confirmed",
+      "number": 10,
+      "confidence": 1.0,
+      "sign_bbox_xyxy": [
+        1021,
+        634,
+        1341,
+        953
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (4).jpg",
+      "expected": 10,
+      "status": "confirmed",
+      "number": 10,
+      "confidence": 1.0,
+      "sign_bbox_xyxy": [
+        1100,
+        542,
+        1599,
+        1033
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (5).jpg",
+      "expected": 10,
+      "status": "confirmed",
+      "number": 10,
+      "confidence": 1.0,
+      "sign_bbox_xyxy": [
+        921,
+        697,
+        1175,
+        976
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (6).jpg",
+      "expected": 10,
+      "status": "confirmed",
+      "number": 10,
+      "confidence": 1.0,
+      "sign_bbox_xyxy": [
+        796,
+        772,
+        1073,
+        1044
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (7).jpg",
+      "expected": 10,
+      "status": "confirmed",
+      "number": 10,
+      "confidence": 1.0,
+      "sign_bbox_xyxy": [
+        1093,
+        467,
+        1681,
+        1044
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (8).jpg",
+      "expected": 10,
+      "status": "confirmed",
+      "number": 10,
+      "confidence": 0.995688,
+      "sign_bbox_xyxy": [
+        1065,
+        604,
+        1532,
+        1139
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (9).jpg",
+      "expected": 10,
+      "status": "confirmed",
+      "number": 10,
+      "confidence": 1.0,
+      "sign_bbox_xyxy": [
+        1020,
+        736,
+        1381,
+        1117
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (10).jpg",
+      "expected": 10,
+      "status": "confirmed",
+      "number": 10,
+      "confidence": 1.0,
+      "sign_bbox_xyxy": [
+        1057,
+        699,
+        1303,
+        958
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (11).jpg",
+      "expected": 10,
+      "status": "confirmed",
+      "number": 10,
+      "confidence": 1.0,
+      "sign_bbox_xyxy": [
+        1124,
+        695,
+        1324,
+        948
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (12).jpg",
+      "expected": 10,
+      "status": "confirmed",
+      "number": 10,
+      "confidence": 1.0,
+      "sign_bbox_xyxy": [
+        667,
+        793,
+        929,
+        1041
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (13).jpg",
+      "expected": 10,
+      "status": "confirmed",
+      "number": 10,
+      "confidence": 1.0,
+      "sign_bbox_xyxy": [
+        1088,
+        736,
+        1284,
+        935
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (14).jpg",
+      "expected": 10,
+      "status": "confirmed",
+      "number": 10,
+      "confidence": 1.0,
+      "sign_bbox_xyxy": [
+        1106,
+        678,
+        1380,
+        953
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (15).jpg",
+      "expected": 10,
+      "status": "confirmed",
+      "number": 10,
+      "confidence": 1.0,
+      "sign_bbox_xyxy": [
+        971,
+        774,
+        1290,
+        1096
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (17).jpg",
+      "expected": 10,
+      "status": "confirmed",
+      "number": 10,
+      "confidence": 1.0,
+      "sign_bbox_xyxy": [
+        832,
+        829,
+        1137,
+        1135
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (18).jpg",
+      "expected": 10,
+      "status": "confirmed",
+      "number": 10,
+      "confidence": 1.0,
+      "sign_bbox_xyxy": [
+        952,
+        912,
+        1182,
+        1182
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (19).jpg",
+      "expected": 10,
+      "status": "confirmed",
+      "number": 10,
+      "confidence": 1.0,
+      "sign_bbox_xyxy": [
+        969,
+        875,
+        1185,
+        1143
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (20).jpg",
+      "expected": 10,
+      "status": "confirmed",
+      "number": 10,
+      "confidence": 0.981154,
+      "sign_bbox_xyxy": [
+        1011,
+        758,
+        1212,
+        999
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (21).jpg",
+      "expected": 10,
+      "status": "confirmed",
+      "number": 10,
+      "confidence": 1.0,
+      "sign_bbox_xyxy": [
+        828,
+        946,
+        1153,
+        1276
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (22).jpg",
+      "expected": 10,
+      "status": "confirmed",
+      "number": 10,
+      "confidence": 0.987535,
+      "sign_bbox_xyxy": [
+        799,
+        714,
+        1180,
+        1042
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10.png",
+      "expected": 10,
+      "status": "confirmed",
+      "number": 10,
+      "confidence": 0.957901,
+      "sign_bbox_xyxy": [
+        799,
+        910,
+        1030,
+        1165
+      ],
+      "reason": "station_number_template_confirmed",
+      "correct": true
+    }
+  ]
+}

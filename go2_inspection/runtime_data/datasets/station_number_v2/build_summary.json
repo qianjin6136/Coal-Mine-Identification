@@ -1,0 +1,76 @@
+{
+  "dataset": "runtime_data\\datasets\\station_number_v2",
+  "source_samples": 187,
+  "classifier_samples": 184,
+  "samples_per_class": {
+    "1": 23,
+    "2": 20,
+    "3": 2,
+    "4": 20,
+    "5": 27,
+    "6": 14,
+    "7": 18,
+    "8": 19,
+    "9": 18,
+    "10": 23
+  },
+  "corrected_manifest_labels": 19,
+  "skipped_samples": 3,
+  "skipped": [
+    {
+      "source": "sample\\编号\\2\\2 (1).jpg",
+      "label": 2,
+      "reason": "blue_station_sign_not_found",
+      "bbox_xyxy": [
+        577,
+        352,
+        646,
+        445
+      ],
+      "crop_bbox_xyxy": [
+        570,
+        345,
+        653,
+        452
+      ]
+    },
+    {
+      "source": "sample\\编号\\2\\2 (20).jpg",
+      "label": 2,
+      "reason": "blue_station_sign_not_found",
+      "bbox_xyxy": [
+        574,
+        280,
+        829,
+        485
+      ],
+      "crop_bbox_xyxy": [
+        554,
+        260,
+        849,
+        505
+      ]
+    },
+    {
+      "source": "sample\\编号\\9\\9 (18).jpg",
+      "label": 9,
+      "reason": "white_station_number_not_found",
+      "bbox_xyxy": [
+        1538,
+        942,
+        1762,
+        1157
+      ],
+      "crop_bbox_xyxy": [
+        1520,
+        924,
+        1780,
+        1175
+      ]
+    }
+  ],
+  "annotation_manifest": "runtime_data\\datasets\\station_marker_v2\\manifest.jsonl",
+  "manifest": "runtime_data\\datasets\\station_number_v2\\manifest.jsonl",
+  "bbox_selection": "largest_area",
+  "padding_fraction": 0.08
+}

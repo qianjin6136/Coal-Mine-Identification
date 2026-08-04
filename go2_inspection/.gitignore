@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+.python/
+build/
+dist/
+*.egg-info/
+data/incoming/
+data/processed/
+data/evidence/
+data/database/
+models/*.pt
+models/*.onnx
+models/*.engine

@@ -1,0 +1,78 @@
+"""用带标签数字表样本评估已保存模型，并输出逐图结果。"""
+
+from __future__ import annotations
+
+import argparse
+import json
+from pathlib import Path
+import sys
+
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from app.image_io import read_bgr_image
+from app.meters.digital_model import DigitalMeterRecognizer, TemplateDigitModel
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--samples",
+        type=Path,
+        default=PROJECT_ROOT / "configs" / "digital_meter_samples.json",
+    )
+    parser.add_argument(
+        "--model",
+        type=Path,
+        default=PROJECT_ROOT
+        / ".."
+        / ".."
+        / "runtime_data"
+        / "models"
+        / "digital_meter_templates.npz",
+    )
+    parser.add_argument("--minimum-confidence", type=float, default=0.55)
+    parser.add_argument("--output", type=Path)
+    args = parser.parse_args()
+
+    config = json.loads(args.samples.read_text(encoding="utf-8"))
+    format_config = config["format"]
+    recognizer = DigitalMeterRecognizer(
+        TemplateDigitModel.load(args.model),
+        digit_count=int(format_config["digit_count"]),
+        decimal_places=int(format_config["decimal_places"]),
+        allow_negative=bool(format_config.get("allow_negative", True)),
+        minimum_confidence=args.minimum_confidence,
+    )
+    rows = []
+    correct = 0
+    for sample in config["samples"]:
+        image_path = Path(sample["file"])
+        if not image_path.is_absolute():
+            image_path = (PROJECT_ROOT / image_path).resolve()
+        result = recognizer.read_image(read_bgr_image(image_path))
+        row = {
+            "file": str(image_path),
+            "expected": sample["text"],
+            **result.to_dict(),
+        }
+        row["correct"] = result.raw_text == sample["text"]
+        correct += int(row["correct"])
+        rows.append(row)
+    report = {
+        "samples": len(rows),
+        "correct": correct,
+        "accuracy": correct / len(rows) if rows else 0.0,
+        "results": rows,
+    }
+    payload = json.dumps(report, ensure_ascii=False, indent=2)
+    if args.output:
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(payload + "\n", encoding="utf-8")
+    print(payload)
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,31 @@
+{
+  "samples_config": "configs/station_number_samples_staging.json",
+  "output_root": "runtime_data/datasets/station_marker_v1",
+  "class_name": "station_marker",
+  "bbox_padding_fraction": 0.04,
+  "validation": [
+    "7/7 (1).jpg",
+    "7/7 (16).jpg",
+    "7/7 (17).jpg",
+    "8/8 (16).jpg",
+    "8/8 (17).jpg",
+    "8/8 (18).jpg",
+    "8/8 (26).jpg",
+    "8/8 (27).jpg",
+    "9/9 (1).jpg",
+    "9/9 (15).jpg",
+    "9/9 (16).jpg",
+    "9/9 (17).jpg",
+    "10/10 (15).jpg",
+    "10/10 (17).jpg",
+    "10/10 (18).jpg",
+    "10/10 (19).jpg",
+    "10/10 (20).jpg"
+  ],
+  "test": [
+    "7/7.png",
+    "8/8.png",
+    "9/9.png",
+    "10/10.png"
+  ]
+}

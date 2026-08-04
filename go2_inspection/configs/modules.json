@@ -1,0 +1,39 @@
+{
+  "tool_and_safety_sign": {
+    "enabled": false,
+    "training_enabled": false,
+    "reason": "final class list is not frozen"
+  },
+  "coal_presence": {
+    "enabled": true,
+    "training_enabled": false,
+    "mode": "binary_presence",
+    "positive_class": "coal_pile"
+  },
+  "station_number": {
+    "enabled": true,
+    "training_enabled": true,
+    "allowed_numbers": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    "samples_path": "configs/station_number_samples_v2.json",
+    "model_path": "runtime_data/models/station_number_templates_v2.npz",
+    "recognition_mode": "image_classifier",
+    "use_detector_roi": true,
+    "allow_full_frame_fallback": false,
+    "minimum_frame_confidence": 0.46
+  },
+  "digital_meter": {
+    "enabled": true,
+    "training_enabled": true,
+    "samples_path": "configs/digital_meter_samples.json",
+    "model_path": "runtime_data/models/digital_meter_templates.npz",
+    "digit_count": 4,
+    "decimal_places": 1,
+    "allow_negative": true,
+    "minimum_frame_confidence": 0.55
+  },
+  "analog_meter": {
+    "enabled": false,
+    "training_enabled": false,
+    "reason": "normal and abnormal reference images are not available"
+  }
+}

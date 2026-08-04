@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/Coal Mine Identification.iml" filepath="$PROJECT_DIR$/.idea/Coal Mine Identification.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/go2-inspection.iml" filepath="$PROJECT_DIR$/.idea/go2-inspection.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/raspberry-pi-sensor-logger.iml" filepath="$PROJECT_DIR$/.idea/raspberry-pi-sensor-logger.iml" />
+    </modules>
+  </component>
+</project>

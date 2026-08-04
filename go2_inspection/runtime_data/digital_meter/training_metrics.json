@@ -1,0 +1,180 @@
+{
+  "model_type": "supervised_template_digits",
+  "samples": 22,
+  "digit_templates": 88,
+  "digit_accuracy_leave_one_image_out": 0.9659090909090909,
+  "string_accuracy_leave_one_image_out": 0.8636363636363636,
+  "digit_class_counts": {
+    "0": 58,
+    "1": 5,
+    "2": 6,
+    "3": 2,
+    "4": 2,
+    "5": 7,
+    "6": 1,
+    "7": 1,
+    "8": 2,
+    "9": 4
+  },
+  "format": {
+    "digit_count": 4,
+    "decimal_places": 1,
+    "allow_negative": true
+  },
+  "samples_detail": [
+    {
+      "file": "sample\\数字表\\120.0.png",
+      "expected": "120.0",
+      "predicted": "120.0",
+      "confidence": 0.6667816391235889,
+      "correct": true
+    },
+    {
+      "file": "sample\\数字表\\150.0.png",
+      "expected": "150.0",
+      "predicted": "150.0",
+      "confidence": 0.6494244416854432,
+      "correct": true
+    },
+    {
+      "file": "sample\\数字表\\200.0.png",
+      "expected": "200.0",
+      "predicted": "200.0",
+      "confidence": 0.6521485563546866,
+      "correct": true
+    },
+    {
+      "file": "sample\\数字表\\250.0.png",
+      "expected": "250.0",
+      "predicted": "250.0",
+      "confidence": 0.6310362995148225,
+      "correct": true
+    },
+    {
+      "file": "sample\\数字表\\125.0.png",
+      "expected": "125.0",
+      "predicted": "125.0",
+      "confidence": 0.6426342409858039,
+      "correct": true
+    },
+    {
+      "file": "sample\\数字表\\300.0.png",
+      "expected": "300.0",
+      "predicted": "300.0",
+      "confidence": 0.6188114961421347,
+      "correct": true
+    },
+    {
+      "file": "sample\\数字表\\400.0.png",
+      "expected": "400.0",
+      "predicted": "400.0",
+      "confidence": 0.6466496008264079,
+      "correct": true
+    },
+    {
+      "file": "sample\\数字表\\500.0.png",
+      "expected": "500.0",
+      "predicted": "500.0",
+      "confidence": 0.6499673790506345,
+      "correct": true
+    },
+    {
+      "file": "sample\\数字表\\800.0.png",
+      "expected": "800.0",
+      "predicted": "800.0",
+      "confidence": 0.6258509444522294,
+      "correct": true
+    },
+    {
+      "file": "sample\\数字表\\999.0.png",
+      "expected": "999.0",
+      "predicted": "995.0",
+      "confidence": 0.5787059479057148,
+      "correct": false
+    },
+    {
+      "file": "sample\\数字表\\010.0.png",
+      "expected": "010.0",
+      "predicted": "010.0",
+      "confidence": 0.6559831082086313,
+      "correct": true
+    },
+    {
+      "file": "sample\\数字表\\020.0.png",
+      "expected": "020.0",
+      "predicted": "020.0",
+      "confidence": 0.6536775151255008,
+      "correct": true
+    },
+    {
+      "file": "sample\\数字表\\030.0.png",
+      "expected": "030.0",
+      "predicted": "030.0",
+      "confidence": 0.6231169438422924,
+      "correct": true
+    },
+    {
+      "file": "sample\\数字表\\040.0.png",
+      "expected": "040.0",
+      "predicted": "040.0",
+      "confidence": 0.648259854078143,
+      "correct": true
+    },
+    {
+      "file": "sample\\数字表\\050.0.png",
+      "expected": "050.0",
+      "predicted": "050.0",
+      "confidence": 0.6472754692824292,
+      "correct": true
+    },
+    {
+      "file": "sample\\数字表\\060.0.png",
+      "expected": "060.0",
+      "predicted": "080.0",
+      "confidence": 0.5895741703546116,
+      "correct": false
+    },
+    {
+      "file": "sample\\数字表\\075.0.png",
+      "expected": "075.0",
+      "predicted": "035.0",
+      "confidence": 0.4704581085873196,
+      "correct": false
+    },
+    {
+      "file": "sample\\数字表\\080.0.png",
+      "expected": "080.0",
+      "predicted": "080.0",
+      "confidence": 0.6275799842470274,
+      "correct": true
+    },
+    {
+      "file": "sample\\数字表\\090.0.png",
+      "expected": "090.0",
+      "predicted": "090.0",
+      "confidence": 0.6436943791820972,
+      "correct": true
+    },
+    {
+      "file": "sample\\数字表\\100.0.png",
+      "expected": "100.0",
+      "predicted": "100.0",
+      "confidence": 0.6549242260696861,
+      "correct": true
+    },
+    {
+      "file": "sample\\数字表\\025.0.png",
+      "expected": "025.0",
+      "predicted": "025.0",
+      "confidence": 0.6543524385868623,
+      "correct": true
+    },
+    {
+      "file": "sample\\数字表\\000.0.png",
+      "expected": "000.0",
+      "predicted": "000.0",
+      "confidence": 0.6552547637035171,
+      "correct": true
+    }
+  ]
+}

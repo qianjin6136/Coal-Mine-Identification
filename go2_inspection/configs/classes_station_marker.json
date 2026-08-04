@@ -1,0 +1,8 @@
+{
+  "station_marker": {
+    "id": "station_marker",
+    "type": "station_marker",
+    "name_cn": "区段编号牌",
+    "train": true
+  }
+}

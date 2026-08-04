@@ -1,0 +1,3474 @@
+{
+  "model_type": "supervised_station_number_templates",
+  "samples": 184,
+  "classes": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+  ],
+  "samples_per_class": {
+    "1": 23,
+    "2": 20,
+    "3": 2,
+    "4": 20,
+    "5": 27,
+    "6": 14,
+    "7": 18,
+    "8": 19,
+    "9": 18,
+    "10": 23
+  },
+  "training_accuracy": 1.0,
+  "robustness_cases": 1104,
+  "robustness_accuracy": 0.990036231884058,
+  "samples_detail": [
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (1).jpg",
+      "expected": 1,
+      "predicted": 1,
+      "confidence": 0.8624845683574676,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (2).jpg",
+      "expected": 1,
+      "predicted": 1,
+      "confidence": 0.8387528195977211,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (3).jpg",
+      "expected": 1,
+      "predicted": 1,
+      "confidence": 0.8546285197138785,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (4).jpg",
+      "expected": 1,
+      "predicted": 1,
+      "confidence": 0.8539229363203048,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (5).jpg",
+      "expected": 1,
+      "predicted": 1,
+      "confidence": 0.8700699791312217,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (6).jpg",
+      "expected": 1,
+      "predicted": 1,
+      "confidence": 0.8301203295588493,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (7).jpg",
+      "expected": 1,
+      "predicted": 1,
+      "confidence": 0.8402504846453667,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (8).jpg",
+      "expected": 1,
+      "predicted": 1,
+      "confidence": 0.8669190853834152,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (9).jpg",
+      "expected": 1,
+      "predicted": 1,
+      "confidence": 0.7560599446296692,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (10).jpg",
+      "expected": 1,
+      "predicted": 1,
+      "confidence": 0.7458595499396323,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (11).jpg",
+      "expected": 1,
+      "predicted": 1,
+      "confidence": 0.7649164170026779,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (12).jpg",
+      "expected": 1,
+      "predicted": 1,
+      "confidence": 0.7944421142339706,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (13).jpg",
+      "expected": 1,
+      "predicted": 1,
+      "confidence": 0.7461181327700614,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (14).jpg",
+      "expected": 1,
+      "predicted": 1,
+      "confidence": 0.8032593995332717,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (15).jpg",
+      "expected": 1,
+      "predicted": 1,
+      "confidence": 0.8318590000271797,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (16).jpg",
+      "expected": 1,
+      "predicted": 1,
+      "confidence": 0.8148120656609534,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (17).jpg",
+      "expected": 1,
+      "predicted": 1,
+      "confidence": 0.8456817120313644,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (18).jpg",
+      "expected": 1,
+      "predicted": 1,
+      "confidence": 0.7272283867001533,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (19).jpg",
+      "expected": 1,
+      "predicted": 1,
+      "confidence": 0.7415365755558013,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (20).jpg",
+      "expected": 1,
+      "predicted": 1,
+      "confidence": 0.7895987808704376,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (21).jpg",
+      "expected": 1,
+      "predicted": 1,
+      "confidence": 0.7946354895830154,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (22).jpg",
+      "expected": 1,
+      "predicted": 1,
+      "confidence": 0.7545193031430244,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1.png",
+      "expected": 1,
+      "predicted": 1,
+      "confidence": 0.7686780646443366,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\2\\2 (2).jpg",
+      "expected": 2,
+      "predicted": 2,
+      "confidence": 0.7982388779520988,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\2\\2 (3).jpg",
+      "expected": 2,
+      "predicted": 2,
+      "confidence": 0.7935106053948402,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\2\\2 (4).jpg",
+      "expected": 2,
+      "predicted": 2,
+      "confidence": 0.7911700919270515,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\2\\2 (5).jpg",
+      "expected": 2,
+      "predicted": 2,
+      "confidence": 0.7447441890835761,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\2\\2 (6).jpg",
+      "expected": 2,
+      "predicted": 2,
+      "confidence": 0.7776812449097633,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\2\\2 (7).jpg",
+      "expected": 2,
+      "predicted": 2,
+      "confidence": 0.7953416600823402,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\2\\2 (8).jpg",
+      "expected": 2,
+      "predicted": 2,
+      "confidence": 0.7521548062562942,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\2\\2 (9).jpg",
+      "expected": 2,
+      "predicted": 2,
+      "confidence": 0.7649163320660591,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\2\\2 (10).jpg",
+      "expected": 2,
+      "predicted": 2,
+      "confidence": 0.7783329203724861,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\2\\2 (11).jpg",
+      "expected": 2,
+      "predicted": 2,
+      "confidence": 0.7571675240993498,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\2\\2 (12).jpg",
+      "expected": 2,
+      "predicted": 2,
+      "confidence": 0.7742304727435112,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\2\\2 (13).jpg",
+      "expected": 2,
+      "predicted": 2,
+      "confidence": 0.7654559090733528,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\2\\2 (14).jpg",
+      "expected": 2,
+      "predicted": 2,
+      "confidence": 0.7545358017086983,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\2\\2 (15).jpg",
+      "expected": 2,
+      "predicted": 2,
+      "confidence": 0.7628578588366508,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\2\\2 (16).jpg",
+      "expected": 2,
+      "predicted": 2,
+      "confidence": 0.670782122015953,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\2\\2 (17).jpg",
+      "expected": 2,
+      "predicted": 2,
+      "confidence": 0.7733740776777267,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\2\\2 (18).jpg",
+      "expected": 2,
+      "predicted": 2,
+      "confidence": 0.7666311040520668,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\2\\2 (19).jpg",
+      "expected": 2,
+      "predicted": 2,
+      "confidence": 0.6394661664962769,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\2\\2 (21).jpg",
+      "expected": 2,
+      "predicted": 2,
+      "confidence": 0.6931625589728355,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\2\\2.png",
+      "expected": 2,
+      "predicted": 2,
+      "confidence": 0.621749885380268,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\3\\3 (20).jpg",
+      "expected": 3,
+      "predicted": 3,
+      "confidence": 0.6378370940685272,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\3\\3.png",
+      "expected": 3,
+      "predicted": 3,
+      "confidence": 0.679693305492401,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\4\\4 (1).jpg",
+      "expected": 4,
+      "predicted": 4,
+      "confidence": 0.7798305049538612,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\4\\4 (2).jpg",
+      "expected": 4,
+      "predicted": 4,
+      "confidence": 0.8316218048334121,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\4\\4 (3).jpg",
+      "expected": 4,
+      "predicted": 4,
+      "confidence": 0.8561975926160812,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\4\\4 (4).jpg",
+      "expected": 4,
+      "predicted": 4,
+      "confidence": 0.8399526104331017,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\4\\4 (5).jpg",
+      "expected": 4,
+      "predicted": 4,
+      "confidence": 0.8510446205735206,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\4\\4 (6).jpg",
+      "expected": 4,
+      "predicted": 4,
+      "confidence": 0.6786666885018348,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\4\\4 (7).jpg",
+      "expected": 4,
+      "predicted": 4,
+      "confidence": 0.8413873687386513,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\4\\4 (8).jpg",
+      "expected": 4,
+      "predicted": 4,
+      "confidence": 0.8485912039875984,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\4\\4 (9).jpg",
+      "expected": 4,
+      "predicted": 4,
+      "confidence": 0.7828965082764625,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\4\\4 (10).jpg",
+      "expected": 4,
+      "predicted": 4,
+      "confidence": 0.8305924370884895,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\4\\4 (11).jpg",
+      "expected": 4,
+      "predicted": 4,
+      "confidence": 0.8217645213007927,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\4\\4 (12).jpg",
+      "expected": 4,
+      "predicted": 4,
+      "confidence": 0.7664524897933006,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\4\\4 (13).jpg",
+      "expected": 4,
+      "predicted": 4,
+      "confidence": 0.8465617671608925,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\4\\4 (14).jpg",
+      "expected": 4,
+      "predicted": 4,
+      "confidence": 0.8571243450045585,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\4\\4 (15).jpg",
+      "expected": 4,
+      "predicted": 4,
+      "confidence": 0.8665824890136719,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\4\\4 (16).jpg",
+      "expected": 4,
+      "predicted": 4,
+      "confidence": 0.851085452735424,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\4\\4 (17).jpg",
+      "expected": 4,
+      "predicted": 4,
+      "confidence": 0.8531059637665748,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\4\\4 (18).jpg",
+      "expected": 4,
+      "predicted": 4,
+      "confidence": 0.8190872177481651,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\4\\4 (19).jpg",
+      "expected": 4,
+      "predicted": 4,
+      "confidence": 0.8114572003483771,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\4\\4.png",
+      "expected": 4,
+      "predicted": 4,
+      "confidence": 0.688761207461357,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (1).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "confidence": 0.7133054658770561,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (2).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "confidence": 0.7237300083041192,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (3).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "confidence": 0.7276519790291786,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (4).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "confidence": 0.724997679889202,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (5).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "confidence": 0.7288238540291786,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (6).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "confidence": 0.7284178271889686,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (7).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "confidence": 0.7156317800283432,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (8).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "confidence": 0.7314819321036338,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (9).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "confidence": 0.7698492497205733,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (10).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "confidence": 0.7736329942941665,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (11).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "confidence": 0.7629242941737175,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (12).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "confidence": 0.768435014784336,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (13).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "confidence": 0.732825881242752,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (14).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "confidence": 0.7425965815782546,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (15).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "confidence": 0.7551365777850151,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (16).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "confidence": 0.7801415234804153,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (17).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "confidence": 0.7834413588047027,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (18).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "confidence": 0.7572862729430199,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (19).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "confidence": 0.7452328413724899,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (20).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "confidence": 0.6498357087373734,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (21).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "confidence": 0.7500003665685653,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (22).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "confidence": 0.6967000156641007,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (23).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "confidence": 0.6726416245102882,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (24).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "confidence": 0.7043522730469702,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (25).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "confidence": 0.5942019745707511,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (26).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "confidence": 0.697501988708973,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5.png",
+      "expected": 5,
+      "predicted": 5,
+      "confidence": 0.6115191519260406,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6 (1).jpg",
+      "expected": 6,
+      "predicted": 6,
+      "confidence": 0.5880289480090142,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6 (2).jpg",
+      "expected": 6,
+      "predicted": 6,
+      "confidence": 0.6089773178100586,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6 (3).jpg",
+      "expected": 6,
+      "predicted": 6,
+      "confidence": 0.6215867787599563,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6 (4).jpg",
+      "expected": 6,
+      "predicted": 6,
+      "confidence": 0.7144916892051696,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6 (5).jpg",
+      "expected": 6,
+      "predicted": 6,
+      "confidence": 0.7755832150578498,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6 (6).jpg",
+      "expected": 6,
+      "predicted": 6,
+      "confidence": 0.8209298685193062,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6 (7).jpg",
+      "expected": 6,
+      "predicted": 6,
+      "confidence": 0.8527160793542862,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6 (8).jpg",
+      "expected": 6,
+      "predicted": 6,
+      "confidence": 0.8480482071638107,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6 (9).jpg",
+      "expected": 6,
+      "predicted": 6,
+      "confidence": 0.7300990834832191,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6 (10).jpg",
+      "expected": 6,
+      "predicted": 6,
+      "confidence": 0.7216459661722183,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6 (11).jpg",
+      "expected": 6,
+      "predicted": 6,
+      "confidence": 0.6955747812986374,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6 (12).jpg",
+      "expected": 6,
+      "predicted": 6,
+      "confidence": 0.7358500704169273,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6 (13).jpg",
+      "expected": 6,
+      "predicted": 6,
+      "confidence": 0.7243727102875709,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6.png",
+      "expected": 6,
+      "predicted": 6,
+      "confidence": 0.6091792479157447,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\7\\7 (1).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "confidence": 0.784991806745529,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\7\\7 (2).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "confidence": 0.6935295343399048,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\7\\7 (3).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "confidence": 0.6147756054997444,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\7\\7 (4).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "confidence": 0.7604363933205605,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\7\\7 (5).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "confidence": 0.8039500147104263,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\7\\7 (6).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "confidence": 0.8019184455275534,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\7\\7 (7).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "confidence": 0.7723481580615043,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\7\\7 (8).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "confidence": 0.7714195638895034,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\7\\7 (9).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "confidence": 0.7966300174593925,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\7\\7 (10).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "confidence": 0.7707297638058661,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\7\\7 (11).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "confidence": 0.7420387670397758,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\7\\7 (12).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "confidence": 0.790244497358799,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\7\\7 (13).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "confidence": 0.7625339612364769,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\7\\7 (14).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "confidence": 0.8038177773356437,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\7\\7 (15).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "confidence": 0.8078717455267905,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\7\\7 (16).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "confidence": 0.7930714786052703,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\7\\7 (17).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "confidence": 0.8122412025928497,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\7\\7.png",
+      "expected": 7,
+      "predicted": 7,
+      "confidence": 0.6182626962661742,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\8\\8 (1).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "confidence": 0.7467344388365744,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\8\\8 (11).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "confidence": 0.7068043261766433,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\8\\8 (12).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "confidence": 0.738604924082756,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\8\\8 (13).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "confidence": 0.7412332698702813,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\8\\8 (14).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "confidence": 0.7157811373472213,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\8\\8 (15).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "confidence": 0.7366579234600067,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\8\\8 (16).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "confidence": 0.7181801036000252,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\8\\8 (17).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "confidence": 0.7261026009917259,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\8\\8 (18).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "confidence": 0.6713221237063407,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\8\\8 (19).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "confidence": 0.7388373255729674,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\8\\8 (20).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "confidence": 0.7362507730722426,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\8\\8 (21).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "confidence": 0.7543617516756057,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\8\\8 (22).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "confidence": 0.7380162134766578,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\8\\8 (23).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "confidence": 0.7451295271515846,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\8\\8 (24).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "confidence": 0.7401570364832878,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\8\\8 (25).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "confidence": 0.7234447613358498,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\8\\8 (26).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "confidence": 0.7023450180888176,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\8\\8 (27).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "confidence": 0.747440081834793,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\8\\8.png",
+      "expected": 8,
+      "predicted": 8,
+      "confidence": 0.6302840426564216,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\9\\9 (1).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "confidence": 0.7378379195928574,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\9\\9 (2).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "confidence": 0.7529137730598449,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\9\\9 (3).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "confidence": 0.754998604953289,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\9\\9 (4).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "confidence": 0.77825518399477,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\9\\9 (5).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "confidence": 0.7598953872919082,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\9\\9 (6).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "confidence": 0.7588278457522392,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\9\\9 (7).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "confidence": 0.7557215079665183,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\9\\9 (8).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "confidence": 0.7531378403306007,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\9\\9 (9).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "confidence": 0.7577203422784804,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\9\\9 (10).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "confidence": 0.7850611865520477,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\9\\9 (11).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "confidence": 0.7519985944032669,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\9\\9 (12).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "confidence": 0.7100910827517509,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\9\\9 (13).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "confidence": 0.7767731383442879,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\9\\9 (14).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "confidence": 0.7568302556872367,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\9\\9 (15).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "confidence": 0.7480861768126487,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\9\\9 (16).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "confidence": 0.7187562450766564,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\9\\9 (17).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "confidence": 0.738170789182186,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\9\\9.png",
+      "expected": 9,
+      "predicted": 9,
+      "confidence": 0.6484759107232093,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10 (1).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "confidence": 0.9203389108180999,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10 (2).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "confidence": 0.9665102705359458,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10 (3).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "confidence": 0.970599429309368,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10 (4).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "confidence": 0.9608321949839591,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10 (5).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "confidence": 0.9200027525424956,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10 (6).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "confidence": 0.9262457594275474,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10 (7).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "confidence": 0.9097167521715164,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10 (8).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "confidence": 0.8972927719354629,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10 (9).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "confidence": 0.9098579660058022,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10 (10).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "confidence": 0.8852268993854522,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10 (11).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "confidence": 0.8884487181901931,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10 (12).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "confidence": 0.9485770896077155,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10 (13).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "confidence": 0.9636655017733573,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10 (14).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "confidence": 0.6418954372406005,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10 (15).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "confidence": 0.9567947208881378,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10 (16).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "confidence": 0.7071774557232856,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10 (17).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "confidence": 0.849405188858509,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10 (18).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "confidence": 0.8360910326242447,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10 (19).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "confidence": 0.8640687435865402,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10 (20).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "confidence": 0.8725519508123397,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10 (21).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "confidence": 0.9450692430138588,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10 (22).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "confidence": 0.7743910163640976,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10.png",
+      "expected": 10,
+      "predicted": 10,
+      "confidence": 0.7098777413368225,
+      "correct": true
+    }
+  ],
+  "robustness_failures": [
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\2\\2 (14).jpg",
+      "variant": "dark_65_percent",
+      "expected": 2,
+      "predicted": 7,
+      "reason": "station_number_template_confirmed"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\3\\3 (20).jpg",
+      "variant": "gaussian_blur",
+      "expected": 3,
+      "predicted": 8,
+      "reason": "station_number_template_confirmed"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\3\\3 (20).jpg",
+      "variant": "rotation_-2.0_degrees",
+      "expected": 3,
+      "predicted": 8,
+      "reason": "station_number_template_confirmed"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\3\\3 (20).jpg",
+      "variant": "rotation_+2.0_degrees",
+      "expected": 3,
+      "predicted": 8,
+      "reason": "station_number_template_confirmed"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (2).jpg",
+      "variant": "bright_115_percent",
+      "expected": 5,
+      "predicted": 8,
+      "reason": "station_number_template_confirmed"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (22).jpg",
+      "variant": "bright_115_percent",
+      "expected": 5,
+      "predicted": 8,
+      "reason": "station_number_template_confirmed"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (22).jpg",
+      "variant": "rotation_-2.0_degrees",
+      "expected": 5,
+      "predicted": 8,
+      "reason": "station_number_template_confirmed"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (23).jpg",
+      "variant": "bright_115_percent",
+      "expected": 5,
+      "predicted": 8,
+      "reason": "station_number_template_confirmed"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\8\\8 (16).jpg",
+      "variant": "dark_65_percent",
+      "expected": 8,
+      "predicted": 7,
+      "reason": "station_number_template_confirmed"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\8\\8 (25).jpg",
+      "variant": "bright_115_percent",
+      "expected": 8,
+      "predicted": null,
+      "reason": "white_station_number_not_found"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\9\\9 (12).jpg",
+      "variant": "dark_65_percent",
+      "expected": 9,
+      "predicted": 1,
+      "reason": "station_number_template_confirmed"
+    }
+  ],
+  "validation_method": "leave_one_source_out",
+  "validation_minimum_confidence": 0.46,
+  "validation_samples": 184,
+  "validation_accuracy": 0.9782608695652174,
+  "validation_samples_detail": [
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (1).jpg",
+      "expected": 1,
+      "predicted": 1,
+      "status": "confirmed",
+      "confidence": 0.841973142325878,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (2).jpg",
+      "expected": 1,
+      "predicted": 1,
+      "status": "confirmed",
+      "confidence": 0.8090765580534935,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (3).jpg",
+      "expected": 1,
+      "predicted": 1,
+      "status": "confirmed",
+      "confidence": 0.8279774487018585,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (4).jpg",
+      "expected": 1,
+      "predicted": 1,
+      "status": "confirmed",
+      "confidence": 0.8255036532878876,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (5).jpg",
+      "expected": 1,
+      "predicted": 1,
+      "status": "confirmed",
+      "confidence": 0.8431734323501587,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (6).jpg",
+      "expected": 1,
+      "predicted": 1,
+      "status": "confirmed",
+      "confidence": 0.8006082028150557,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (7).jpg",
+      "expected": 1,
+      "predicted": 1,
+      "status": "confirmed",
+      "confidence": 0.7927031531929969,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (8).jpg",
+      "expected": 1,
+      "predicted": 1,
+      "status": "confirmed",
+      "confidence": 0.846848264336586,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (9).jpg",
+      "expected": 1,
+      "predicted": 1,
+      "status": "confirmed",
+      "confidence": 0.7125784993171691,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (10).jpg",
+      "expected": 1,
+      "predicted": 1,
+      "status": "confirmed",
+      "confidence": 0.6611930355429648,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (11).jpg",
+      "expected": 1,
+      "predicted": 1,
+      "status": "confirmed",
+      "confidence": 0.7223475441336631,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (12).jpg",
+      "expected": 1,
+      "predicted": 1,
+      "status": "confirmed",
+      "confidence": 0.7731306448578834,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (13).jpg",
+      "expected": 1,
+      "predicted": 1,
+      "status": "confirmed",
+      "confidence": 0.7058318629860877,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (14).jpg",
+      "expected": 1,
+      "predicted": 1,
+      "status": "confirmed",
+      "confidence": 0.7819479301571846,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (15).jpg",
+      "expected": 1,
+      "predicted": 1,
+      "status": "confirmed",
+      "confidence": 0.8125958159565925,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (16).jpg",
+      "expected": 1,
+      "predicted": 1,
+      "status": "confirmed",
+      "confidence": 0.7968543276190758,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (17).jpg",
+      "expected": 1,
+      "predicted": 1,
+      "status": "confirmed",
+      "confidence": 0.8249218076467514,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (18).jpg",
+      "expected": 1,
+      "predicted": 1,
+      "status": "confirmed",
+      "confidence": 0.6582339659333228,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (19).jpg",
+      "expected": 1,
+      "predicted": 1,
+      "status": "confirmed",
+      "confidence": 0.6922848030924796,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (20).jpg",
+      "expected": 1,
+      "predicted": 1,
+      "status": "confirmed",
+      "confidence": 0.7484814733266829,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (21).jpg",
+      "expected": 1,
+      "predicted": 1,
+      "status": "confirmed",
+      "confidence": 0.7493420913815498,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (22).jpg",
+      "expected": 1,
+      "predicted": 1,
+      "status": "confirmed",
+      "confidence": 0.7150828614830971,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1.png",
+      "expected": 1,
+      "predicted": 1,
+      "status": "confirmed",
+      "confidence": 0.7006078392267227,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\2\\2 (2).jpg",
+      "expected": 2,
+      "predicted": 2,
+      "status": "confirmed",
+      "confidence": 0.766768117249012,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\2\\2 (3).jpg",
+      "expected": 2,
+      "predicted": 2,
+      "status": "confirmed",
+      "confidence": 0.7497745409607887,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\2\\2 (4).jpg",
+      "expected": 2,
+      "predicted": 2,
+      "status": "confirmed",
+      "confidence": 0.7488206401467323,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\2\\2 (5).jpg",
+      "expected": 2,
+      "predicted": 2,
+      "status": "confirmed",
+      "confidence": 0.6893186002969742,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\2\\2 (6).jpg",
+      "expected": 2,
+      "predicted": 2,
+      "status": "confirmed",
+      "confidence": 0.7401213601231574,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\2\\2 (7).jpg",
+      "expected": 2,
+      "predicted": 2,
+      "status": "confirmed",
+      "confidence": 0.7574135035276413,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\2\\2 (8).jpg",
+      "expected": 2,
+      "predicted": 2,
+      "status": "confirmed",
+      "confidence": 0.7020384639501571,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\2\\2 (9).jpg",
+      "expected": 2,
+      "predicted": 2,
+      "status": "confirmed",
+      "confidence": 0.7210575103759765,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\2\\2 (10).jpg",
+      "expected": 2,
+      "predicted": 2,
+      "status": "confirmed",
+      "confidence": 0.7378889083862304,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\2\\2 (11).jpg",
+      "expected": 2,
+      "predicted": 2,
+      "status": "confirmed",
+      "confidence": 0.70982775837183,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\2\\2 (12).jpg",
+      "expected": 2,
+      "predicted": 2,
+      "status": "confirmed",
+      "confidence": 0.7352998211979865,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\2\\2 (13).jpg",
+      "expected": 2,
+      "predicted": 2,
+      "status": "confirmed",
+      "confidence": 0.6979617342352866,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\2\\2 (14).jpg",
+      "expected": 2,
+      "predicted": 2,
+      "status": "confirmed",
+      "confidence": 0.7074733972549438,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\2\\2 (15).jpg",
+      "expected": 2,
+      "predicted": 2,
+      "status": "confirmed",
+      "confidence": 0.7191217944025993,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\2\\2 (16).jpg",
+      "expected": 2,
+      "predicted": 2,
+      "status": "confirmed",
+      "confidence": 0.5592262864112854,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\2\\2 (17).jpg",
+      "expected": 2,
+      "predicted": 2,
+      "status": "confirmed",
+      "confidence": 0.732930065691471,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\2\\2 (18).jpg",
+      "expected": 2,
+      "predicted": 2,
+      "status": "confirmed",
+      "confidence": 0.726032255589962,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\2\\2 (19).jpg",
+      "expected": 2,
+      "predicted": 2,
+      "status": "confirmed",
+      "confidence": 0.5505431115627288,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\2\\2 (21).jpg",
+      "expected": 2,
+      "predicted": 2,
+      "status": "confirmed",
+      "confidence": 0.6328587785363197,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\2\\2.png",
+      "expected": 2,
+      "predicted": 2,
+      "status": "confirmed",
+      "confidence": 0.5217325925827025,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\3\\3 (20).jpg",
+      "expected": 3,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.5396776020526886,
+      "correct": false
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\3\\3.png",
+      "expected": 3,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.49358266592025757,
+      "correct": false
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\4\\4 (1).jpg",
+      "expected": 4,
+      "predicted": 4,
+      "status": "confirmed",
+      "confidence": 0.7326781198382377,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\4\\4 (2).jpg",
+      "expected": 4,
+      "predicted": 4,
+      "status": "confirmed",
+      "confidence": 0.7935530692338943,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\4\\4 (3).jpg",
+      "expected": 4,
+      "predicted": 4,
+      "status": "confirmed",
+      "confidence": 0.8298838183283805,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\4\\4 (4).jpg",
+      "expected": 4,
+      "predicted": 4,
+      "status": "confirmed",
+      "confidence": 0.811853751540184,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\4\\4 (5).jpg",
+      "expected": 4,
+      "predicted": 4,
+      "status": "confirmed",
+      "confidence": 0.8146470069885253,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\4\\4 (6).jpg",
+      "expected": 4,
+      "predicted": 4,
+      "status": "confirmed",
+      "confidence": 0.5769850730895996,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\4\\4 (7).jpg",
+      "expected": 4,
+      "predicted": 4,
+      "status": "confirmed",
+      "confidence": 0.8115081712603569,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\4\\4 (8).jpg",
+      "expected": 4,
+      "predicted": 4,
+      "status": "confirmed",
+      "confidence": 0.8134560704231262,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\4\\4 (9).jpg",
+      "expected": 4,
+      "predicted": 4,
+      "status": "confirmed",
+      "confidence": 0.7375245973467826,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\4\\4 (10).jpg",
+      "expected": 4,
+      "predicted": 4,
+      "status": "confirmed",
+      "confidence": 0.785652956366539,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\4\\4 (11).jpg",
+      "expected": 4,
+      "predicted": 4,
+      "status": "confirmed",
+      "confidence": 0.7522664994001388,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\4\\4 (12).jpg",
+      "expected": 4,
+      "predicted": 4,
+      "status": "confirmed",
+      "confidence": 0.6969544678926467,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\4\\4 (13).jpg",
+      "expected": 4,
+      "predicted": 4,
+      "status": "confirmed",
+      "confidence": 0.8162392914295196,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\4\\4 (14).jpg",
+      "expected": 4,
+      "predicted": 4,
+      "status": "confirmed",
+      "confidence": 0.8320465698838233,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\4\\4 (15).jpg",
+      "expected": 4,
+      "predicted": 4,
+      "status": "confirmed",
+      "confidence": 0.8416136011481284,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\4\\4 (16).jpg",
+      "expected": 4,
+      "predicted": 4,
+      "status": "confirmed",
+      "confidence": 0.8188906624913215,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\4\\4 (17).jpg",
+      "expected": 4,
+      "predicted": 4,
+      "status": "confirmed",
+      "confidence": 0.8148824498057365,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\4\\4 (18).jpg",
+      "expected": 4,
+      "predicted": 4,
+      "status": "confirmed",
+      "confidence": 0.7522602945566177,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\4\\4 (19).jpg",
+      "expected": 4,
+      "predicted": 4,
+      "status": "confirmed",
+      "confidence": 0.7431319877505301,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\4\\4.png",
+      "expected": 4,
+      "predicted": 4,
+      "status": "confirmed",
+      "confidence": 0.6076708287000655,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (1).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "status": "confirmed",
+      "confidence": 0.6776347294449806,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (2).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "status": "confirmed",
+      "confidence": 0.6899413689970969,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (3).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "status": "confirmed",
+      "confidence": 0.7002984970808028,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (4).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "status": "confirmed",
+      "confidence": 0.6974280118942261,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (5).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "status": "confirmed",
+      "confidence": 0.6984193012118339,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (6).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "status": "confirmed",
+      "confidence": 0.7005843386054038,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (7).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "status": "confirmed",
+      "confidence": 0.6722448870539665,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (8).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "status": "confirmed",
+      "confidence": 0.7039122641086578,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (9).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "status": "confirmed",
+      "confidence": 0.7506459429860115,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (10).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "status": "confirmed",
+      "confidence": 0.7584975108504295,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (11).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "status": "confirmed",
+      "confidence": 0.7461298540234566,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (12).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "status": "confirmed",
+      "confidence": 0.7503286585211753,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (13).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "status": "confirmed",
+      "confidence": 0.7053531870245934,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (14).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "status": "confirmed",
+      "confidence": 0.7171437352895736,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (15).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "status": "confirmed",
+      "confidence": 0.7326711475849151,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (16).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "status": "confirmed",
+      "confidence": 0.7651725962758064,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (17).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "status": "confirmed",
+      "confidence": 0.7689907744526863,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (18).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "status": "confirmed",
+      "confidence": 0.7366818830370903,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (19).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "status": "confirmed",
+      "confidence": 0.7116815030574798,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (20).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "status": "confirmed",
+      "confidence": 0.5931187182664871,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (21).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "status": "confirmed",
+      "confidence": 0.7225291445851325,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (22).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "status": "confirmed",
+      "confidence": 0.6538138374686241,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (23).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "status": "confirmed",
+      "confidence": 0.5878498151898384,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (24).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "status": "confirmed",
+      "confidence": 0.6579823225736617,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (25).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "status": "confirmed",
+      "confidence": 0.46424368917942044,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (26).jpg",
+      "expected": 5,
+      "predicted": 5,
+      "status": "confirmed",
+      "confidence": 0.6302569508552551,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5.png",
+      "expected": 5,
+      "predicted": 5,
+      "status": "confirmed",
+      "confidence": 0.5258884012699127,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6 (1).jpg",
+      "expected": 6,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.5922842368483543,
+      "correct": false
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6 (2).jpg",
+      "expected": 6,
+      "predicted": 6,
+      "status": "confirmed",
+      "confidence": 0.4637751072645187,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6 (3).jpg",
+      "expected": 6,
+      "predicted": 6,
+      "status": "confirmed",
+      "confidence": 0.4685654520988464,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6 (4).jpg",
+      "expected": 6,
+      "predicted": 6,
+      "status": "confirmed",
+      "confidence": 0.6049469649791717,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6 (5).jpg",
+      "expected": 6,
+      "predicted": 6,
+      "status": "confirmed",
+      "confidence": 0.6864703193306922,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6 (6).jpg",
+      "expected": 6,
+      "predicted": 6,
+      "status": "confirmed",
+      "confidence": 0.715666189789772,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6 (7).jpg",
+      "expected": 6,
+      "predicted": 6,
+      "status": "confirmed",
+      "confidence": 0.7431713551282882,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6 (8).jpg",
+      "expected": 6,
+      "predicted": 6,
+      "status": "confirmed",
+      "confidence": 0.7436542704701423,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6 (9).jpg",
+      "expected": 6,
+      "predicted": 6,
+      "status": "confirmed",
+      "confidence": 0.6880696296691894,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6 (10).jpg",
+      "expected": 6,
+      "predicted": 6,
+      "status": "confirmed",
+      "confidence": 0.6712262272834777,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6 (11).jpg",
+      "expected": 6,
+      "predicted": 6,
+      "status": "confirmed",
+      "confidence": 0.6373610705137253,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6 (12).jpg",
+      "expected": 6,
+      "predicted": 6,
+      "status": "confirmed",
+      "confidence": 0.6924827232956886,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6 (13).jpg",
+      "expected": 6,
+      "predicted": 6,
+      "status": "confirmed",
+      "confidence": 0.6661589995026588,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6.png",
+      "expected": 6,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.5254722207784653,
+      "correct": false
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\7\\7 (1).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "status": "confirmed",
+      "confidence": 0.6893197759985924,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\7\\7 (2).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "status": "confirmed",
+      "confidence": 0.608338052034378,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\7\\7 (3).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "status": "confirmed",
+      "confidence": 0.5051988601684569,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\7\\7 (4).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "status": "confirmed",
+      "confidence": 0.7059552624821662,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\7\\7 (5).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "status": "confirmed",
+      "confidence": 0.7840658187866211,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\7\\7 (6).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "status": "confirmed",
+      "confidence": 0.7804290100932121,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\7\\7 (7).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "status": "confirmed",
+      "confidence": 0.7343901500105858,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\7\\7 (8).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "status": "confirmed",
+      "confidence": 0.7257877454161644,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\7\\7 (9).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "status": "confirmed",
+      "confidence": 0.773701937496662,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\7\\7 (10).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "status": "confirmed",
+      "confidence": 0.730309385061264,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\7\\7 (11).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "status": "confirmed",
+      "confidence": 0.6978507071733474,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\7\\7 (12).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "status": "confirmed",
+      "confidence": 0.7673414453864097,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\7\\7 (13).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "status": "confirmed",
+      "confidence": 0.7200358524918556,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\7\\7 (14).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "status": "confirmed",
+      "confidence": 0.7824771538376808,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\7\\7 (15).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "status": "confirmed",
+      "confidence": 0.733699843287468,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\7\\7 (16).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "status": "confirmed",
+      "confidence": 0.7690139040350913,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\7\\7 (17).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "status": "confirmed",
+      "confidence": 0.73321113884449,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\7\\7.png",
+      "expected": 7,
+      "predicted": 7,
+      "status": "confirmed",
+      "confidence": 0.5238045811653137,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\8\\8 (1).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.6933560699224471,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\8\\8 (11).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.6522356748580932,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\8\\8 (12).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.7027941122651099,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\8\\8 (13).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.7047107487916946,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\8\\8 (14).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.664541208744049,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\8\\8 (15).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.6872143536806106,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\8\\8 (16).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.6610792085528373,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\8\\8 (17).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.6908415913581848,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\8\\8 (18).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.6067581415176391,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\8\\8 (19).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.7073747396469116,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\8\\8 (20).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.7101192459464073,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\8\\8 (21).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.7213339865207671,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\8\\8 (22).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.7060630053281783,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\8\\8 (23).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.6886497408151626,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\8\\8 (24).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.6838736191391944,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\8\\8 (25).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.665808980166912,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\8\\8 (26).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.6670840084552764,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\8\\8 (27).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.7154868736863136,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\8\\8.png",
+      "expected": 8,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.5547424778342247,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\9\\9 (1).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "status": "confirmed",
+      "confidence": 0.7006375506520272,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\9\\9 (2).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "status": "confirmed",
+      "confidence": 0.7079293310642243,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\9\\9 (3).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "status": "confirmed",
+      "confidence": 0.7087992012500762,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\9\\9 (4).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "status": "confirmed",
+      "confidence": 0.7546484231948852,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\9\\9 (5).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "status": "confirmed",
+      "confidence": 0.7271045744419097,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\9\\9 (6).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "status": "confirmed",
+      "confidence": 0.7352210849523544,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\9\\9 (7).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "status": "confirmed",
+      "confidence": 0.7259854465723038,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\9\\9 (8).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "status": "confirmed",
+      "confidence": 0.7232550203800201,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\9\\9 (9).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "status": "confirmed",
+      "confidence": 0.7290137216448783,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\9\\9 (10).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "status": "confirmed",
+      "confidence": 0.7586208581924438,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\9\\9 (11).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "status": "confirmed",
+      "confidence": 0.7162149220705032,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\9\\9 (12).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "status": "confirmed",
+      "confidence": 0.6454687535762786,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\9\\9 (13).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "status": "confirmed",
+      "confidence": 0.7482643589377403,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\9\\9 (14).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "status": "confirmed",
+      "confidence": 0.708950799703598,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\9\\9 (15).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "status": "confirmed",
+      "confidence": 0.7165699124336242,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\9\\9 (16).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "status": "confirmed",
+      "confidence": 0.6691480949521064,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\9\\9 (17).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "status": "confirmed",
+      "confidence": 0.7009704202413558,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\9\\9.png",
+      "expected": 9,
+      "predicted": 9,
+      "status": "confirmed",
+      "confidence": 0.5719400838017463,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10 (1).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "status": "confirmed",
+      "confidence": 0.8835917577147483,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10 (2).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "status": "confirmed",
+      "confidence": 0.9436150833964347,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10 (3).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "status": "confirmed",
+      "confidence": 0.9457717224955557,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10 (4).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "status": "confirmed",
+      "confidence": 0.9340653017163276,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10 (5).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "status": "confirmed",
+      "confidence": 0.8848344936966897,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10 (6).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "status": "confirmed",
+      "confidence": 0.8939217418432235,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10 (7).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "status": "confirmed",
+      "confidence": 0.8759167611598968,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10 (8).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "status": "confirmed",
+      "confidence": 0.8549425646662712,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10 (9).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "status": "confirmed",
+      "confidence": 0.8777293875813483,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10 (10).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "status": "confirmed",
+      "confidence": 0.8319756075739859,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10 (11).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "status": "confirmed",
+      "confidence": 0.8250869706273078,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10 (12).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "status": "confirmed",
+      "confidence": 0.9192342311143874,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10 (13).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "status": "confirmed",
+      "confidence": 0.935062538087368,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10 (14).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "status": "confirmed",
+      "confidence": 0.5240770637989044,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10 (15).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "status": "confirmed",
+      "confidence": 0.9305835574865341,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10 (16).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "status": "confirmed",
+      "confidence": 0.5906463384628295,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10 (17).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "status": "confirmed",
+      "confidence": 0.7873859643936157,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10 (18).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "status": "confirmed",
+      "confidence": 0.76950224339962,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10 (19).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "status": "confirmed",
+      "confidence": 0.8020495191216468,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10 (20).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "status": "confirmed",
+      "confidence": 0.8187663152813911,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10 (21).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "status": "confirmed",
+      "confidence": 0.9166585221886634,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10 (22).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "status": "confirmed",
+      "confidence": 0.6944582790136338,
+      "correct": true
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10.png",
+      "expected": 10,
+      "predicted": 10,
+      "status": "confirmed",
+      "confidence": 0.6045897901058197,
+      "correct": true
+    }
+  ],
+  "validation_failures": [
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\3\\3 (20).jpg",
+      "expected": 3,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.5396776020526886,
+      "correct": false
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\3\\3.png",
+      "expected": 3,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.49358266592025757,
+      "correct": false
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6 (1).jpg",
+      "expected": 6,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.5922842368483543,
+      "correct": false
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6.png",
+      "expected": 6,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.5254722207784653,
+      "correct": false
+    }
+  ],
+  "validation_robustness_cases": 1104,
+  "validation_robustness_accuracy": 0.9438405797101449,
+  "validation_robustness_failures": [
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (9).jpg",
+      "variant": "dark_65_percent",
+      "expected": 1,
+      "predicted": 1,
+      "status": "unreadable",
+      "confidence": 0.17963844537734983,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (10).jpg",
+      "variant": "dark_65_percent",
+      "expected": 1,
+      "predicted": 1,
+      "status": "unreadable",
+      "confidence": 0.181828635931015,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\1\\1 (11).jpg",
+      "variant": "dark_65_percent",
+      "expected": 1,
+      "predicted": 1,
+      "status": "unreadable",
+      "confidence": 0.365343976020813,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\2\\2 (6).jpg",
+      "variant": "dark_65_percent",
+      "expected": 2,
+      "predicted": 2,
+      "status": "unreadable",
+      "confidence": 0.4219911992549896,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\2\\2 (12).jpg",
+      "variant": "dark_65_percent",
+      "expected": 2,
+      "predicted": 2,
+      "status": "unreadable",
+      "confidence": 0.14275569319725034,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\2\\2 (13).jpg",
+      "variant": "dark_65_percent",
+      "expected": 2,
+      "predicted": 2,
+      "status": "unreadable",
+      "confidence": 0.1345667064189911,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\2\\2 (14).jpg",
+      "variant": "dark_65_percent",
+      "expected": 2,
+      "predicted": 7,
+      "status": "unreadable",
+      "confidence": 0.14525241851806642,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\2\\2 (15).jpg",
+      "variant": "dark_65_percent",
+      "expected": 2,
+      "predicted": 2,
+      "status": "unreadable",
+      "confidence": 0.1290160298347473,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\3\\3 (20).jpg",
+      "variant": "original",
+      "expected": 3,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.5396776020526886,
+      "reason": "station_number_template_confirmed"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\3\\3 (20).jpg",
+      "variant": "dark_65_percent",
+      "expected": 3,
+      "predicted": 2,
+      "status": "unreadable",
+      "confidence": 0.43489629030227656,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\3\\3 (20).jpg",
+      "variant": "bright_115_percent",
+      "expected": 3,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.5494680538773535,
+      "reason": "station_number_template_confirmed"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\3\\3 (20).jpg",
+      "variant": "gaussian_blur",
+      "expected": 3,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.5700214996933937,
+      "reason": "station_number_template_confirmed"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\3\\3 (20).jpg",
+      "variant": "rotation_-2.0_degrees",
+      "expected": 3,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.5641961142420768,
+      "reason": "station_number_template_confirmed"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\3\\3 (20).jpg",
+      "variant": "rotation_+2.0_degrees",
+      "expected": 3,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.5727407112717627,
+      "reason": "station_number_template_confirmed"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\3\\3.png",
+      "variant": "original",
+      "expected": 3,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.49358266592025757,
+      "reason": "station_number_template_confirmed"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\3\\3.png",
+      "variant": "dark_65_percent",
+      "expected": 3,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.49194133281707764,
+      "reason": "station_number_template_confirmed"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\3\\3.png",
+      "variant": "bright_115_percent",
+      "expected": 3,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.4946144580841064,
+      "reason": "station_number_template_confirmed"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\3\\3.png",
+      "variant": "gaussian_blur",
+      "expected": 3,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.4977221965789795,
+      "reason": "station_number_template_confirmed"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\3\\3.png",
+      "variant": "rotation_-2.0_degrees",
+      "expected": 3,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.4897211134433746,
+      "reason": "station_number_template_confirmed"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\3\\3.png",
+      "variant": "rotation_+2.0_degrees",
+      "expected": 3,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.4967551529407501,
+      "reason": "station_number_template_confirmed"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\4\\4 (11).jpg",
+      "variant": "dark_65_percent",
+      "expected": 4,
+      "predicted": 4,
+      "status": "unreadable",
+      "confidence": 0.21653584241867066,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\4\\4 (12).jpg",
+      "variant": "dark_65_percent",
+      "expected": 4,
+      "predicted": 1,
+      "status": "unreadable",
+      "confidence": 0.15621070265769957,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (2).jpg",
+      "variant": "dark_65_percent",
+      "expected": 5,
+      "predicted": 5,
+      "status": "unreadable",
+      "confidence": 0.39321005344390864,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (2).jpg",
+      "variant": "bright_115_percent",
+      "expected": 5,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.572827635705471,
+      "reason": "station_number_template_confirmed"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (20).jpg",
+      "variant": "rotation_+2.0_degrees",
+      "expected": 5,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.5756758019328116,
+      "reason": "station_number_template_confirmed"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (22).jpg",
+      "variant": "dark_65_percent",
+      "expected": 5,
+      "predicted": 5,
+      "status": "unreadable",
+      "confidence": 0.3347046673297882,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (22).jpg",
+      "variant": "bright_115_percent",
+      "expected": 5,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.5820723384618758,
+      "reason": "station_number_template_confirmed"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (22).jpg",
+      "variant": "rotation_-2.0_degrees",
+      "expected": 5,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.5753226593136787,
+      "reason": "station_number_template_confirmed"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (23).jpg",
+      "variant": "dark_65_percent",
+      "expected": 5,
+      "predicted": 5,
+      "status": "unreadable",
+      "confidence": 0.42286331951618195,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (23).jpg",
+      "variant": "bright_115_percent",
+      "expected": 5,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.5560989707708358,
+      "reason": "station_number_template_confirmed"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (24).jpg",
+      "variant": "dark_65_percent",
+      "expected": 5,
+      "predicted": 5,
+      "status": "unreadable",
+      "confidence": 0.3747608244419098,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (25).jpg",
+      "variant": "dark_65_percent",
+      "expected": 5,
+      "predicted": 5,
+      "status": "unreadable",
+      "confidence": 0.4319127082824707,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\5\\5 (26).jpg",
+      "variant": "dark_65_percent",
+      "expected": 5,
+      "predicted": 5,
+      "status": "unreadable",
+      "confidence": 0.4101003348827362,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6 (1).jpg",
+      "variant": "original",
+      "expected": 6,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.5922842368483543,
+      "reason": "station_number_template_confirmed"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6 (1).jpg",
+      "variant": "dark_65_percent",
+      "expected": 6,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.5921248406171797,
+      "reason": "station_number_template_confirmed"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6 (1).jpg",
+      "variant": "bright_115_percent",
+      "expected": 6,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.5928316697478294,
+      "reason": "station_number_template_confirmed"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6 (1).jpg",
+      "variant": "gaussian_blur",
+      "expected": 6,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.5894814297556876,
+      "reason": "station_number_template_confirmed"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6 (1).jpg",
+      "variant": "rotation_-2.0_degrees",
+      "expected": 6,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.5902634143829345,
+      "reason": "station_number_template_confirmed"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6 (1).jpg",
+      "variant": "rotation_+2.0_degrees",
+      "expected": 6,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.5937897935509681,
+      "reason": "station_number_template_confirmed"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6 (2).jpg",
+      "variant": "dark_65_percent",
+      "expected": 6,
+      "predicted": 8,
+      "status": "unreadable",
+      "confidence": 0.28395088911056515,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6 (3).jpg",
+      "variant": "dark_65_percent",
+      "expected": 6,
+      "predicted": 6,
+      "status": "unreadable",
+      "confidence": 0.31529737710952754,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6 (4).jpg",
+      "variant": "dark_65_percent",
+      "expected": 6,
+      "predicted": 6,
+      "status": "unreadable",
+      "confidence": 0.3560258626937866,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6 (5).jpg",
+      "variant": "dark_65_percent",
+      "expected": 6,
+      "predicted": 6,
+      "status": "unreadable",
+      "confidence": 0.32858878970146177,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6 (6).jpg",
+      "variant": "dark_65_percent",
+      "expected": 6,
+      "predicted": 6,
+      "status": "unreadable",
+      "confidence": 0.4501447349786758,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6 (7).jpg",
+      "variant": "dark_65_percent",
+      "expected": 6,
+      "predicted": 6,
+      "status": "unreadable",
+      "confidence": 0.3651469826698303,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6 (8).jpg",
+      "variant": "dark_65_percent",
+      "expected": 6,
+      "predicted": 6,
+      "status": "unreadable",
+      "confidence": 0.4291193127632141,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6 (10).jpg",
+      "variant": "dark_65_percent",
+      "expected": 6,
+      "predicted": 6,
+      "status": "unreadable",
+      "confidence": 0.43842773139476776,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6.png",
+      "variant": "original",
+      "expected": 6,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.5254722207784653,
+      "reason": "station_number_template_confirmed"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6.png",
+      "variant": "dark_65_percent",
+      "expected": 6,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.5241074085235596,
+      "reason": "station_number_template_confirmed"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6.png",
+      "variant": "bright_115_percent",
+      "expected": 6,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.5296566009521484,
+      "reason": "station_number_template_confirmed"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6.png",
+      "variant": "gaussian_blur",
+      "expected": 6,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.5306194514036179,
+      "reason": "station_number_template_confirmed"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6.png",
+      "variant": "rotation_-2.0_degrees",
+      "expected": 6,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.5256585478782654,
+      "reason": "station_number_template_confirmed"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\6\\6.png",
+      "variant": "rotation_+2.0_degrees",
+      "expected": 6,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.5308993935585021,
+      "reason": "station_number_template_confirmed"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\7\\7 (3).jpg",
+      "variant": "dark_65_percent",
+      "expected": 7,
+      "predicted": 7,
+      "status": "unreadable",
+      "confidence": 0.44914685189723963,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\8\\8 (16).jpg",
+      "variant": "dark_65_percent",
+      "expected": 8,
+      "predicted": 7,
+      "status": "unreadable",
+      "confidence": 0.15338568091392515,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\8\\8 (25).jpg",
+      "variant": "bright_115_percent",
+      "expected": 8,
+      "predicted": null,
+      "status": "unreadable",
+      "confidence": 0.0,
+      "reason": "white_station_number_not_found"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\9\\9 (11).jpg",
+      "variant": "dark_65_percent",
+      "expected": 9,
+      "predicted": 9,
+      "status": "unreadable",
+      "confidence": 0.4343029797077179,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\9\\9 (12).jpg",
+      "variant": "dark_65_percent",
+      "expected": 9,
+      "predicted": 1,
+      "status": "unreadable",
+      "confidence": 0.12450879216194152,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\9\\9 (13).jpg",
+      "variant": "dark_65_percent",
+      "expected": 9,
+      "predicted": 9,
+      "status": "unreadable",
+      "confidence": 0.24980512857437132,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\9\\9 (14).jpg",
+      "variant": "dark_65_percent",
+      "expected": 9,
+      "predicted": 9,
+      "status": "unreadable",
+      "confidence": 0.1984449565410614,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10 (14).jpg",
+      "variant": "dark_65_percent",
+      "expected": 10,
+      "predicted": 10,
+      "status": "unreadable",
+      "confidence": 0.4364106953144073,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "runtime_data\\datasets\\station_number_v2\\10\\10 (17).jpg",
+      "variant": "dark_65_percent",
+      "expected": 10,
+      "predicted": 10,
+      "status": "unreadable",
+      "confidence": 0.21555394530296323,
+      "reason": "station_number_confidence_below_threshold"
+    }
+  ]
+}

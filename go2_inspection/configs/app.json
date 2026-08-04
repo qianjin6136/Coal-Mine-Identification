@@ -1,0 +1,17 @@
+{
+  "storage_root": "runtime_data",
+  "database_path": "runtime_data/database/inspection.db",
+  "classes_path": "configs/classes.json",
+  "stations_path": "configs/stations.json",
+  "modules_path": "configs/modules.json",
+  "analog_references_path": "configs/analog_references.json",
+  "max_image_bytes": 20971520,
+  "detector": {
+    "backend": "noop",
+    "weights": "models/station_marker_best.pt",
+    "confidence": 0.35
+  },
+  "pipeline": {
+    "fusion_iou": 0.45
+  }
+}

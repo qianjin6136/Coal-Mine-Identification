@@ -1,0 +1,13 @@
+{
+  "images_total": 6,
+  "captures_total": 2,
+  "split_counts": {
+    "train": 6
+  },
+  "qc_flag_counts": {
+    "metadata_missing": 6,
+    "pose_missing": 6,
+    "exact_duplicate": 5
+  },
+  "captures_not_three_frames": []
+}

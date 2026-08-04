@@ -1,0 +1,1796 @@
+{
+  "model_type": "supervised_station_number_templates",
+  "samples": 63,
+  "classes": [
+    7,
+    8,
+    9,
+    10
+  ],
+  "samples_per_class": {
+    "7": 12,
+    "8": 17,
+    "9": 12,
+    "10": 22
+  },
+  "training_accuracy": 1.0,
+  "robustness_cases": 378,
+  "robustness_accuracy": 0.9391534391534392,
+  "samples_detail": [
+    {
+      "file": "sample\\编号\\7\\7 (1).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "confidence": 0.9227651966626936,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\7\\7 (5).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "confidence": 0.9211621856027753,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\7\\7 (6).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "confidence": 0.9236994219653178,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\7\\7 (7).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "confidence": 0.9194016845774033,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\7\\7 (8).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "confidence": 0.9249483115093039,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\7\\7 (9).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "confidence": 0.9323255813953488,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\7\\7 (12).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "confidence": 0.9168901569186876,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\7\\7 (13).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "confidence": 0.9341306676187076,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\7\\7 (14).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "confidence": 0.9245462402765773,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\7\\7 (16).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "confidence": 0.9164948453608247,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\7\\7 (17).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "confidence": 0.9107740289197618,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\7\\7.png",
+      "expected": 7,
+      "predicted": 7,
+      "confidence": 0.9831078131820166,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (1).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "confidence": 0.8408978118655537,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (11).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "confidence": 0.8311060948081264,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (12).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "confidence": 0.8287009063444108,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (13).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "confidence": 0.8269546200109349,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (14).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "confidence": 0.8264490339773484,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (15).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "confidence": 0.8203337969401947,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (16).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "confidence": 0.9789865871833083,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (17).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "confidence": 0.8253609370743666,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (18).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "confidence": 0.8396226415094339,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (21).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "confidence": 0.8313880556313062,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (22).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "confidence": 0.8362770562770563,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (23).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "confidence": 0.8302941836963844,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (24).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "confidence": 0.8236865538735529,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (25).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "confidence": 0.833529659234329,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (26).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "confidence": 0.812784490025288,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (27).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "confidence": 0.8315090761311297,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8.png",
+      "expected": 8,
+      "predicted": 8,
+      "confidence": 0.8329049712546499,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\9\\9 (1).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "confidence": 0.8203337969401947,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\9\\9 (7).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "confidence": 0.813887399463807,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\9\\9 (9).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "confidence": 0.812784490025288,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\9\\9 (10).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "confidence": 0.8236865538735529,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\9\\9 (11).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "confidence": 0.8282614984090251,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\9\\9 (12).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "confidence": 0.9105813595816671,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\9\\9 (13).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "confidence": 0.8790366555589215,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\9\\9 (14).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "confidence": 0.9080142023839716,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\9\\9 (15).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "confidence": 0.822875816993464,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\9\\9 (16).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "confidence": 0.8301489921121823,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\9\\9 (17).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "confidence": 0.8240442655935614,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\9\\9.png",
+      "expected": 9,
+      "predicted": 9,
+      "confidence": 0.8329049712546499,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (1).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (2).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (3).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (4).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (5).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (6).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (7).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (8).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "confidence": 0.995688185140073,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (9).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (10).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (11).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (12).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (13).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (14).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (15).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (17).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (18).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (19).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (20).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "confidence": 0.9811541929666365,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (21).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "confidence": 1.0,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (22).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "confidence": 0.9875346260387812,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10.png",
+      "expected": 10,
+      "predicted": 10,
+      "confidence": 0.9579005524861878,
+      "correct": true
+    }
+  ],
+  "robustness_failures": [
+    {
+      "file": "sample\\编号\\7\\7 (8).jpg",
+      "variant": "dark_65_percent",
+      "expected": 7,
+      "predicted": null,
+      "reason": "white_station_number_not_found"
+    },
+    {
+      "file": "sample\\编号\\7\\7 (13).jpg",
+      "variant": "dark_65_percent",
+      "expected": 7,
+      "predicted": null,
+      "reason": "white_station_number_not_found"
+    },
+    {
+      "file": "sample\\编号\\8\\8 (16).jpg",
+      "variant": "dark_65_percent",
+      "expected": 8,
+      "predicted": null,
+      "reason": "white_station_number_not_found"
+    },
+    {
+      "file": "sample\\编号\\8\\8 (17).jpg",
+      "variant": "dark_65_percent",
+      "expected": 8,
+      "predicted": null,
+      "reason": "white_station_number_not_found"
+    },
+    {
+      "file": "sample\\编号\\8\\8 (21).jpg",
+      "variant": "dark_65_percent",
+      "expected": 8,
+      "predicted": null,
+      "reason": "white_station_number_not_found"
+    },
+    {
+      "file": "sample\\编号\\8\\8 (22).jpg",
+      "variant": "dark_65_percent",
+      "expected": 8,
+      "predicted": null,
+      "reason": "white_station_number_not_found"
+    },
+    {
+      "file": "sample\\编号\\8\\8 (23).jpg",
+      "variant": "dark_65_percent",
+      "expected": 8,
+      "predicted": 10,
+      "reason": "station_number_template_confirmed"
+    },
+    {
+      "file": "sample\\编号\\8\\8 (25).jpg",
+      "variant": "bright_115_percent",
+      "expected": 8,
+      "predicted": null,
+      "reason": "white_station_number_not_found"
+    },
+    {
+      "file": "sample\\编号\\8\\8 (26).jpg",
+      "variant": "dark_65_percent",
+      "expected": 8,
+      "predicted": 10,
+      "reason": "station_number_template_confirmed"
+    },
+    {
+      "file": "sample\\编号\\9\\9 (1).jpg",
+      "variant": "dark_65_percent",
+      "expected": 9,
+      "predicted": null,
+      "reason": "white_station_number_not_found"
+    },
+    {
+      "file": "sample\\编号\\9\\9 (7).jpg",
+      "variant": "bright_115_percent",
+      "expected": 9,
+      "predicted": 7,
+      "reason": "station_number_template_confirmed"
+    },
+    {
+      "file": "sample\\编号\\9\\9 (11).jpg",
+      "variant": "dark_65_percent",
+      "expected": 9,
+      "predicted": null,
+      "reason": "white_station_number_not_found"
+    },
+    {
+      "file": "sample\\编号\\9\\9 (12).jpg",
+      "variant": "dark_65_percent",
+      "expected": 9,
+      "predicted": null,
+      "reason": "white_station_number_not_found"
+    },
+    {
+      "file": "sample\\编号\\9\\9 (12).jpg",
+      "variant": "gaussian_blur",
+      "expected": 9,
+      "predicted": 7,
+      "reason": "station_number_template_confirmed"
+    },
+    {
+      "file": "sample\\编号\\9\\9 (13).jpg",
+      "variant": "dark_65_percent",
+      "expected": 9,
+      "predicted": null,
+      "reason": "white_station_number_not_found"
+    },
+    {
+      "file": "sample\\编号\\9\\9 (14).jpg",
+      "variant": "dark_65_percent",
+      "expected": 9,
+      "predicted": null,
+      "reason": "white_station_number_not_found"
+    },
+    {
+      "file": "sample\\编号\\9\\9 (17).jpg",
+      "variant": "dark_65_percent",
+      "expected": 9,
+      "predicted": null,
+      "reason": "white_station_number_not_found"
+    },
+    {
+      "file": "sample\\编号\\10\\10 (9).jpg",
+      "variant": "dark_65_percent",
+      "expected": 10,
+      "predicted": null,
+      "reason": "white_station_number_not_found"
+    },
+    {
+      "file": "sample\\编号\\10\\10 (15).jpg",
+      "variant": "dark_65_percent",
+      "expected": 10,
+      "predicted": null,
+      "reason": "white_station_number_not_found"
+    },
+    {
+      "file": "sample\\编号\\10\\10 (17).jpg",
+      "variant": "dark_65_percent",
+      "expected": 10,
+      "predicted": null,
+      "reason": "white_station_number_not_found"
+    },
+    {
+      "file": "sample\\编号\\10\\10 (18).jpg",
+      "variant": "dark_65_percent",
+      "expected": 10,
+      "predicted": null,
+      "reason": "white_station_number_not_found"
+    },
+    {
+      "file": "sample\\编号\\10\\10 (19).jpg",
+      "variant": "dark_65_percent",
+      "expected": 10,
+      "predicted": null,
+      "reason": "white_station_number_not_found"
+    },
+    {
+      "file": "sample\\编号\\10\\10 (20).jpg",
+      "variant": "dark_65_percent",
+      "expected": 10,
+      "predicted": null,
+      "reason": "white_station_number_not_found"
+    }
+  ],
+  "validation_method": "leave_one_source_out",
+  "validation_minimum_confidence": 0.55,
+  "validation_samples": 63,
+  "validation_accuracy": 0.9682539682539683,
+  "validation_samples_detail": [
+    {
+      "file": "sample\\编号\\7\\7 (1).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "status": "confirmed",
+      "confidence": 0.7726763867159795,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\7\\7 (5).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "status": "confirmed",
+      "confidence": 0.8882222341970135,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\7\\7 (6).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "status": "confirmed",
+      "confidence": 0.890759470559556,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\7\\7 (7).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "status": "confirmed",
+      "confidence": 0.8202264268454447,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\7\\7 (8).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "status": "confirmed",
+      "confidence": 0.844617589142028,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\7\\7 (9).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "status": "confirmed",
+      "confidence": 0.8911491108071135,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\7\\7 (12).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "status": "confirmed",
+      "confidence": 0.8573549552782227,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\7\\7 (13).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "status": "confirmed",
+      "confidence": 0.8537999452514315,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\7\\7 (14).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "status": "confirmed",
+      "confidence": 0.8833697696883419,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\7\\7 (16).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "status": "confirmed",
+      "confidence": 0.8316059564719359,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\7\\7 (17).jpg",
+      "expected": 7,
+      "predicted": 7,
+      "status": "confirmed",
+      "confidence": 0.7606852189730477,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\7\\7.png",
+      "expected": 7,
+      "predicted": 7,
+      "status": "confirmed",
+      "confidence": 0.6718956919698953,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (1).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.7663516072450917,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (11).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.7421377597723756,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (12).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.7775677987643118,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (13).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.775821512430836,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (14).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.7374806989415977,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (15).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.7272339537619407,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (16).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "status": "unreadable",
+      "confidence": 0.5098679195913585,
+      "correct": false
+    },
+    {
+      "file": "sample\\编号\\8\\8 (17).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.7334080923793383,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (18).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.6192493911206315,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (21).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.7598914929660497,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (22).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.7424482395343679,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (23).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.7557479790759223,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (24).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.743413474599047,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (25).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.7371481449767086,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (26).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.6845196378923386,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8 (27).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.7600125134658733,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\8\\8.png",
+      "expected": 8,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.5589844185776206,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\9\\9 (1).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "status": "confirmed",
+      "confidence": 0.7152564698319367,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\9\\9 (7).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "status": "confirmed",
+      "confidence": 0.70354966084413,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\9\\9 (9).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "status": "confirmed",
+      "confidence": 0.721469036640869,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\9\\9 (10).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "status": "confirmed",
+      "confidence": 0.6225570555809341,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\9\\9 (11).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "status": "confirmed",
+      "confidence": 0.7369460450246063,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\9\\9 (12).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "status": "confirmed",
+      "confidence": 0.6059348949352026,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\9\\9 (13).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "status": "confirmed",
+      "confidence": 0.6886013203190104,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\9\\9 (14).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "status": "confirmed",
+      "confidence": 0.6000211029015103,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\9\\9 (15).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "status": "confirmed",
+      "confidence": 0.717798489885206,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\9\\9 (16).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "status": "confirmed",
+      "confidence": 0.7328227889036262,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\9\\9 (17).jpg",
+      "expected": 9,
+      "predicted": 9,
+      "status": "confirmed",
+      "confidence": 0.7267180623850052,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\9\\9.png",
+      "expected": 9,
+      "predicted": 8,
+      "status": "unreadable",
+      "confidence": 0.5497118127746884,
+      "correct": false
+    },
+    {
+      "file": "sample\\编号\\10\\10 (1).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "status": "confirmed",
+      "confidence": 0.8554846933468055,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (2).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "status": "confirmed",
+      "confidence": 0.8870972518865743,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (3).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "status": "confirmed",
+      "confidence": 0.9602535413682683,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (4).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "status": "confirmed",
+      "confidence": 0.9474267610847678,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (5).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "status": "confirmed",
+      "confidence": 0.9098123217646658,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (6).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "status": "confirmed",
+      "confidence": 0.8262324548539823,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (7).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "status": "confirmed",
+      "confidence": 0.9031929398786542,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (8).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "status": "confirmed",
+      "confidence": 0.8917805474846556,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (9).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "status": "confirmed",
+      "confidence": 0.8948586898150852,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (10).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "status": "confirmed",
+      "confidence": 0.7928334588709441,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (11).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "status": "confirmed",
+      "confidence": 0.9149915424804884,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (12).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "status": "confirmed",
+      "confidence": 0.8594275697599947,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (13).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "status": "confirmed",
+      "confidence": 0.9591967832607861,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (14).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "status": "confirmed",
+      "confidence": 0.6670411044367837,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (15).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "status": "confirmed",
+      "confidence": 0.8977654564829705,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (17).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "status": "confirmed",
+      "confidence": 0.6473539475444566,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (18).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "status": "confirmed",
+      "confidence": 0.77034164137884,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (19).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "status": "confirmed",
+      "confidence": 0.7675081957674931,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (20).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "status": "confirmed",
+      "confidence": 0.7708883140892364,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (21).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "status": "confirmed",
+      "confidence": 0.8722288082598453,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10 (22).jpg",
+      "expected": 10,
+      "predicted": 10,
+      "status": "confirmed",
+      "confidence": 0.7248121129497759,
+      "correct": true
+    },
+    {
+      "file": "sample\\编号\\10\\10.png",
+      "expected": 10,
+      "predicted": 10,
+      "status": "confirmed",
+      "confidence": 0.6244300449416061,
+      "correct": true
+    }
+  ],
+  "validation_failures": [
+    {
+      "file": "sample\\编号\\8\\8 (16).jpg",
+      "expected": 8,
+      "predicted": 8,
+      "status": "unreadable",
+      "confidence": 0.5098679195913585,
+      "correct": false
+    },
+    {
+      "file": "sample\\编号\\9\\9.png",
+      "expected": 9,
+      "predicted": 8,
+      "status": "unreadable",
+      "confidence": 0.5497118127746884,
+      "correct": false
+    }
+  ],
+  "validation_robustness_cases": 378,
+  "validation_robustness_accuracy": 0.8121693121693122,
+  "validation_robustness_failures": [
+    {
+      "file": "sample\\编号\\7\\7 (1).jpg",
+      "variant": "dark_65_percent",
+      "expected": 7,
+      "predicted": 7,
+      "status": "unreadable",
+      "confidence": 0.0855513284363317,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\7\\7 (5).jpg",
+      "variant": "dark_65_percent",
+      "expected": 7,
+      "predicted": 7,
+      "status": "unreadable",
+      "confidence": 0.12977322730599739,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\7\\7 (6).jpg",
+      "variant": "dark_65_percent",
+      "expected": 7,
+      "predicted": 7,
+      "status": "unreadable",
+      "confidence": 0.23943019049679315,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\7\\7 (7).jpg",
+      "variant": "dark_65_percent",
+      "expected": 7,
+      "predicted": 7,
+      "status": "unreadable",
+      "confidence": 0.18585301753148928,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\7\\7 (8).jpg",
+      "variant": "dark_65_percent",
+      "expected": 7,
+      "predicted": null,
+      "status": "unreadable",
+      "confidence": 0.0,
+      "reason": "white_station_number_not_found"
+    },
+    {
+      "file": "sample\\编号\\7\\7 (9).jpg",
+      "variant": "dark_65_percent",
+      "expected": 7,
+      "predicted": 7,
+      "status": "unreadable",
+      "confidence": 0.16862942297536213,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\7\\7 (13).jpg",
+      "variant": "dark_65_percent",
+      "expected": 7,
+      "predicted": null,
+      "status": "unreadable",
+      "confidence": 0.0,
+      "reason": "white_station_number_not_found"
+    },
+    {
+      "file": "sample\\编号\\7\\7 (14).jpg",
+      "variant": "dark_65_percent",
+      "expected": 7,
+      "predicted": 7,
+      "status": "unreadable",
+      "confidence": 0.17952732749813036,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\7\\7 (16).jpg",
+      "variant": "dark_65_percent",
+      "expected": 7,
+      "predicted": 7,
+      "status": "unreadable",
+      "confidence": 0.4351451059713305,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\7\\7 (17).jpg",
+      "variant": "dark_65_percent",
+      "expected": 7,
+      "predicted": 7,
+      "status": "unreadable",
+      "confidence": 0.2231971902162177,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\8\\8 (1).jpg",
+      "variant": "dark_65_percent",
+      "expected": 8,
+      "predicted": 8,
+      "status": "unreadable",
+      "confidence": 0.5049139696300827,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\8\\8 (1).jpg",
+      "variant": "bright_115_percent",
+      "expected": 8,
+      "predicted": 8,
+      "status": "unreadable",
+      "confidence": 0.4363196148286665,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\8\\8 (11).jpg",
+      "variant": "dark_65_percent",
+      "expected": 8,
+      "predicted": 8,
+      "status": "unreadable",
+      "confidence": 0.15383514652780114,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\8\\8 (12).jpg",
+      "variant": "dark_65_percent",
+      "expected": 8,
+      "predicted": 8,
+      "status": "unreadable",
+      "confidence": 0.1775449284191288,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\8\\8 (13).jpg",
+      "variant": "dark_65_percent",
+      "expected": 8,
+      "predicted": 8,
+      "status": "unreadable",
+      "confidence": 0.2909288162667642,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\8\\8 (15).jpg",
+      "variant": "dark_65_percent",
+      "expected": 8,
+      "predicted": 8,
+      "status": "unreadable",
+      "confidence": 0.2853994369622114,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\8\\8 (16).jpg",
+      "variant": "original",
+      "expected": 8,
+      "predicted": 8,
+      "status": "unreadable",
+      "confidence": 0.5098679195913585,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\8\\8 (16).jpg",
+      "variant": "dark_65_percent",
+      "expected": 8,
+      "predicted": null,
+      "status": "unreadable",
+      "confidence": 0.0,
+      "reason": "white_station_number_not_found"
+    },
+    {
+      "file": "sample\\编号\\8\\8 (16).jpg",
+      "variant": "gaussian_blur",
+      "expected": 8,
+      "predicted": 8,
+      "status": "unreadable",
+      "confidence": 0.357629616125002,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\8\\8 (16).jpg",
+      "variant": "rotation_-2.0_degrees",
+      "expected": 8,
+      "predicted": 8,
+      "status": "unreadable",
+      "confidence": 0.49485741737433864,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\8\\8 (16).jpg",
+      "variant": "rotation_+2.0_degrees",
+      "expected": 8,
+      "predicted": 8,
+      "status": "unreadable",
+      "confidence": 0.5102063373260384,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\8\\8 (17).jpg",
+      "variant": "dark_65_percent",
+      "expected": 8,
+      "predicted": null,
+      "status": "unreadable",
+      "confidence": 0.0,
+      "reason": "white_station_number_not_found"
+    },
+    {
+      "file": "sample\\编号\\8\\8 (18).jpg",
+      "variant": "dark_65_percent",
+      "expected": 8,
+      "predicted": 9,
+      "status": "unreadable",
+      "confidence": 0.10587637207170547,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\8\\8 (21).jpg",
+      "variant": "dark_65_percent",
+      "expected": 8,
+      "predicted": null,
+      "status": "unreadable",
+      "confidence": 0.0,
+      "reason": "white_station_number_not_found"
+    },
+    {
+      "file": "sample\\编号\\8\\8 (22).jpg",
+      "variant": "dark_65_percent",
+      "expected": 8,
+      "predicted": null,
+      "status": "unreadable",
+      "confidence": 0.0,
+      "reason": "white_station_number_not_found"
+    },
+    {
+      "file": "sample\\编号\\8\\8 (23).jpg",
+      "variant": "dark_65_percent",
+      "expected": 8,
+      "predicted": 10,
+      "status": "unreadable",
+      "confidence": 0.08832034598799787,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\8\\8 (24).jpg",
+      "variant": "dark_65_percent",
+      "expected": 8,
+      "predicted": 9,
+      "status": "unreadable",
+      "confidence": 0.0504580059438994,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\8\\8 (25).jpg",
+      "variant": "bright_115_percent",
+      "expected": 8,
+      "predicted": null,
+      "status": "unreadable",
+      "confidence": 0.0,
+      "reason": "white_station_number_not_found"
+    },
+    {
+      "file": "sample\\编号\\8\\8 (26).jpg",
+      "variant": "dark_65_percent",
+      "expected": 8,
+      "predicted": 10,
+      "status": "unreadable",
+      "confidence": 0.08463292392065089,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\8\\8 (27).jpg",
+      "variant": "dark_65_percent",
+      "expected": 8,
+      "predicted": 8,
+      "status": "unreadable",
+      "confidence": 0.1377982933280103,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\8\\8.png",
+      "variant": "dark_65_percent",
+      "expected": 8,
+      "predicted": 8,
+      "status": "unreadable",
+      "confidence": 0.5487656453455926,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\9\\9 (1).jpg",
+      "variant": "dark_65_percent",
+      "expected": 9,
+      "predicted": null,
+      "status": "unreadable",
+      "confidence": 0.0,
+      "reason": "white_station_number_not_found"
+    },
+    {
+      "file": "sample\\编号\\9\\9 (7).jpg",
+      "variant": "dark_65_percent",
+      "expected": 9,
+      "predicted": 9,
+      "status": "unreadable",
+      "confidence": 0.057110379020609364,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\9\\9 (7).jpg",
+      "variant": "bright_115_percent",
+      "expected": 9,
+      "predicted": 7,
+      "status": "unreadable",
+      "confidence": 0.13492646200108507,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\9\\9 (9).jpg",
+      "variant": "dark_65_percent",
+      "expected": 9,
+      "predicted": 7,
+      "status": "unreadable",
+      "confidence": 0.07538864677192122,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\9\\9 (10).jpg",
+      "variant": "dark_65_percent",
+      "expected": 9,
+      "predicted": 9,
+      "status": "unreadable",
+      "confidence": 0.12059522227390529,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\9\\9 (11).jpg",
+      "variant": "dark_65_percent",
+      "expected": 9,
+      "predicted": null,
+      "status": "unreadable",
+      "confidence": 0.0,
+      "reason": "white_station_number_not_found"
+    },
+    {
+      "file": "sample\\编号\\9\\9 (12).jpg",
+      "variant": "dark_65_percent",
+      "expected": 9,
+      "predicted": null,
+      "status": "unreadable",
+      "confidence": 0.0,
+      "reason": "white_station_number_not_found"
+    },
+    {
+      "file": "sample\\编号\\9\\9 (12).jpg",
+      "variant": "gaussian_blur",
+      "expected": 9,
+      "predicted": 7,
+      "status": "unreadable",
+      "confidence": 0.33514209376684173,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\9\\9 (13).jpg",
+      "variant": "dark_65_percent",
+      "expected": 9,
+      "predicted": null,
+      "status": "unreadable",
+      "confidence": 0.0,
+      "reason": "white_station_number_not_found"
+    },
+    {
+      "file": "sample\\编号\\9\\9 (14).jpg",
+      "variant": "dark_65_percent",
+      "expected": 9,
+      "predicted": null,
+      "status": "unreadable",
+      "confidence": 0.0,
+      "reason": "white_station_number_not_found"
+    },
+    {
+      "file": "sample\\编号\\9\\9 (15).jpg",
+      "variant": "dark_65_percent",
+      "expected": 9,
+      "predicted": 8,
+      "status": "unreadable",
+      "confidence": 0.06981028759324837,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\9\\9 (16).jpg",
+      "variant": "dark_65_percent",
+      "expected": 9,
+      "predicted": 9,
+      "status": "unreadable",
+      "confidence": 0.28490480386659184,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\9\\9 (17).jpg",
+      "variant": "dark_65_percent",
+      "expected": 9,
+      "predicted": null,
+      "status": "unreadable",
+      "confidence": 0.0,
+      "reason": "white_station_number_not_found"
+    },
+    {
+      "file": "sample\\编号\\9\\9.png",
+      "variant": "original",
+      "expected": 9,
+      "predicted": 8,
+      "status": "unreadable",
+      "confidence": 0.5497118127746884,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\9\\9.png",
+      "variant": "dark_65_percent",
+      "expected": 9,
+      "predicted": 8,
+      "status": "unreadable",
+      "confidence": 0.5470840280293123,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\9\\9.png",
+      "variant": "bright_115_percent",
+      "expected": 9,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.5509044158940625,
+      "reason": "station_number_template_confirmed"
+    },
+    {
+      "file": "sample\\编号\\9\\9.png",
+      "variant": "gaussian_blur",
+      "expected": 9,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.5568668155168373,
+      "reason": "station_number_template_confirmed"
+    },
+    {
+      "file": "sample\\编号\\9\\9.png",
+      "variant": "rotation_-2.0_degrees",
+      "expected": 9,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.5503592713316168,
+      "reason": "station_number_template_confirmed"
+    },
+    {
+      "file": "sample\\编号\\9\\9.png",
+      "variant": "rotation_+2.0_degrees",
+      "expected": 9,
+      "predicted": 8,
+      "status": "confirmed",
+      "confidence": 0.5529433129722343,
+      "reason": "station_number_template_confirmed"
+    },
+    {
+      "file": "sample\\编号\\10\\10 (1).jpg",
+      "variant": "dark_65_percent",
+      "expected": 10,
+      "predicted": 10,
+      "status": "unreadable",
+      "confidence": 0.39803844053798787,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\10\\10 (2).jpg",
+      "variant": "dark_65_percent",
+      "expected": 10,
+      "predicted": 10,
+      "status": "unreadable",
+      "confidence": 0.07932068227128397,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\10\\10 (3).jpg",
+      "variant": "dark_65_percent",
+      "expected": 10,
+      "predicted": 10,
+      "status": "unreadable",
+      "confidence": 0.21223943254198024,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\10\\10 (4).jpg",
+      "variant": "dark_65_percent",
+      "expected": 10,
+      "predicted": 10,
+      "status": "unreadable",
+      "confidence": 0.24448066562095058,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\10\\10 (5).jpg",
+      "variant": "dark_65_percent",
+      "expected": 10,
+      "predicted": 10,
+      "status": "unreadable",
+      "confidence": 0.2697504949143286,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\10\\10 (6).jpg",
+      "variant": "dark_65_percent",
+      "expected": 10,
+      "predicted": 10,
+      "status": "unreadable",
+      "confidence": 0.10497225280763602,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\10\\10 (7).jpg",
+      "variant": "dark_65_percent",
+      "expected": 10,
+      "predicted": 10,
+      "status": "unreadable",
+      "confidence": 0.17037781585542147,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\10\\10 (8).jpg",
+      "variant": "dark_65_percent",
+      "expected": 10,
+      "predicted": 10,
+      "status": "unreadable",
+      "confidence": 0.2827309670022816,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\10\\10 (9).jpg",
+      "variant": "dark_65_percent",
+      "expected": 10,
+      "predicted": null,
+      "status": "unreadable",
+      "confidence": 0.0,
+      "reason": "white_station_number_not_found"
+    },
+    {
+      "file": "sample\\编号\\10\\10 (10).jpg",
+      "variant": "dark_65_percent",
+      "expected": 10,
+      "predicted": 10,
+      "status": "unreadable",
+      "confidence": 0.3009352476767769,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\10\\10 (11).jpg",
+      "variant": "dark_65_percent",
+      "expected": 10,
+      "predicted": 10,
+      "status": "unreadable",
+      "confidence": 0.31759027008108254,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\10\\10 (12).jpg",
+      "variant": "dark_65_percent",
+      "expected": 10,
+      "predicted": 10,
+      "status": "unreadable",
+      "confidence": 0.06367824392392447,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\10\\10 (13).jpg",
+      "variant": "dark_65_percent",
+      "expected": 10,
+      "predicted": 10,
+      "status": "unreadable",
+      "confidence": 0.46671969457246454,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\10\\10 (14).jpg",
+      "variant": "dark_65_percent",
+      "expected": 10,
+      "predicted": 10,
+      "status": "unreadable",
+      "confidence": 0.10739361728215435,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\10\\10 (15).jpg",
+      "variant": "dark_65_percent",
+      "expected": 10,
+      "predicted": null,
+      "status": "unreadable",
+      "confidence": 0.0,
+      "reason": "white_station_number_not_found"
+    },
+    {
+      "file": "sample\\编号\\10\\10 (17).jpg",
+      "variant": "dark_65_percent",
+      "expected": 10,
+      "predicted": null,
+      "status": "unreadable",
+      "confidence": 0.0,
+      "reason": "white_station_number_not_found"
+    },
+    {
+      "file": "sample\\编号\\10\\10 (18).jpg",
+      "variant": "dark_65_percent",
+      "expected": 10,
+      "predicted": null,
+      "status": "unreadable",
+      "confidence": 0.0,
+      "reason": "white_station_number_not_found"
+    },
+    {
+      "file": "sample\\编号\\10\\10 (19).jpg",
+      "variant": "dark_65_percent",
+      "expected": 10,
+      "predicted": null,
+      "status": "unreadable",
+      "confidence": 0.0,
+      "reason": "white_station_number_not_found"
+    },
+    {
+      "file": "sample\\编号\\10\\10 (20).jpg",
+      "variant": "dark_65_percent",
+      "expected": 10,
+      "predicted": null,
+      "status": "unreadable",
+      "confidence": 0.0,
+      "reason": "white_station_number_not_found"
+    },
+    {
+      "file": "sample\\编号\\10\\10 (21).jpg",
+      "variant": "dark_65_percent",
+      "expected": 10,
+      "predicted": 10,
+      "status": "unreadable",
+      "confidence": 0.07839479295862459,
+      "reason": "station_number_confidence_below_threshold"
+    },
+    {
+      "file": "sample\\编号\\10\\10 (22).jpg",
+      "variant": "dark_65_percent",
+      "expected": 10,
+      "predicted": 10,
+      "status": "unreadable",
+      "confidence": 0.05955061417001513,
+      "reason": "station_number_confidence_below_threshold"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "images_total": 9,
+  "captures_total": 3,
+  "split_counts": {
+    "val": 3,
+    "train": 3,
+    "test": 3
+  },
+  "empty_splits": [],
+  "qc_flag_counts": {
+    "exact_duplicate": 8
+  },
+  "captures_not_three_frames": []
+}
