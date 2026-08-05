@@ -42,7 +42,7 @@ class OfflineHandoffTests(unittest.TestCase):
 
     def test_usb_visible_tree_is_recursively_imported(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
-            inbox = Path(temp_dir) / "dataset_inbox" / "inspection-export-test"
+            inbox = Path(temp_dir) / "dataset_inbox"
             package = inbox / "visible" / "2026-08-04" / "rpi_test_001"
             package.mkdir(parents=True)
             image_names = ["frame_01.jpg", "frame_02.jpg", "frame_03.jpg"]

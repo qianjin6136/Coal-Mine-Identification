@@ -2,16 +2,19 @@ import json
 from pathlib import Path
 
 
-def test_usb_export_requires_real_mountpoint_and_copies_all_folders() -> None:
+def test_usb_export_safely_replaces_three_folders_at_mount_root() -> None:
     text = Path("scripts/export_to_usb.sh").read_text(encoding="utf-8")
 
     assert "mountpoint -q" in text
-    assert 'cp -a "$PROJECT_ROOT/data/gas"' in text
-    assert 'cp -a "$PROJECT_ROOT/data/thermal"' in text
-    assert 'cp -a "$PROJECT_ROOT/data/visible"' in text
-    assert "inspection-export-" in text
+    assert 'DESTINATION="$(realpath "$1")"' in text
+    assert '[[ "$DESTINATION" == "/" ]]' in text
+    assert 'mktemp -d "$DESTINATION/.sensor-export.XXXXXX"' in text
+    assert "for directory in gas thermal visible" in text
+    assert 'cp -a "$PROJECT_ROOT/data/$directory" "$STAGING/"' in text
+    assert 'rm -rf -- "$DESTINATION/$directory"' in text
+    assert 'mv "$STAGING/$directory" "$DESTINATION/$directory"' in text
+    assert "inspection-export-" not in text
     assert "sync" in text
-    assert "rm -" not in text
 
 
 def test_setup_targets_ubuntu_firmware_and_never_reboots_automatically() -> None:

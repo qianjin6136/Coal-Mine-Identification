@@ -1,6 +1,6 @@
 {
   "detector": {
-    "mode": "gpu",
+    "mode": "noop",
     "confidence": 0.35
   },
   "pipeline": {

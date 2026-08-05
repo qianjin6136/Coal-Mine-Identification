@@ -1,4 +1,4 @@
-"""U 盘离线批次的安全扫描、传感器归档与后台视觉处理。"""
+"""U 盘离线数据的安全扫描、传感器归档与后台视觉处理。"""
 
 from __future__ import annotations
 
@@ -25,7 +25,9 @@ if TYPE_CHECKING:
     from .service import InspectionService
 
 
-_BATCH_ID_RE = re.compile(r"^inspection-export-[A-Za-z0-9][A-Za-z0-9_.-]{0,119}$")
+_BATCH_ID_RE = re.compile(r"^direct-[0-9a-f]{16}$")
+_INPUT_DIRECTORIES = ("gas", "thermal", "visible")
+_VISIBLE_MANIFEST_SUFFIXES = {".jpg", ".jpeg", ".png"}
 _THERMAL_NAME_RE = re.compile(
     r"^thermal_(?P<date>\d{8})_(?P<time>\d{6})_(?P<sample>\d{6})\.png$",
     re.IGNORECASE,
@@ -67,7 +69,7 @@ class PackageData:
 
 
 class OfflineBatchManager:
-    """只在配置的收件箱内处理树莓派 ``inspection-export-*`` 批次。"""
+    """把配置收件箱中的 ``gas/thermal/visible`` 作为一批离线数据。"""
 
     def __init__(
         self,
@@ -118,42 +120,39 @@ class OfflineBatchManager:
             item["batch_id"]: item for item in self.repository.list_offline_batches()
         }
         result: list[dict[str, Any]] = []
-        discovered_names: set[str] = set()
-        for source in sorted(self.inbox_root.iterdir(), reverse=True):
-            if not source.is_dir() or not _BATCH_ID_RE.fullmatch(source.name):
-                continue
-            discovered_names.add(source.name)
-            if source.name in registered:
-                item = dict(registered[source.name])
+        current_batch_id = self._current_batch_id()
+        if current_batch_id is not None:
+            if current_batch_id in registered:
+                item = dict(registered[current_batch_id])
                 item["source_available"] = True
                 result.append(item)
-                continue
-            visible_root = source / "visible"
-            gas_root = source / "gas"
-            thermal_root = source / "thermal"
-            result.append(
-                {
-                    "batch_id": source.name,
-                    "source_path": str(source),
-                    "source_available": True,
-                    "status": "discovered",
-                    "sensor_status": "not_imported",
-                    "capture_total": len(self._visible_items(visible_root)),
-                    "capture_succeeded": 0,
-                    "capture_failed": 0,
-                    "capture_pending": 0,
-                    "gas_row_count": self._count_gas_rows(gas_root),
-                    "thermal_frame_count": (
-                        sum(1 for _ in thermal_root.rglob("*.png"))
-                        if thermal_root.is_dir() else 0
-                    ),
-                    "warning_count": 0,
-                    "diagnostics": [],
-                    "progress_percent": 0.0,
-                }
-            )
+            else:
+                visible_root = self.inbox_root / "visible"
+                gas_root = self.inbox_root / "gas"
+                thermal_root = self.inbox_root / "thermal"
+                result.append(
+                    {
+                        "batch_id": current_batch_id,
+                        "source_path": str(self.inbox_root),
+                        "source_available": True,
+                        "status": "discovered",
+                        "sensor_status": "not_imported",
+                        "capture_total": len(self._visible_items(visible_root)),
+                        "capture_succeeded": 0,
+                        "capture_failed": 0,
+                        "capture_pending": 0,
+                        "gas_row_count": self._count_gas_rows(gas_root),
+                        "thermal_frame_count": (
+                            sum(1 for _ in thermal_root.rglob("*.png"))
+                            if thermal_root.is_dir() else 0
+                        ),
+                        "warning_count": 0,
+                        "diagnostics": [],
+                        "progress_percent": 0.0,
+                    }
+                )
         for batch_id, item in registered.items():
-            if batch_id in discovered_names:
+            if batch_id == current_batch_id:
                 continue
             missing = dict(item)
             missing["source_available"] = False
@@ -632,11 +631,46 @@ class OfflineBatchManager:
     def _resolve_batch_source(self, batch_id: str) -> Path:
         if not _BATCH_ID_RE.fullmatch(str(batch_id)):
             raise ValidationError("invalid offline batch id")
-        source = (self.inbox_root / batch_id).resolve()
-        self._assert_within(source, self.inbox_root, "offline batch escapes inbox")
-        if source.parent != self.inbox_root or not source.is_dir():
-            raise ValidationError(f"offline batch directory not found: {batch_id}")
-        return source
+        if batch_id != self._current_batch_id():
+            raise ValidationError(
+                f"offline batch source is no longer available: {batch_id}"
+            )
+        if not self.inbox_root.is_dir():
+            raise ValidationError("offline data directory not found")
+        return self.inbox_root
+
+    def _current_batch_id(self) -> str | None:
+        """用受支持文件的相对路径生成不依赖文件内容的稳定批次标识。"""
+
+        manifest: list[str] = []
+        for directory in _INPUT_DIRECTORIES:
+            root = self.inbox_root / directory
+            if not root.is_dir():
+                continue
+            for path in root.rglob("*"):
+                if not path.is_file():
+                    continue
+                relative = path.relative_to(self.inbox_root)
+                if self._has_hidden_part(relative):
+                    continue
+                suffix = path.suffix.lower()
+                supported = (
+                    (directory == "gas" and suffix == ".csv")
+                    or (directory == "thermal" and suffix == ".png")
+                    or (
+                        directory == "visible"
+                        and (
+                            suffix in _VISIBLE_MANIFEST_SUFFIXES
+                            or path.name.lower() == "metadata.json"
+                        )
+                    )
+                )
+                if supported:
+                    manifest.append(relative.as_posix())
+        if not manifest:
+            return None
+        canonical = "\n".join(sorted(manifest)).encode("utf-8")
+        return f"direct-{hashlib.sha256(canonical).hexdigest()[:16]}"
 
     @staticmethod
     def _assert_within(path: Path, root: Path, message: str) -> None:

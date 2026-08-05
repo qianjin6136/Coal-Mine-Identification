@@ -180,7 +180,7 @@ function renderOfflineBatches() {
   if (!state.offlineBatches.length) {
     const empty = document.createElement("div");
     empty.className = "batch-empty";
-    empty.textContent = "未发现 inspection-export-* 批次，请先把 U 盘目录完整复制到收件箱。";
+    empty.textContent = "未发现离线数据，请把 U 盘根目录的 gas、thermal、visible 复制到收件箱。";
     list.appendChild(empty);
     return;
   }

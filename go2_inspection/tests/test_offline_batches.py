@@ -52,13 +52,12 @@ def build_service(root: Path) -> tuple[InspectionService, CaptureRepository]:
 
 def write_batch(
     inbox: Path,
-    batch_id: str = "inspection-export-20260804-153500",
     *,
     capture_id: str = "rpi_20260804_153005_123456",
     bad_visible: bool = False,
     thermal_sample_id: str = "000001",
 ) -> Path:
-    batch = inbox / batch_id
+    batch = inbox
     package = batch / "visible" / "2026-08-04" / capture_id
     package.mkdir(parents=True)
     image_names = ["frame_01.png", "frame_02.png", "frame_03.png"]
@@ -123,27 +122,33 @@ def write_batch(
 
 def write_flat_batch(
     inbox: Path,
-    batch_id: str = "inspection-export-20260211-090000",
     *,
     bad_visible: bool = False,
+    timestamp: str = "20260211_073025_706675",
 ) -> Path:
-    batch = inbox / batch_id
+    batch = inbox
+    compact_date, compact_time, _microsecond = timestamp.split("_")
+    dashed_date = datetime.strptime(compact_date, "%Y%m%d").strftime("%Y-%m-%d")
+    captured_at = (
+        f"{dashed_date}T{compact_time[:2]}:{compact_time[2:4]}:"
+        f"{compact_time[4:]}+08:00"
+    )
     visible_root = batch / "visible"
     visible_root.mkdir(parents=True)
-    (visible_root / "color_20260211_073025_706675.jpg").write_bytes(
+    (visible_root / f"color_{timestamp}.jpg").write_bytes(
         b"not-an-image" if bad_visible else MINIMAL_PNG
     )
 
     gas_root = batch / "gas"
     gas_root.mkdir(parents=True)
-    with (gas_root / "gas_2026-02-11.csv").open(
+    with (gas_root / f"gas_{dashed_date}.csv").open(
         "w", encoding="utf-8-sig", newline=""
     ) as stream:
         writer = csv.DictWriter(stream, fieldnames=CHINESE_GAS_FIELDS)
         writer.writeheader()
         writer.writerow(
             {
-                "时间": "2026-02-11T07:30:25+08:00",
+                "时间": captured_at,
                 "编号": "000001",
                 "CH4(%LEL)": "0",
                 "O2(%VOL)": "19.5",
@@ -155,7 +160,9 @@ def write_flat_batch(
 
     thermal_root = batch / "thermal"
     thermal_root.mkdir(parents=True)
-    (thermal_root / "thermal_20260211_073025_000001.png").write_bytes(MINIMAL_PNG)
+    (thermal_root / f"thermal_{compact_date}_{compact_time}_000001.png").write_bytes(
+        MINIMAL_PNG
+    )
     return batch
 
 
@@ -183,28 +190,33 @@ class OfflineBatchTests(unittest.TestCase):
                 discovered = manager.discover_batches()
                 self.assertEqual(discovered["items"][0]["status"], "discovered")
                 self.assertEqual(discovered["items"][0]["capture_total"], 1)
+                batch_id = discovered["items"][0]["batch_id"]
+                self.assertRegex(batch_id, r"^direct-[0-9a-f]{16}$")
+                self.assertEqual(
+                    discovered["items"][0]["source_path"], str(source.resolve())
+                )
 
-                queued = manager.queue_import(source.name)
-                self.assertEqual(queued["batch_id"], source.name)
-                finished = wait_for_batch(repository, source.name)
+                queued = manager.queue_import(batch_id)
+                self.assertEqual(queued["batch_id"], batch_id)
+                finished = wait_for_batch(repository, batch_id)
 
                 self.assertEqual(finished["status"], "completed")
                 self.assertEqual(finished["capture_succeeded"], 1)
                 self.assertEqual(finished["gas_row_count"], 1)
                 self.assertEqual(finished["thermal_frame_count"], 1)
-                listed = service.list_captures(source_batch_id=source.name)
+                listed = service.list_captures(source_batch_id=batch_id)
                 self.assertEqual(listed["total"], 1)
                 self.assertEqual(
-                    listed["items"][0]["source_batch_id"], source.name
+                    listed["items"][0]["source_batch_id"], batch_id
                 )
                 capture = service.get_capture("rpi_20260804_153005_123456")
-                self.assertEqual(capture["source_batch_id"], source.name)
-                archive = root / "runtime" / "imported_batches" / source.name
+                self.assertEqual(capture["source_batch_id"], batch_id)
+                archive = root / "runtime" / "imported_batches" / batch_id
                 self.assertTrue((archive / "gas" / "gas_2026-08-04.csv").is_file())
                 self.assertTrue(
                     (archive / "thermal" / "thermal_20260804_153005_000001.png").is_file()
                 )
-                sensor_samples = repository.sensor_samples_for_batch(source.name)
+                sensor_samples = repository.sensor_samples_for_batch(batch_id)
                 self.assertEqual(len(sensor_samples), 1)
                 self.assertEqual(sensor_samples[0]["ch4_value"], 1.25)
                 self.assertIsNotNone(sensor_samples[0]["thermal_stored_path"])
@@ -225,9 +237,10 @@ class OfflineBatchTests(unittest.TestCase):
             try:
                 discovered = manager.discover_batches()
                 self.assertEqual(discovered["items"][0]["capture_total"], 1)
+                batch_id = discovered["items"][0]["batch_id"]
 
-                manager.queue_import(source.name)
-                finished = wait_for_batch(repository, source.name)
+                manager.queue_import(batch_id)
+                finished = wait_for_batch(repository, batch_id)
 
                 self.assertEqual(finished["status"], "completed")
                 self.assertEqual(finished["capture_succeeded"], 1)
@@ -236,7 +249,7 @@ class OfflineBatchTests(unittest.TestCase):
                 self.assertEqual(capture["station_id"], "")
                 self.assertEqual(capture["camera_id"], "raspberry_pi_usb")
                 self.assertEqual(len(capture["images"]), 1)
-                samples = repository.sensor_samples_for_batch(source.name)
+                samples = repository.sensor_samples_for_batch(batch_id)
                 self.assertEqual(len(samples), 1)
                 self.assertEqual(samples[0]["o2_value"], 19.5)
                 self.assertEqual(samples[0]["o2_unit"], "%VOL")
@@ -245,7 +258,7 @@ class OfflineBatchTests(unittest.TestCase):
                     root
                     / "runtime"
                     / "imported_batches"
-                    / source.name
+                    / batch_id
                     / "gas"
                     / "gas_2026-02-11.csv"
                 )
@@ -262,14 +275,18 @@ class OfflineBatchTests(unittest.TestCase):
             service, repository = build_service(root)
             manager = OfflineBatchManager(inbox, repository, service)
             try:
-                manager.queue_import(source.name)
-                failed = wait_for_batch(repository, source.name)
+                batch_id = manager.discover_batches()["items"][0]["batch_id"]
+                manager.queue_import(batch_id)
+                failed = wait_for_batch(repository, batch_id)
                 self.assertEqual(failed["status"], "failed")
                 self.assertEqual(failed["capture_failed"], 1)
 
                 image.write_bytes(MINIMAL_PNG)
-                manager.retry_batch(source.name)
-                finished = wait_for_batch(repository, source.name)
+                self.assertEqual(
+                    manager.discover_batches()["items"][0]["batch_id"], batch_id
+                )
+                manager.retry_batch(batch_id)
+                finished = wait_for_batch(repository, batch_id)
                 self.assertEqual(finished["status"], "completed")
                 self.assertEqual(finished["capture_succeeded"], 1)
             finally:
@@ -283,15 +300,19 @@ class OfflineBatchTests(unittest.TestCase):
             service, repository = build_service(root)
             manager = OfflineBatchManager(inbox, repository, service)
             try:
-                manager.queue_import(source.name)
-                failed = wait_for_batch(repository, source.name)
+                batch_id = manager.discover_batches()["items"][0]["batch_id"]
+                manager.queue_import(batch_id)
+                failed = wait_for_batch(repository, batch_id)
                 self.assertEqual(failed["status"], "failed")
                 self.assertEqual(failed["capture_failed"], 1)
 
                 for image in source.rglob("frame_*.png"):
                     image.write_bytes(MINIMAL_PNG)
-                manager.retry_batch(source.name)
-                finished = wait_for_batch(repository, source.name)
+                self.assertEqual(
+                    manager.discover_batches()["items"][0]["batch_id"], batch_id
+                )
+                manager.retry_batch(batch_id)
+                finished = wait_for_batch(repository, batch_id)
                 self.assertEqual(finished["status"], "completed")
                 self.assertEqual(finished["capture_succeeded"], 1)
             finally:
@@ -301,17 +322,64 @@ class OfflineBatchTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             inbox = root / "dataset_inbox"
-            source = write_batch(inbox, thermal_sample_id="000002")
+            write_batch(inbox, thermal_sample_id="000002")
             service, repository = build_service(root)
             manager = OfflineBatchManager(inbox, repository, service)
             try:
-                manager.queue_import(source.name)
-                finished = wait_for_batch(repository, source.name)
+                batch_id = manager.discover_batches()["items"][0]["batch_id"]
+                manager.queue_import(batch_id)
+                finished = wait_for_batch(repository, batch_id)
                 self.assertEqual(finished["status"], "completed_with_errors")
                 messages = [item["message"] for item in finished["diagnostics"]]
                 self.assertTrue(any("missing_thermal_frame" in item for item in messages))
                 self.assertTrue(any("missing_gas_row" in item for item in messages))
                 self.assertEqual(finished["capture_succeeded"], 1)
+            finally:
+                manager.stop()
+
+    def test_replacing_three_directories_discovers_a_new_batch(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            inbox = root / "dataset_inbox"
+            write_flat_batch(inbox)
+            service, repository = build_service(root)
+            manager = OfflineBatchManager(inbox, repository, service)
+            try:
+                first_id = next(
+                    item["batch_id"]
+                    for item in manager.discover_batches()["items"]
+                    if item["source_available"]
+                )
+                manager.queue_import(first_id)
+                self.assertEqual(
+                    wait_for_batch(repository, first_id)["status"], "completed"
+                )
+
+                for directory in ("gas", "thermal", "visible"):
+                    shutil.rmtree(inbox / directory)
+                write_flat_batch(inbox, timestamp="20260212_083025_706675")
+
+                discovered = manager.discover_batches()["items"]
+                current = next(item for item in discovered if item["source_available"])
+                previous = next(
+                    item for item in discovered if item["batch_id"] == first_id
+                )
+                second_id = current["batch_id"]
+                self.assertNotEqual(second_id, first_id)
+                self.assertFalse(previous["source_available"])
+                with self.assertRaises(ValidationError):
+                    manager.retry_batch(first_id)
+
+                manager.queue_import(second_id)
+                self.assertEqual(
+                    wait_for_batch(repository, second_id)["status"], "completed"
+                )
+                self.assertEqual(
+                    service.list_captures(source_batch_id=first_id)["total"], 1
+                )
+                self.assertEqual(
+                    service.list_captures(source_batch_id=second_id)["total"], 1
+                )
             finally:
                 manager.stop()
 
@@ -322,9 +390,10 @@ class OfflineBatchTests(unittest.TestCase):
             source = write_batch(inbox)
             service, repository = build_service(root)
             manager = OfflineBatchManager(inbox, repository, service)
+            batch_id = manager.discover_batches()["items"][0]["batch_id"]
             plan = manager._preflight(source)
             repository.create_offline_batch(
-                source.name,
+                batch_id,
                 source,
                 plan["items"],
                 gas_row_count=plan["gas_row_count"],
@@ -332,13 +401,13 @@ class OfflineBatchTests(unittest.TestCase):
                 diagnostics=plan["diagnostics"],
             )
             repository.claim_next_offline_batch()
-            item = repository.pending_offline_items(source.name)[0]
+            item = repository.pending_offline_items(batch_id)[0]
             repository.update_offline_item(
-                source.name, item["relative_path"], status="running"
+                batch_id, item["relative_path"], status="running"
             )
             try:
                 manager.start()
-                finished = wait_for_batch(repository, source.name)
+                finished = wait_for_batch(repository, batch_id)
                 self.assertEqual(finished["status"], "completed")
                 self.assertEqual(finished["capture_succeeded"], 1)
             finally:
@@ -348,38 +417,49 @@ class OfflineBatchTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             inbox = root / "dataset_inbox"
-            incomplete = inbox / "inspection-export-incomplete"
-            (incomplete / "visible").mkdir(parents=True)
+            (inbox / "visible").mkdir(parents=True)
+            (inbox / "visible" / "color_20260804_153005_123456.jpg").write_bytes(
+                MINIMAL_PNG
+            )
             service, repository = build_service(root)
             manager = OfflineBatchManager(inbox, repository, service)
+            incomplete_id = manager.discover_batches()["items"][0]["batch_id"]
             with self.assertRaises(ValidationError):
-                manager.queue_import(incomplete.name)
+                manager.queue_import(incomplete_id)
             with self.assertRaises(ValidationError):
                 manager.queue_import("../outside")
 
-            source = write_batch(inbox, "inspection-export-duplicate")
+            shutil.rmtree(inbox)
+            source = write_batch(inbox)
             first_package = next((source / "visible").rglob("metadata.json")).parent
             duplicate = source / "visible" / "2026-08-04" / "duplicate"
             shutil.copytree(first_package, duplicate)
+            duplicate_id = manager.discover_batches()["items"][0]["batch_id"]
             with self.assertRaises(ValidationError):
-                manager.queue_import(source.name)
+                manager.queue_import(duplicate_id)
 
-            mixed = write_batch(
-                inbox,
-                "inspection-export-mixed-duplicate",
-                capture_id="color_20260804_153005_123456",
-            )
+            shutil.rmtree(inbox)
+            mixed = write_batch(inbox, capture_id="color_20260804_153005_123456")
             (mixed / "visible" / "color_20260804_153005_123456.jpg").write_bytes(
                 MINIMAL_PNG
             )
+            mixed_id = manager.discover_batches()["items"][0]["batch_id"]
             with self.assertRaises(ValidationError):
-                manager.queue_import(mixed.name)
+                manager.queue_import(mixed_id)
+
+            legacy = inbox / "inspection-export-old"
+            (legacy / "gas").mkdir(parents=True)
+            self.assertEqual(
+                manager.discover_batches()["items"][0]["batch_id"], mixed_id
+            )
+            with self.assertRaises(ValidationError):
+                manager.queue_import(legacy.name)
 
     def test_offline_batch_api_discovers_imports_and_filters(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             inbox = root / "dataset_inbox"
-            source = write_batch(inbox)
+            write_batch(inbox)
             config_paths = {
                 name: root / f"{name}.json"
                 for name in ("classes", "stations", "modules", "analog")
@@ -435,33 +515,34 @@ class OfflineBatchTests(unittest.TestCase):
                 discovered = client.get("/api/v1/offline-batches")
                 self.assertEqual(discovered.status_code, 200)
                 self.assertEqual(discovered.json()["items"][0]["status"], "discovered")
+                batch_id = discovered.json()["items"][0]["batch_id"]
                 queued = client.post(
-                    f"/api/v1/offline-batches/{source.name}/import"
+                    f"/api/v1/offline-batches/{batch_id}/import"
                 )
                 self.assertEqual(queued.status_code, 200, queued.text)
                 deadline = time.monotonic() + 5.0
                 while time.monotonic() < deadline:
                     detail = client.get(
-                        f"/api/v1/offline-batches/{source.name}"
+                        f"/api/v1/offline-batches/{batch_id}"
                     )
                     if detail.json()["status"] not in {"queued", "running"}:
                         break
                     time.sleep(0.02)
                 self.assertEqual(detail.json()["status"], "completed")
                 filtered = client.get(
-                    "/api/v1/captures", params={"batch_id": source.name}
+                    "/api/v1/captures", params={"batch_id": batch_id}
                 )
                 self.assertEqual(filtered.status_code, 200)
                 self.assertEqual(filtered.json()["total"], 1)
                 self.assertEqual(
-                    filtered.json()["items"][0]["source_batch_id"], source.name
+                    filtered.json()["items"][0]["source_batch_id"], batch_id
                 )
                 exported = client.get(
                     "/api/v1/export",
-                    params={"format": "json", "batch_id": source.name},
+                    params={"format": "json", "batch_id": batch_id},
                 )
                 self.assertEqual(exported.status_code, 200)
-                self.assertEqual(exported.json()[0]["source_batch_id"], source.name)
+                self.assertEqual(exported.json()[0]["source_batch_id"], batch_id)
                 health = client.get("/health").json()
                 self.assertEqual(health["offline_batches_queued"], 0)
                 self.assertEqual(health["offline_batches_running"], 0)

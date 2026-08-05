@@ -134,16 +134,18 @@ data/
 ./scripts/export_to_usb.sh /media/$USER/USB_NAME
 ```
 
-U 盘中会生成：
+U 盘根目录中会生成：
 
 ```text
-inspection-export-日期时间/
+U盘根目录/
 ├── gas/
 ├── thermal/
 └── visible/
 ```
 
-脚本会执行 `sync`，不会删除树莓派上的原始数据。完成后使用实际设备名安全卸载：
+脚本会先完整复制到 U 盘内的临时目录，再自动替换根目录中已有的 `gas`、`thermal`、
+`visible`。U 盘中的其他文件不会被删除，树莓派上的原始数据也会保留。脚本执行
+`sync` 后才报告完成；随后使用实际设备名安全卸载：
 
 ```bash
 udisksctl unmount -b /dev/sda1
@@ -175,13 +177,17 @@ python -m pip install -r requirements.txt
 
 ## U 盘数据导入与识别
 
-把完整的 `inspection-export-*` 目录复制到：
+先清空收件箱中上一批的三个数据目录，再把 U 盘根目录的 `gas`、`thermal`、
+`visible` 直接复制到：
 
 ```text
-go2_inspection/dataset_inbox/inspection-export-批次时间/
+go2_inspection/dataset_inbox/
+├── gas/
+├── thermal/
+└── visible/
 ```
 
-打开工作台 `http://127.0.0.1:8000/ui`，在顶部“U 盘离线批次”区域：
+打开工作台 `http://127.0.0.1:8000/ui`，在顶部“U 盘离线数据”区域：
 
 1. 点击“扫描收件箱”；
 2. 确认可见光抓拍、气体记录和红外热像数量；
@@ -192,13 +198,15 @@ go2_inspection/dataset_inbox/inspection-export-批次时间/
 上位机不会修改或删除 `dataset_inbox` 中的原文件。气体 CSV 会结构化入库，气体和
 红外原文件会归档到 `runtime_data/imported_batches/<batch_id>/`。上位机同时兼容新的
 `color_*.jpg` 单图与旧的“三张图片 + metadata.json”抓拍包；气体和热像显示归档
-状态，留给后续独立模块分析。无元数据单图不保存工位号，时间按 UTC+08:00 解析。
+状态，留给后续独立模块分析。批次编号由三个目录中的文件路径自动生成；清空并换入
+新一批时间戳文件后会得到新的编号。导入完成前不要增删文件。无元数据单图不保存
+工位号，时间按 UTC+08:00 解析。
 
 原命令行上传工具仍可作为兼容方案，只处理可见光抓拍包：
 
 ```powershell
 python .\scripts\upload_queue.py `
-  ".\dataset_inbox\inspection-export-批次时间\visible" `
+  ".\dataset_inbox\visible" `
   --server http://127.0.0.1:8000
 ```
 
@@ -210,7 +218,7 @@ python .\scripts\upload_queue.py `
 - `sample/`：编号牌、数字表、煤堆和传送带样本；所有配置均以该英文目录名为准。
 - `models/`：上位机当前模型；基础模型位于 `models/base/`。
 - `runtime_data/`：数据库、训练数据集、模型产物、评估报告和历史运行结果。
-- `dataset_inbox/`：比赛结束后从 U 盘复制进来的原始巡检批次。
+- `dataset_inbox/`：从 U 盘复制进来的 `gas`、`thermal`、`visible` 原始巡检数据。
 
 更详细的部署、标注和训练说明见：
 

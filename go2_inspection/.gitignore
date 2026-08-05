@@ -13,3 +13,9 @@ data/database/
 models/*.pt
 models/*.onnx
 models/*.engine
+/dataset_inbox/gas/*
+!/dataset_inbox/gas/.gitkeep
+/dataset_inbox/thermal/*
+!/dataset_inbox/thermal/.gitkeep
+/dataset_inbox/visible/*
+!/dataset_inbox/visible/.gitkeep
