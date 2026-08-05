@@ -140,6 +140,7 @@ main {
   background: #fbfcfd;
 }
 .offline-batch-card.running, .offline-batch-card.queued { border-left-color: var(--blue); }
+.offline-batch-card.awaiting_detection_confirmation { border-left-color: var(--cyan); }
 .offline-batch-card.completed { border-left-color: var(--green); }
 .offline-batch-card.completed_with_errors,
 .offline-batch-card.failed { border-left-color: var(--amber); }
@@ -165,6 +166,7 @@ main {
   font-weight: 800;
 }
 .batch-state.running, .batch-state.queued { color: var(--blue); background: var(--blue-soft); }
+.batch-state.awaiting_detection_confirmation { color: #147c89; background: #e5f7f8; }
 .batch-state.completed { color: var(--green); background: var(--green-soft); }
 .batch-state.completed_with_errors, .batch-state.failed {
   color: var(--amber);

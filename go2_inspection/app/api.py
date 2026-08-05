@@ -7,6 +7,7 @@ import csv
 import io
 import json
 from pathlib import Path
+from urllib.parse import quote
 
 try:
     from fastapi import Body, FastAPI, File, Form, HTTPException, Query, UploadFile
@@ -18,7 +19,12 @@ except ImportError as exc:  # pragma: no cover - 仅在尚未安装依赖时触�
     ) from exc
 
 from .domain import CaptureMetadata
-from .errors import CaptureNotFoundError, InspectionError
+from .errors import (
+    BatchStateConflictError,
+    CaptureNotFoundError,
+    InspectionError,
+    ReportNotReadyError,
+)
 from .factory import build_service
 from .ui import inspection_ui_html
 
@@ -84,6 +90,28 @@ def create_app() -> FastAPI:
         except InspectionError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
 
+    @app.post("/api/v1/offline-batches/{batch_id}/confirm-detection")
+    def confirm_offline_batch_detection(batch_id: str) -> dict[str, object]:
+        try:
+            return service.confirm_offline_batch_detection(batch_id)
+        except CaptureNotFoundError as exc:
+            raise HTTPException(status_code=404, detail="offline batch not found") from exc
+        except BatchStateConflictError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        except InspectionError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    @app.post("/api/v1/offline-batches/{batch_id}/confirm-report")
+    def confirm_offline_batch_report(batch_id: str) -> dict[str, object]:
+        try:
+            return service.confirm_offline_batch_report(batch_id)
+        except CaptureNotFoundError as exc:
+            raise HTTPException(status_code=404, detail="offline batch not found") from exc
+        except BatchStateConflictError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        except InspectionError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
     @app.get("/api/v1/offline-batches/{batch_id}")
     def get_offline_batch(batch_id: str) -> dict[str, object]:
         try:
@@ -92,6 +120,32 @@ def create_app() -> FastAPI:
             raise HTTPException(status_code=404, detail="offline batch not found") from exc
         except InspectionError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    @app.get("/api/v1/offline-batches/{batch_id}/report.docx")
+    def download_offline_batch_report(batch_id: str) -> Response:
+        try:
+            payload = service.generate_offline_batch_report(batch_id)
+        except CaptureNotFoundError as exc:
+            raise HTTPException(status_code=404, detail="offline batch not found") from exc
+        except ReportNotReadyError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        except InspectionError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        filename = f"GO2_巡检报告_{batch_id}.docx"
+        encoded = quote(filename)
+        return Response(
+            content=payload,
+            media_type=(
+                "application/vnd.openxmlformats-officedocument."
+                "wordprocessingml.document"
+            ),
+            headers={
+                "Content-Disposition": (
+                    f"attachment; filename=GO2_report_{batch_id}.docx; "
+                    f"filename*=UTF-8''{encoded}"
+                )
+            },
+        )
 
     @app.post("/api/v1/offline-batches/{batch_id}/retry")
     def retry_offline_batch(batch_id: str) -> dict[str, object]:

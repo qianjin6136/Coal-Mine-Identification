@@ -6,9 +6,10 @@ from threading import RLock
 from typing import Any, Callable, Mapping, Sequence, TYPE_CHECKING
 
 from .domain import BoundingBox, CaptureMetadata
-from .errors import ValidationError
+from .errors import ReportNotReadyError, ValidationError
 from .inference import detector_runtime_mode
 from .pipeline import InspectionPipeline
+from .reporting import build_batch_report, render_report_docx
 from .result_summary import build_recognition_summary
 from .runtime_settings import RuntimeSettingsManager
 from .storage import CaptureRepository
@@ -97,6 +98,16 @@ class InspectionService:
             raise ValidationError("offline batch service is not configured")
         return self.offline_batches.queue_import(batch_id)
 
+    def confirm_offline_batch_detection(self, batch_id: str) -> dict[str, Any]:
+        if self.offline_batches is None:
+            raise ValidationError("offline batch service is not configured")
+        return self.offline_batches.confirm_detection(batch_id)
+
+    def confirm_offline_batch_report(self, batch_id: str) -> dict[str, Any]:
+        if self.offline_batches is None:
+            raise ValidationError("offline batch service is not configured")
+        return self.offline_batches.confirm_report(batch_id)
+
     def get_offline_batch(self, batch_id: str) -> dict[str, Any]:
         if self.offline_batches is None:
             raise ValidationError("offline batch service is not configured")
@@ -106,6 +117,19 @@ class InspectionService:
         if self.offline_batches is None:
             raise ValidationError("offline batch service is not configured")
         return self.offline_batches.retry_batch(batch_id)
+
+    def generate_offline_batch_report(self, batch_id: str) -> bytes:
+        """按需生成整批巡检 Word 报告，始终采用数据库中的有效结果。"""
+
+        if self.offline_batches is None:
+            raise ValidationError("offline batch service is not configured")
+        batch = self.offline_batches.get_batch(batch_id)
+        if batch["status"] not in {"completed", "completed_with_errors", "failed"}:
+            raise ReportNotReadyError("offline batch detection is not complete")
+        if not batch.get("report_confirmed_at"):
+            raise ReportNotReadyError("offline batch report has not been confirmed")
+        report = build_batch_report(self.repository, batch_id)
+        return render_report_docx(report)
 
     def list_captures(
         self,
@@ -182,6 +206,8 @@ class InspectionService:
             "warnings": list(result.get("warnings") or [])
             + ["manually_corrected"],
         }
+        # 先撤销报告确认，避免并发下载在结果变化后沿用旧确认状态。
+        self.repository.invalidate_report_confirmation_for_capture(capture_id)
         self.repository.save_correction(
             capture_id,
             corrected_result,
@@ -193,6 +219,7 @@ class InspectionService:
     def reprocess_capture(self, capture_id: str) -> dict[str, Any]:
         """使用当前模型和配置重跑既有原图，并停用旧人工修正但保留审计。"""
 
+        self.repository.invalidate_report_confirmation_for_capture(capture_id)
         metadata = self.repository.get_metadata(capture_id)
         image_paths = self.repository.image_paths(capture_id)
         try:

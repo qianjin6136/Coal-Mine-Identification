@@ -16,6 +16,7 @@ const STATUS_LABELS = {
 
 const BATCH_STATUS_LABELS = {
   discovered: "待导入",
+  awaiting_detection_confirmation: "等待检测确认",
   queued: "等待处理",
   running: "正在处理",
   completed: "处理完成",
@@ -264,13 +265,34 @@ function offlineBatchCard(batch) {
     results.addEventListener("click", () => showBatchResults(batch.batch_id));
     actions.appendChild(results);
   }
+  if (batch.report_available) {
+    const report = document.createElement("a");
+    report.className = "button button-quiet compact";
+    report.href = `/api/v1/offline-batches/${encodeURIComponent(batch.batch_id)}/report.docx`;
+    report.download = "";
+    report.textContent = "下载Word报告";
+    actions.appendChild(report);
+  }
   const acting = state.batchActions.has(batch.batch_id);
   if (batch.status === "discovered") {
-    actions.appendChild(batchActionButton(batch, "import", "导入并识别", acting));
-  } else if (
-    batch.status === "failed"
-    || Number(batch.capture_failed || 0) > 0
-    || batch.sensor_status === "failed"
+    actions.appendChild(batchActionButton(batch, "import", "导入并预检", acting));
+  } else if (batch.can_start_detection) {
+    actions.appendChild(batchActionButton(
+      batch, "confirm-detection", "确认并开始检测", acting,
+    ));
+  }
+  if (batch.can_confirm_report) {
+    actions.appendChild(batchActionButton(
+      batch, "confirm-report", "确认结果并开放报告", acting,
+    ));
+  }
+  if (
+    ["completed", "completed_with_errors", "failed"].includes(batch.status)
+    && (
+      batch.status === "failed"
+      || Number(batch.capture_failed || 0) > 0
+      || batch.sensor_status === "failed"
+    )
   ) {
     actions.appendChild(batchActionButton(batch, "retry", "重试失败项", acting));
   }
@@ -292,7 +314,8 @@ function batchMetric(labelText, valueText, noteText) {
 }
 
 function batchProgressText(batch) {
-  if (batch.status === "discovered") return "等待开始导入";
+  if (batch.status === "discovered") return "等待导入并执行预检";
+  if (batch.status === "awaiting_detection_confirmation") return "预检完成，等待人工确认检测";
   if (batch.status === "queued") return "已进入后台队列";
   if (batch.status === "running") return "后台逐包识别中";
   if (batch.status === "completed") return "所有有效抓拍处理完成";
@@ -302,7 +325,7 @@ function batchProgressText(batch) {
 
 function batchActionButton(batch, action, text, acting) {
   const button = document.createElement("button");
-  button.className = action === "import"
+  button.className = ["import", "confirm-detection", "confirm-report"].includes(action)
     ? "button button-primary compact"
     : "button button-warning compact";
   button.type = "button";
@@ -314,6 +337,12 @@ function batchActionButton(batch, action, text, acting) {
 
 async function performBatchAction(batchId, action) {
   if (state.batchActions.has(batchId)) return;
+  const confirmationMessages = {
+    "confirm-detection": "确认开始检测这个批次吗？确认后后台才会执行视觉识别。",
+    "confirm-report": "确认当前结果可以用于生成报告吗？后续修正或重跑会重新锁定报告。",
+    retry: "确认重新预检失败项吗？重试后仍需再次确认才会开始检测。",
+  };
+  if (confirmationMessages[action] && !window.confirm(confirmationMessages[action])) return;
   state.batchActions.add(batchId);
   renderOfflineBatches();
   try {
@@ -321,7 +350,13 @@ async function performBatchAction(batchId, action) {
       `/api/v1/offline-batches/${encodeURIComponent(batchId)}/${action}`,
       {method: "POST"},
     );
-    showToast(action === "import" ? "批次已进入后台队列" : "失败项已重新排队");
+    const successMessages = {
+      import: "批次预检完成，请确认后开始检测",
+      "confirm-detection": "已确认，批次进入检测队列",
+      "confirm-report": "结果已确认，现在可以下载报告",
+      retry: "失败项已准备完成，请再次确认后开始检测",
+    };
+    showToast(successMessages[action] || "批次状态已更新");
   } catch (error) {
     showToast(error.message, true);
   } finally {

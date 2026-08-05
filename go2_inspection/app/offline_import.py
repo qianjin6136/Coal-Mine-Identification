@@ -149,6 +149,11 @@ class OfflineBatchManager:
                         "warning_count": 0,
                         "diagnostics": [],
                         "progress_percent": 0.0,
+                        "detection_confirmed_at": None,
+                        "report_confirmed_at": None,
+                        "can_start_detection": False,
+                        "can_confirm_report": False,
+                        "report_available": False,
                     }
                 )
         for batch_id, item in registered.items():
@@ -161,6 +166,8 @@ class OfflineBatchManager:
         return {"inbox_path": str(self.inbox_root), "items": result}
 
     def queue_import(self, batch_id: str) -> dict[str, Any]:
+        """预检并登记批次，但等待用户确认后才进入识别队列。"""
+
         source = self._resolve_batch_source(batch_id)
         if self.repository.offline_batch_exists(batch_id):
             return self.repository.get_offline_batch(batch_id)
@@ -178,19 +185,24 @@ class OfflineBatchManager:
             if not self.repository.offline_batch_exists(batch_id):
                 raise
             batch = self.repository.get_offline_batch(batch_id)
-        self.start()
-        self._wake_event.set()
         return batch
+
+    def confirm_detection(self, batch_id: str) -> dict[str, Any]:
+        batch = self.repository.confirm_offline_batch_detection(batch_id)
+        if batch["status"] == "queued":
+            self.start()
+            self._wake_event.set()
+        return batch
+
+    def confirm_report(self, batch_id: str) -> dict[str, Any]:
+        return self.repository.confirm_offline_batch_report(batch_id)
 
     def get_batch(self, batch_id: str) -> dict[str, Any]:
         return self.repository.get_offline_batch(batch_id)
 
     def retry_batch(self, batch_id: str) -> dict[str, Any]:
         self._resolve_batch_source(batch_id)
-        batch = self.repository.retry_offline_batch(batch_id)
-        self.start()
-        self._wake_event.set()
-        return batch
+        return self.repository.retry_offline_batch(batch_id)
 
     def run_pending_once(self) -> bool:
         """领取并完整处理一个批次；测试也可直接调用此确定性入口。"""

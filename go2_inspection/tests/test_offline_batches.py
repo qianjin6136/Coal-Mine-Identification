@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 import shutil
+import sqlite3
 import tempfile
 import time
 import unittest
@@ -176,7 +177,64 @@ def wait_for_batch(repository: CaptureRepository, batch_id: str) -> dict:
     raise AssertionError("offline batch did not finish")
 
 
+def confirm_and_wait(
+    manager: OfflineBatchManager,
+    repository: CaptureRepository,
+    batch_id: str,
+) -> dict:
+    confirmed = manager.confirm_detection(batch_id)
+    assert confirmed["detection_confirmed_at"]
+    return wait_for_batch(repository, batch_id)
+
+
 class OfflineBatchTests(unittest.TestCase):
+    def test_legacy_queued_batch_migrates_to_detection_confirmation(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            database = root / "inspection.db"
+            connection = sqlite3.connect(database)
+            try:
+                connection.executescript(
+                    """
+                    CREATE TABLE offline_batches (
+                        batch_id TEXT PRIMARY KEY,
+                        source_path TEXT NOT NULL,
+                        discovered_at TEXT NOT NULL,
+                        queued_at TEXT NOT NULL,
+                        started_at TEXT,
+                        finished_at TEXT,
+                        status TEXT NOT NULL,
+                        sensor_status TEXT NOT NULL DEFAULT 'pending',
+                        capture_total INTEGER NOT NULL DEFAULT 0,
+                        capture_succeeded INTEGER NOT NULL DEFAULT 0,
+                        capture_failed INTEGER NOT NULL DEFAULT 0,
+                        gas_row_count INTEGER NOT NULL DEFAULT 0,
+                        thermal_frame_count INTEGER NOT NULL DEFAULT 0,
+                        warning_count INTEGER NOT NULL DEFAULT 0,
+                        diagnostics_json TEXT NOT NULL DEFAULT '[]',
+                        error TEXT
+                    );
+                    INSERT INTO offline_batches (
+                        batch_id, source_path, discovered_at, queued_at, status
+                    ) VALUES (
+                        'legacy-batch', '.', '2026-08-05T00:00:00+00:00',
+                        '2026-08-05T00:00:00+00:00', 'queued'
+                    );
+                    """
+                )
+                connection.commit()
+            finally:
+                connection.close()
+
+            repository = CaptureRepository(database, root / "runtime")
+            migrated = repository.get_offline_batch("legacy-batch")
+            self.assertEqual(
+                migrated["status"], "awaiting_detection_confirmation"
+            )
+            self.assertIsNone(migrated["detection_confirmed_at"])
+            self.assertIsNone(migrated["report_confirmed_at"])
+            self.assertTrue(migrated["can_start_detection"])
+
     def test_discovers_imports_archives_and_filters_complete_batch(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
@@ -196,9 +254,13 @@ class OfflineBatchTests(unittest.TestCase):
                     discovered["items"][0]["source_path"], str(source.resolve())
                 )
 
-                queued = manager.queue_import(batch_id)
-                self.assertEqual(queued["batch_id"], batch_id)
-                finished = wait_for_batch(repository, batch_id)
+                prepared = manager.queue_import(batch_id)
+                self.assertEqual(prepared["batch_id"], batch_id)
+                self.assertEqual(
+                    prepared["status"], "awaiting_detection_confirmation"
+                )
+                self.assertFalse(repository.capture_exists("rpi_20260804_153005_123456"))
+                finished = confirm_and_wait(manager, repository, batch_id)
 
                 self.assertEqual(finished["status"], "completed")
                 self.assertEqual(finished["capture_succeeded"], 1)
@@ -240,7 +302,7 @@ class OfflineBatchTests(unittest.TestCase):
                 batch_id = discovered["items"][0]["batch_id"]
 
                 manager.queue_import(batch_id)
-                finished = wait_for_batch(repository, batch_id)
+                finished = confirm_and_wait(manager, repository, batch_id)
 
                 self.assertEqual(finished["status"], "completed")
                 self.assertEqual(finished["capture_succeeded"], 1)
@@ -277,7 +339,7 @@ class OfflineBatchTests(unittest.TestCase):
             try:
                 batch_id = manager.discover_batches()["items"][0]["batch_id"]
                 manager.queue_import(batch_id)
-                failed = wait_for_batch(repository, batch_id)
+                failed = confirm_and_wait(manager, repository, batch_id)
                 self.assertEqual(failed["status"], "failed")
                 self.assertEqual(failed["capture_failed"], 1)
 
@@ -286,7 +348,11 @@ class OfflineBatchTests(unittest.TestCase):
                     manager.discover_batches()["items"][0]["batch_id"], batch_id
                 )
                 manager.retry_batch(batch_id)
-                finished = wait_for_batch(repository, batch_id)
+                self.assertEqual(
+                    repository.get_offline_batch(batch_id)["status"],
+                    "awaiting_detection_confirmation",
+                )
+                finished = confirm_and_wait(manager, repository, batch_id)
                 self.assertEqual(finished["status"], "completed")
                 self.assertEqual(finished["capture_succeeded"], 1)
             finally:
@@ -302,7 +368,7 @@ class OfflineBatchTests(unittest.TestCase):
             try:
                 batch_id = manager.discover_batches()["items"][0]["batch_id"]
                 manager.queue_import(batch_id)
-                failed = wait_for_batch(repository, batch_id)
+                failed = confirm_and_wait(manager, repository, batch_id)
                 self.assertEqual(failed["status"], "failed")
                 self.assertEqual(failed["capture_failed"], 1)
 
@@ -311,8 +377,12 @@ class OfflineBatchTests(unittest.TestCase):
                 self.assertEqual(
                     manager.discover_batches()["items"][0]["batch_id"], batch_id
                 )
-                manager.retry_batch(batch_id)
-                finished = wait_for_batch(repository, batch_id)
+                report_confirmed = manager.confirm_report(batch_id)
+                self.assertTrue(report_confirmed["report_available"])
+                prepared_retry = manager.retry_batch(batch_id)
+                self.assertFalse(prepared_retry["report_available"])
+                self.assertIsNone(prepared_retry["detection_confirmed_at"])
+                finished = confirm_and_wait(manager, repository, batch_id)
                 self.assertEqual(finished["status"], "completed")
                 self.assertEqual(finished["capture_succeeded"], 1)
             finally:
@@ -328,7 +398,7 @@ class OfflineBatchTests(unittest.TestCase):
             try:
                 batch_id = manager.discover_batches()["items"][0]["batch_id"]
                 manager.queue_import(batch_id)
-                finished = wait_for_batch(repository, batch_id)
+                finished = confirm_and_wait(manager, repository, batch_id)
                 self.assertEqual(finished["status"], "completed_with_errors")
                 messages = [item["message"] for item in finished["diagnostics"]]
                 self.assertTrue(any("missing_thermal_frame" in item for item in messages))
@@ -352,7 +422,7 @@ class OfflineBatchTests(unittest.TestCase):
                 )
                 manager.queue_import(first_id)
                 self.assertEqual(
-                    wait_for_batch(repository, first_id)["status"], "completed"
+                    confirm_and_wait(manager, repository, first_id)["status"], "completed"
                 )
 
                 for directory in ("gas", "thermal", "visible"):
@@ -372,7 +442,7 @@ class OfflineBatchTests(unittest.TestCase):
 
                 manager.queue_import(second_id)
                 self.assertEqual(
-                    wait_for_batch(repository, second_id)["status"], "completed"
+                    confirm_and_wait(manager, repository, second_id)["status"], "completed"
                 )
                 self.assertEqual(
                     service.list_captures(source_batch_id=first_id)["total"], 1
@@ -400,6 +470,7 @@ class OfflineBatchTests(unittest.TestCase):
                 thermal_frame_count=plan["thermal_frame_count"],
                 diagnostics=plan["diagnostics"],
             )
+            repository.confirm_offline_batch_detection(batch_id)
             repository.claim_next_offline_batch()
             item = repository.pending_offline_items(batch_id)[0]
             repository.update_offline_item(
@@ -520,6 +591,22 @@ class OfflineBatchTests(unittest.TestCase):
                     f"/api/v1/offline-batches/{batch_id}/import"
                 )
                 self.assertEqual(queued.status_code, 200, queued.text)
+                self.assertEqual(
+                    queued.json()["status"], "awaiting_detection_confirmation"
+                )
+                before_confirmation = client.get(
+                    f"/api/v1/offline-batches/{batch_id}/report.docx"
+                )
+                self.assertEqual(before_confirmation.status_code, 409)
+                confirmed = client.post(
+                    f"/api/v1/offline-batches/{batch_id}/confirm-detection"
+                )
+                self.assertEqual(confirmed.status_code, 200, confirmed.text)
+                self.assertTrue(confirmed.json()["detection_confirmed_at"])
+                repeated_confirmation = client.post(
+                    f"/api/v1/offline-batches/{batch_id}/confirm-detection"
+                )
+                self.assertEqual(repeated_confirmation.status_code, 200)
                 deadline = time.monotonic() + 5.0
                 while time.monotonic() < deadline:
                     detail = client.get(
@@ -543,6 +630,77 @@ class OfflineBatchTests(unittest.TestCase):
                 )
                 self.assertEqual(exported.status_code, 200)
                 self.assertEqual(exported.json()[0]["source_batch_id"], batch_id)
+                report = client.get(
+                    f"/api/v1/offline-batches/{batch_id}/report.docx"
+                )
+                self.assertEqual(report.status_code, 409)
+                report_confirmation = client.post(
+                    f"/api/v1/offline-batches/{batch_id}/confirm-report"
+                )
+                self.assertEqual(report_confirmation.status_code, 200)
+                self.assertTrue(report_confirmation.json()["report_available"])
+                confirmed_at = report_confirmation.json()["report_confirmed_at"]
+                repeated_report_confirmation = client.post(
+                    f"/api/v1/offline-batches/{batch_id}/confirm-report"
+                )
+                self.assertEqual(repeated_report_confirmation.status_code, 200)
+                self.assertEqual(
+                    repeated_report_confirmation.json()["report_confirmed_at"],
+                    confirmed_at,
+                )
+                report = client.get(
+                    f"/api/v1/offline-batches/{batch_id}/report.docx"
+                )
+                self.assertEqual(report.status_code, 200, report.text)
+                self.assertTrue(report.content.startswith(b"PK"))
+                self.assertEqual(
+                    report.headers["content-type"],
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                )
+                self.assertIn("filename*=UTF-8", report.headers["content-disposition"])
+
+                capture_id = "rpi_20260804_153005_123456"
+                capture = client.get(f"/api/v1/results/{capture_id}").json()
+                corrected = client.patch(
+                    f"/api/v1/results/{capture_id}/correction",
+                    json={
+                        "operator": "test-reviewer",
+                        "reason": "确认流程回归",
+                        "objects": capture["result"]["objects"],
+                    },
+                )
+                self.assertEqual(corrected.status_code, 200, corrected.text)
+                self.assertFalse(
+                    client.get(f"/api/v1/offline-batches/{batch_id}").json()[
+                        "report_available"
+                    ]
+                )
+                self.assertEqual(
+                    client.get(
+                        f"/api/v1/offline-batches/{batch_id}/report.docx"
+                    ).status_code,
+                    409,
+                )
+
+                client.post(f"/api/v1/offline-batches/{batch_id}/confirm-report")
+                reprocessed = client.post(
+                    f"/api/v1/results/{capture_id}/reprocess"
+                )
+                self.assertEqual(reprocessed.status_code, 200, reprocessed.text)
+                self.assertFalse(
+                    client.get(f"/api/v1/offline-batches/{batch_id}").json()[
+                        "report_available"
+                    ]
+                )
+
+                client.post(f"/api/v1/offline-batches/{batch_id}/confirm-report")
+                deleted = client.delete(f"/api/v1/captures/{capture_id}")
+                self.assertEqual(deleted.status_code, 200, deleted.text)
+                after_delete = client.get(
+                    f"/api/v1/offline-batches/{batch_id}"
+                ).json()
+                self.assertFalse(after_delete["report_available"])
+                self.assertEqual(after_delete["capture_failed"], 1)
                 health = client.get("/health").json()
                 self.assertEqual(health["offline_batches_queued"], 0)
                 self.assertEqual(health["offline_batches_running"], 0)

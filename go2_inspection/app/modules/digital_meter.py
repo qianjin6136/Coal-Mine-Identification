@@ -28,7 +28,10 @@ class DigitalMeterModule:
         if config.get("enabled", True) and model_value and model_path.is_file():
             self.recognizer = DigitalMeterRecognizer(
                 TemplateDigitModel.load(model_path),
-                digit_count=int(config.get("digit_count", 4)),
+                digit_count=config.get(
+                    "digit_counts",
+                    int(config.get("digit_count", 4)),
+                ),
                 decimal_places=int(config.get("decimal_places", 1)),
                 allow_negative=bool(config.get("allow_negative", True)),
                 minimum_confidence=float(

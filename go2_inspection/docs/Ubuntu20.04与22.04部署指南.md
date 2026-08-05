@@ -1,8 +1,9 @@
-# Ubuntu 20.04 与 22.04 部署指南
+# Ubuntu 22.04 / RTX 4060 部署指南
 
 ## 1. 兼容范围
 
-本项目在以下 Linux 环境统一使用 CPython 3.12：
+正式上位机目标为 Ubuntu 22.04、CPython 3.12 和 RTX 4060；Ubuntu 20.04 仅保留
+现有部署的兼容安装能力：
 
 | 系统 | Python | 安装方式 |
 | --- | --- | --- |
@@ -51,6 +52,12 @@ bash scripts/install_ubuntu.sh --help
 bash scripts/install_ubuntu.sh --profile runtime
 ```
 
+RTX 4060 正式上位机安装完整 GPU 环境：
+
+```bash
+bash scripts/install_ubuntu.sh --profile gpu-4060
+```
+
 安装脚本将执行：
 
 1. 确认系统是 Ubuntu 20.04 或 22.04；
@@ -60,7 +67,8 @@ bash scripts/install_ubuntu.sh --profile runtime
    编译到项目 `.python/` 目录；
 5. 创建 `.venv` 并安装项目依赖；
 6. 对 `app/` 和 `scripts/` 执行字节码编译检查；
-7. 导入 OpenCV、FastAPI、NumPy、Pillow、Uvicorn 并创建应用实例做冒烟检查。
+7. 导入 OpenCV、python-docx、FastAPI、NumPy、Pillow、Uvicorn 并创建应用实例做冒烟检查；
+8. `gpu-4060` 配置额外验证 `nvidia-smi`、Ultralytics、PyTorch CUDA 和显卡名称。
 
 安装系统包需要 `root` 或 `sudo`。已经提前装好系统依赖时可跳过 `apt-get`：
 
@@ -79,18 +87,22 @@ bash scripts/install_ubuntu.sh --profile runtime --build-python
 
 ## 4. 依赖配置
 
-三种安装配置如下：
+四种安装配置如下：
 
 | 配置 | 命令 | 用途 |
 | --- | --- | --- |
 | `runtime` | `bash scripts/install_ubuntu.sh --profile runtime` | API、存储、编号牌、数字表 |
 | `full` | `bash scripts/install_ubuntu.sh --profile full` | 增加 Ultralytics/YOLO |
+| `gpu-4060` | `bash scripts/install_ubuntu.sh --profile gpu-4060` | RTX 4060、Ultralytics、PyTorch 2.12.1 CUDA 12.6，并执行 GPU 验收 |
 | `dev` | `bash scripts/install_ubuntu.sh --profile dev` | 增加测试依赖并自动运行单元测试 |
 
 默认配置中的检测器是 `noop`，所以正常运行服务不需要 PyTorch 或 NVIDIA GPU。
-使用 NVIDIA GPU 前应先安装适配显卡驱动的 PyTorch/CUDA 版本，再把
-`configs/app.json` 中的检测器改为 `ultralytics`。Linux CUDA 版本不要直接复用
-`requirements-gpu-windows.txt`。
+RTX 4060 使用项目的 `requirements-gpu-ubuntu4060.txt`，不要复用 Windows GPU
+依赖。版本依据为 [PyTorch 官方 CUDA 12.6 安装矩阵](https://pytorch.org/get-started/previous-versions/)；
+Ubuntu 22.04 的驱动和 CUDA 平台支持见
+[NVIDIA CUDA Linux 安装指南](https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html)。
+安装前先保证 `nvidia-smi` 可以正常显示设备，再把 `configs/app.json` 中的检测器改为
+`ultralytics`。
 
 ## 5. 编译和测试
 

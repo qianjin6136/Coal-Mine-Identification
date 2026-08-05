@@ -26,21 +26,17 @@ def main() -> None:
         "--model",
         type=Path,
         default=PROJECT_ROOT
-        / ".."
-        / ".."
         / "runtime_data"
         / "models"
-        / "digital_meter_templates.npz",
+        / "digital_meter_templates_v2.npz",
     )
     parser.add_argument(
         "--report",
         type=Path,
         default=PROJECT_ROOT
-        / ".."
-        / ".."
         / "runtime_data"
         / "digital_meter"
-        / "training_metrics.json",
+        / "training_metrics_v2.json",
     )
     parser.add_argument(
         "--require-string-accuracy",

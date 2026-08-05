@@ -77,3 +77,5 @@ models/*.engine
 /runtime_data/imported_batches/direct-27323de35f444f0e/thermal/thermal_20260211_084631_000002.png
 /runtime_data/imported_batches/direct-27323de35f444f0e/thermal/thermal_20260211_084636_000003.png
 /runtime_data/imported_batches/direct-27323de35f444f0e/thermal/thermal_20260211_084641_000004.png
+/sample/
+/runtime_data/.runtime-requirements.sha256

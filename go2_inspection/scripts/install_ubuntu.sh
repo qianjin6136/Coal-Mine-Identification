@@ -21,6 +21,7 @@ Usage: bash scripts/install_ubuntu.sh [options]
 Options:
   --profile runtime  Install API and meter runtime dependencies (default).
   --profile full     Also install Ultralytics/YOLO dependencies.
+  --profile gpu-4060 Install Ultralytics with PyTorch CUDA 12.6 for RTX 4060.
   --profile dev      Install runtime and test dependencies.
   --skip-system-deps Do not run apt-get; required packages must already exist.
   --build-python     Build the project-local CPython 3.12.13 even if python3.12 exists.
@@ -32,7 +33,7 @@ while (($# > 0)); do
     case "$1" in
         --profile)
             if (($# < 2)); then
-                echo "--profile requires runtime, full, or dev" >&2
+                echo "--profile requires runtime, full, gpu-4060, or dev" >&2
                 exit 2
             fi
             profile="$2"
@@ -61,9 +62,10 @@ done
 case "${profile}" in
     runtime) requirements_file="${project_root}/requirements-runtime.txt" ;;
     full) requirements_file="${project_root}/requirements.txt" ;;
+    gpu-4060) requirements_file="${project_root}/requirements-gpu-ubuntu4060.txt" ;;
     dev) requirements_file="${project_root}/requirements-dev.txt" ;;
     *)
-        echo "Unsupported profile: ${profile}; use runtime, full, or dev" >&2
+        echo "Unsupported profile: ${profile}; use runtime, full, gpu-4060, or dev" >&2
         exit 2
         ;;
 esac
@@ -201,7 +203,23 @@ fi
 cd -- "${project_root}"
 "${venv_python}" -m compileall -q app scripts
 "${venv_python}" -c \
-    'import cv2, fastapi, numpy, PIL, uvicorn; from app.api import app; assert app.title'
+    'import cv2, docx, fastapi, numpy, PIL, uvicorn; from app.api import app; assert app.title'
+
+if [[ "${profile}" == "gpu-4060" ]]; then
+    if ! command -v nvidia-smi >/dev/null 2>&1; then
+        echo "nvidia-smi was not found. Install a compatible NVIDIA driver first." >&2
+        exit 1
+    fi
+    nvidia-smi --query-gpu=name,driver_version --format=csv,noheader
+    "${venv_python}" -c \
+        'import torch, ultralytics
+if not torch.cuda.is_available():
+    raise SystemExit("PyTorch CUDA is unavailable; check the NVIDIA driver and virtual environment")
+name = torch.cuda.get_device_name(0)
+if "RTX 4060" not in name:
+    raise SystemExit(f"Expected an RTX 4060 GPU, detected: {name}")
+print(f"GPU ready: {name}; torch={torch.__version__}; CUDA={torch.version.cuda}")'
+fi
 
 if [[ "${profile}" == "dev" ]]; then
     "${venv_python}" -m unittest discover -s tests -v

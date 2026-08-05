@@ -15,3 +15,11 @@ class CaptureNotFoundError(InspectionError):
 
 class ConfigurationError(InspectionError):
     """应用配置缺失或格式不正确。"""
+
+
+class ReportNotReadyError(InspectionError):
+    """批次尚未完成或尚未确认，不能生成最终报告。"""
+
+
+class BatchStateConflictError(InspectionError):
+    """当前批次状态不允许执行请求的状态转换。"""

@@ -35,7 +35,8 @@
             <h2 id="offline-batches-title">导入树莓派完整巡检数据</h2>
             <p>
               将 U 盘根目录的 <code>gas / thermal / visible</code> 三个文件夹直接复制到
-              <code id="inbox-path">dataset_inbox</code>，上位机会从未完成项继续处理。
+              <code id="inbox-path">dataset_inbox</code>。导入只执行预检，确认后才会检测；
+              检测结束并再次确认结果后才开放报告下载。
             </p>
           </div>
           <button id="refresh-batches" class="button button-quiet compact" type="button">

@@ -78,8 +78,18 @@ class DigitalMeterWorstCaseFormatTests(unittest.TestCase):
             minimum_confidence=0.0,
         ).read_image(_display("067.8"))
         self.assertEqual(result.status, "confirmed")
-        self.assertEqual(result.raw_text, "067.8")
+        self.assertEqual(result.raw_text, "67.8")
         self.assertEqual(result.value, 67.8)
+
+    def test_variable_three_or_four_digit_display(self) -> None:
+        recognizer = DigitalMeterRecognizer(
+            _model(),
+            digit_count=(3, 4),
+            decimal_places=2,
+            minimum_confidence=0.0,
+        )
+        self.assertEqual(recognizer.read_image(_display("0.04")).raw_text, "0.04")
+        self.assertEqual(recognizer.read_image(_display("12.34")).raw_text, "12.34")
 
     def test_negative_sign_can_use_a_dedicated_position(self) -> None:
         result = DigitalMeterRecognizer(
@@ -89,7 +99,7 @@ class DigitalMeterWorstCaseFormatTests(unittest.TestCase):
             allow_negative=True,
             minimum_confidence=0.0,
         ).read_image(_display("-067.8"))
-        self.assertEqual(result.raw_text, "-067.8")
+        self.assertEqual(result.raw_text, "-67.8")
         self.assertEqual(result.value, -67.8)
 
     def test_negative_sign_can_replace_the_highest_digit(self) -> None:

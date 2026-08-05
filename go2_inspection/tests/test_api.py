@@ -246,7 +246,9 @@ class ApiTests(unittest.TestCase):
                 self.assertIn("U 盘离线数据", page.text)
                 self.assertIn('id="batch-filter"', page.text)
                 self.assertEqual(client.get("/static/ui.css").status_code, 200)
-                self.assertEqual(client.get("/static/ui.js").status_code, 200)
+                ui_script = client.get("/static/ui.js")
+                self.assertEqual(ui_script.status_code, 200)
+                self.assertIn("下载Word报告", ui_script.text)
 
                 incoming_capture = root / "data" / "incoming" / "api_test"
                 processed_capture = root / "data" / "processed" / "api_test"

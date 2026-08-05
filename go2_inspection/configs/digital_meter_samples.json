@@ -1,31 +1,12 @@
 {
   "format": {
-    "digit_count": 4,
-    "decimal_places": 1,
+    "digit_counts": [3, 4],
+    "decimal_places": 2,
     "allow_negative": true
   },
-  "samples": [
-    {"file": "sample/数字表/120.0.png", "text": "120.0"},
-    {"file": "sample/数字表/150.0.png", "text": "150.0"},
-    {"file": "sample/数字表/200.0.png", "text": "200.0"},
-    {"file": "sample/数字表/250.0.png", "text": "250.0"},
-    {"file": "sample/数字表/125.0.png", "text": "125.0"},
-    {"file": "sample/数字表/300.0.png", "text": "300.0"},
-    {"file": "sample/数字表/400.0.png", "text": "400.0"},
-    {"file": "sample/数字表/500.0.png", "text": "500.0"},
-    {"file": "sample/数字表/800.0.png", "text": "800.0"},
-    {"file": "sample/数字表/999.0.png", "text": "999.0"},
-    {"file": "sample/数字表/010.0.png", "text": "010.0"},
-    {"file": "sample/数字表/020.0.png", "text": "020.0"},
-    {"file": "sample/数字表/030.0.png", "text": "030.0"},
-    {"file": "sample/数字表/040.0.png", "text": "040.0"},
-    {"file": "sample/数字表/050.0.png", "text": "050.0"},
-    {"file": "sample/数字表/060.0.png", "text": "060.0"},
-    {"file": "sample/数字表/075.0.png", "text": "075.0"},
-    {"file": "sample/数字表/080.0.png", "text": "080.0"},
-    {"file": "sample/数字表/090.0.png", "text": "090.0"},
-    {"file": "sample/数字表/100.0.png", "text": "100.0"},
-    {"file": "sample/数字表/025.0.png", "text": "025.0"},
-    {"file": "sample/数字表/000.0.png", "text": "000.0"}
-  ]
+  "discovery": {
+    "directory": "sample/数字表",
+    "glob": "*.jpg",
+    "skip_unreadable": true
+  }
 }

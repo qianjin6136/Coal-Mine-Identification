@@ -1,15 +1,17 @@
 """基于监督模板的红色七段数字表识别。
 
-当前样本只有 22 张，同一表型、每张 4 个数字。相比直接微调大模型，先从已知
-读数中提取逐位模板并做留一图片评估更可控；新增现场样本后仍可重复训练模板，
-也可以在不改变模块接口的情况下替换为 CNN/CRNN。
+当前以真实现场照片训练逐位模板，支持三位和四位显示。相比直接微调大模型，
+从已知读数中提取逐位模板并做留一图片评估更可控；样本继续增加后，也可以在
+不改变模块接口的情况下替换为 CNN/CRNN。
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
+from itertools import combinations
 import json
 from pathlib import Path
+import re
 from typing import Any, Mapping, Sequence
 
 from ..errors import ConfigurationError, ValidationError
@@ -142,13 +144,21 @@ class DigitalMeterRecognizer:
         self,
         model: TemplateDigitModel,
         *,
-        digit_count: int = 4,
+        digit_count: int | Sequence[int] = 4,
         decimal_places: int = 1,
         allow_negative: bool = True,
         minimum_confidence: float = 0.55,
     ) -> None:
         self.model = model
-        self.digit_count = digit_count
+        if isinstance(digit_count, int):
+            digit_counts = (digit_count,)
+        else:
+            digit_counts = tuple(sorted({int(value) for value in digit_count}))
+        if not digit_counts or any(value < 1 for value in digit_counts):
+            raise ValidationError("digit count must contain positive integers")
+        self.digit_counts = digit_counts
+        # 保留旧属性，避免已有调用方读取单一位数配置时失效。
+        self.digit_count = digit_counts[0]
         self.decimal_places = decimal_places
         self.allow_negative = allow_negative
         self.minimum_confidence = minimum_confidence
@@ -167,7 +177,7 @@ class DigitalMeterRecognizer:
     ) -> DigitalRecognition:
         segmentation = segment_display_digits(
             image,
-            expected_digit_count=self.digit_count,
+            expected_digit_count=self.digit_counts,
             allow_negative=self.allow_negative,
         )
         if segmentation["error"]:
@@ -205,6 +215,7 @@ class DigitalMeterRecognizer:
         text = integer + (f".{fraction}" if decimal_places else "")
         if segmentation.get("negative"):
             text = "-" + text
+        text = _remove_leading_zero_padding(text)
         confidence = min(confidences)
         if confidence < self.minimum_confidence:
             return DigitalRecognition(
@@ -239,7 +250,7 @@ def train_template_model(
     if not isinstance(config, Mapping):
         raise ValidationError("digital sample configuration must be an object")
     format_config = config.get("format", {})
-    digit_count = int(format_config.get("digit_count", 4))
+    digit_counts = configured_digit_counts(format_config)
     decimal_places = int(format_config.get("decimal_places", 1))
     allow_negative = bool(format_config.get("allow_negative", True))
     project_root = Path(__file__).resolve().parents[2]
@@ -247,7 +258,9 @@ def train_template_model(
     labels: list[str] = []
     sources: list[str] = []
     sample_rows: list[dict[str, Any]] = []
-    for item in config.get("samples", []):
+    skipped_unreadable_files: list[str] = []
+    sample_items = expand_digital_sample_items(config, project_root)
+    for item in sample_items:
         if not isinstance(item, Mapping):
             raise ValidationError("each digital sample must be an object")
         source_value = str(item.get("file", ""))
@@ -255,24 +268,30 @@ def train_template_model(
         if not source_path.is_absolute():
             source_path = (project_root / source_path).resolve()
         # 文件名是人工确认的真值；配置中的 text 仅用于显式校验，避免旧标签静默污染模型。
-        expected_text = source_path.stem.strip()
-        configured_text = str(item.get("text", expected_text)).strip()
-        if configured_text != expected_text:
+        filename_text = source_path.stem.strip()
+        normalized_filename_text = _label_from_sample_filename(source_path)
+        configured_text = str(item.get("text", normalized_filename_text)).strip()
+        if configured_text not in {filename_text, normalized_filename_text}:
             raise ValidationError(
                 f"digital sample filename and configured text disagree: "
                 f"{source_path.name} != {configured_text}"
             )
+        expected_text = configured_text
         expected_digits = expected_text.lstrip("-").replace(".", "")
-        if len(expected_digits) != digit_count or not expected_digits.isdigit():
+        if len(expected_digits) not in digit_counts or not expected_digits.isdigit():
             raise ValidationError(
-                f"sample text must contain {digit_count} digits: {expected_text}"
+                f"sample text must contain one of {digit_counts} digits: "
+                f"{expected_text}"
             )
         image = read_bgr_image(source_path)
         if image is None:
+            if bool(config.get("discovery", {}).get("skip_unreadable", False)):
+                skipped_unreadable_files.append(str(source_path))
+                continue
             raise ValidationError(f"digital sample cannot be read: {source_path}")
         segmentation = segment_display_digits(
             image,
-            expected_digit_count=digit_count,
+            expected_digit_count=len(expected_digits),
             allow_negative=allow_negative,
         )
         if segmentation["error"]:
@@ -301,7 +320,7 @@ def train_template_model(
     model = TemplateDigitModel(np.asarray(templates), labels, sources)
     recognizer = DigitalMeterRecognizer(
         model,
-        digit_count=digit_count,
+        digit_count=digit_counts,
         decimal_places=decimal_places,
         allow_negative=allow_negative,
         minimum_confidence=0.0,
@@ -337,6 +356,8 @@ def train_template_model(
     metrics = {
         "model_type": "supervised_template_digits",
         "samples": len(sample_rows),
+        "discovered_files": len(sample_items),
+        "skipped_unreadable_files": skipped_unreadable_files,
         "digit_templates": len(labels),
         "digit_accuracy_leave_one_image_out": (
             digit_correct / digit_total if digit_total else 0.0
@@ -348,7 +369,7 @@ def train_template_model(
             digit: labels.count(digit) for digit in "0123456789"
         },
         "format": {
-            "digit_count": digit_count,
+            "digit_counts": list(digit_counts),
             "decimal_places": decimal_places,
             "allow_negative": allow_negative,
         },
@@ -360,86 +381,53 @@ def train_template_model(
 def segment_display_digits(
     image: object,
     *,
-    expected_digit_count: int = 4,
+    expected_digit_count: int | Sequence[int] = 4,
     allow_negative: bool = True,
 ) -> dict[str, Any]:
     """从整图红色区域提取逐位二值掩码，并检测小数点/负号。"""
 
     import cv2
-    import numpy as np
-
     if image is None or not hasattr(image, "shape"):
         return _segmentation_error("invalid_image")
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     mask = cv2.bitwise_or(
-        cv2.inRange(hsv, (0, 80, 70), (15, 255, 255)),
-        cv2.inRange(hsv, (165, 80, 70), (179, 255, 255)),
+        cv2.inRange(hsv, (0, 90, 80), (15, 255, 255)),
+        cv2.inRange(hsv, (165, 90, 80), (179, 255, 255)),
     )
-    component_count, component_labels, stats, centroids = (
-        cv2.connectedComponentsWithStats(mask, connectivity=8)
+    component_count, _labels, stats, centroids = cv2.connectedComponentsWithStats(
+        mask, connectivity=8
     )
-    minimum_area = max(20, int(mask.shape[0] * mask.shape[1] * 0.000004))
-    cleaned = np.zeros_like(mask)
-    for index in range(1, component_count):
-        if int(stats[index, cv2.CC_STAT_AREA]) >= minimum_area:
-            cleaned[component_labels == index] = 255
-    ys, xs = np.where(cleaned > 0)
-    if not len(xs):
+    if component_count <= 1:
         return _segmentation_error("red_display_not_found")
-    x1, x2 = int(xs.min()), int(xs.max()) + 1
-    y1, y2 = int(ys.min()), int(ys.max()) + 1
-    display = cleaned[y1:y2, x1:x2]
-    display_height, display_width = display.shape
-
-    # 小数点通常是靠近底部的小而近方形分量；先移除，再按 x 投影分割数字。
-    decimal_centers: list[float] = []
-    count, labels_map, local_stats, local_centroids = cv2.connectedComponentsWithStats(
-        display,
-        connectivity=8,
+    expected_counts = (
+        (expected_digit_count,)
+        if isinstance(expected_digit_count, int)
+        else tuple(sorted({int(value) for value in expected_digit_count}))
     )
-    digit_only = display.copy()
-    for index in range(1, count):
-        width = int(local_stats[index, cv2.CC_STAT_WIDTH])
-        height = int(local_stats[index, cv2.CC_STAT_HEIGHT])
-        center_x, center_y = local_centroids[index]
-        if (
-            width < display_height * 0.22
-            and height < display_height * 0.22
-            and center_y > display_height * 0.68
-            and 0.55 <= width / max(1, height) <= 1.8
-        ):
-            digit_only[labels_map == index] = 0
-            decimal_centers.append(float(center_x))
-
-    runs = _active_column_runs(digit_only)
-    negative = False
-    required_digit_count = expected_digit_count
-    if allow_negative and runs:
-        first_mask = digit_only[:, runs[0][0] : runs[0][1] + 1]
-        if _looks_like_minus(first_mask) and len(runs) in {
-            expected_digit_count,
-            expected_digit_count + 1,
-        }:
-            negative = True
-            # 最坏情况兼容两类设备：独立负号位 + 全部数字位，或负号占用最高数字位。
-            if len(runs) == expected_digit_count:
-                required_digit_count = expected_digit_count - 1
-            runs = runs[1:]
-    if len(runs) != required_digit_count:
+    selection = _select_digit_components(
+        mask,
+        stats,
+        centroids,
+        expected_counts=expected_counts,
+        allow_negative=allow_negative,
+    )
+    if selection is None:
+        candidate_count = len(_digit_component_candidates(mask, stats))
         return _segmentation_error(
-            f"expected_{required_digit_count}_digits_but_found_{len(runs)}",
-            (x1, y1, x2, y2),
+            f"expected_{'_or_'.join(str(value) for value in expected_counts)}"
+            f"_digits_but_found_{candidate_count}",
         )
+    selected, negative = selection
+    selected = sorted(selected, key=lambda item: item[0])
     digit_masks = [
-        digit_only[:, start : end + 1]
-        for start, end in runs
+        mask[y : y + height, x : x + width]
+        for x, y, width, height, _area, _density, _index in selected
     ]
-    decimal_places: int | None = None
-    if decimal_centers:
-        dot_x = max(decimal_centers)
-        decimal_places = sum(
-            ((start + end) / 2.0) > dot_x for start, end in runs
-        )
+    x1 = min(item[0] for item in selected)
+    y1 = min(item[1] for item in selected)
+    x2 = max(item[0] + item[2] for item in selected)
+    y2 = max(item[1] + item[3] for item in selected)
+    decimal_places = _detect_decimal_places(stats, centroids, selected)
     return {
         "error": None,
         "digit_masks": digit_masks,
@@ -447,6 +435,207 @@ def segment_display_digits(
         "decimal_places": decimal_places,
         "negative": negative,
     }
+
+
+def configured_digit_counts(format_config: Mapping[str, Any]) -> tuple[int, ...]:
+    values = format_config.get("digit_counts")
+    if values is None:
+        values = (format_config.get("digit_count", 4),)
+    if isinstance(values, (str, bytes)) or not isinstance(values, Sequence):
+        values = (values,)
+    result = tuple(sorted({int(value) for value in values}))
+    if not result or any(value < 1 for value in result):
+        raise ValidationError("digital format digit counts must be positive")
+    return result
+
+
+def expand_digital_sample_items(
+    config: Mapping[str, Any],
+    project_root: Path,
+) -> list[dict[str, Any]]:
+    items = [dict(item) for item in config.get("samples", [])]
+    discovery = config.get("discovery")
+    if not isinstance(discovery, Mapping):
+        return items
+    directory = Path(str(discovery.get("directory", "")))
+    if not directory.is_absolute():
+        directory = (project_root / directory).resolve()
+    pattern = str(discovery.get("glob", "*.jpg"))
+    existing = {
+        str(Path(str(item.get("file", ""))).resolve())
+        for item in items
+        if item.get("file")
+    }
+    for path in sorted(directory.glob(pattern)):
+        if not path.is_file() or str(path.resolve()) in existing:
+            continue
+        items.append(
+            {
+                "file": str(path.resolve()),
+                "text": _label_from_sample_filename(path),
+            }
+        )
+    return items
+
+
+def _label_from_sample_filename(path: Path) -> str:
+    """去掉资源管理器复制后缀，但保留文件名中的完整数字真值。"""
+
+    return re.sub(r"(?:[（(]\d+[）)]|_)+$", "", path.stem.strip())
+
+
+def _remove_leading_zero_padding(text: str) -> str:
+    sign = "-" if text.startswith("-") else ""
+    unsigned = text.lstrip("-")
+    integer, dot, fraction = unsigned.partition(".")
+    integer = integer.lstrip("0") or "0"
+    return sign + integer + (dot + fraction if dot else "")
+
+
+def _digit_component_candidates(
+    mask: object,
+    stats: object,
+) -> list[tuple[Any, ...]]:
+    import cv2
+
+    image_height, image_width = mask.shape
+    minimum_area = max(80, int(image_height * image_width * 0.00015))
+    candidates: list[tuple[Any, ...]] = []
+    for index in range(1, len(stats)):
+        x = int(stats[index, cv2.CC_STAT_LEFT])
+        y = int(stats[index, cv2.CC_STAT_TOP])
+        width = int(stats[index, cv2.CC_STAT_WIDTH])
+        height = int(stats[index, cv2.CC_STAT_HEIGHT])
+        area = int(stats[index, cv2.CC_STAT_AREA])
+        density = area / max(1, width * height)
+        if (
+            area >= minimum_area
+            and image_height * 0.065 <= height <= image_height * 0.80
+            and 0.07 <= width / max(1, height) <= 1.65
+            and density >= 0.20
+        ):
+            candidates.append((x, y, width, height, area, density, index))
+    return candidates
+
+
+def _select_digit_components(
+    mask: object,
+    stats: object,
+    centroids: object,
+    *,
+    expected_counts: Sequence[int],
+    allow_negative: bool,
+) -> tuple[tuple[tuple[Any, ...], ...], bool] | None:
+    import numpy as np
+
+    candidates = _digit_component_candidates(mask, stats)
+    best: tuple[float, tuple[tuple[Any, ...], ...], bool] | None = None
+    possible_counts = set(expected_counts)
+    if allow_negative:
+        possible_counts.update(value - 1 for value in expected_counts if value > 1)
+    for count in sorted(possible_counts):
+        for group_value in combinations(candidates, count):
+            group = tuple(sorted(group_value, key=lambda item: item[0]))
+            heights = np.asarray([item[3] for item in group], dtype=float)
+            median_height = float(np.median(heights))
+            centers_x = np.asarray(
+                [item[0] + item[2] / 2.0 for item in group], dtype=float
+            )
+            centers_y = np.asarray(
+                [item[1] + item[3] / 2.0 for item in group], dtype=float
+            )
+            steps = np.diff(centers_x)
+            if (
+                heights.max() / heights.min() > 2.25
+                or centers_y.max() - centers_y.min() > median_height * 1.05
+                or (len(steps) and steps.min() < median_height * 0.18)
+                or (len(steps) and steps.max() > median_height * 2.05)
+            ):
+                continue
+            minus = _find_minus_component(stats, centroids, group)
+            negative = allow_negative and minus is not None
+            if count not in expected_counts:
+                if not negative or count + 1 not in expected_counts:
+                    continue
+            alignment_penalty = (
+                centers_y.max() - centers_y.min()
+            ) / median_height
+            regularity_penalty = (
+                float(np.std(steps) / median_height) if len(steps) > 1 else 0.0
+            )
+            score = sum(item[4] for item in group) * (
+                1.0 - 0.10 * alignment_penalty - 0.06 * regularity_penalty
+            )
+            if best is None or score > best[0]:
+                best = (score, group, negative)
+    return None if best is None else (best[1], best[2])
+
+
+def _find_minus_component(
+    stats: object,
+    centroids: object,
+    digits: Sequence[tuple[Any, ...]],
+) -> int | None:
+    import cv2
+
+    first_x = min(item[0] for item in digits)
+    top = min(item[1] for item in digits)
+    bottom = max(item[1] + item[3] for item in digits)
+    digit_height = bottom - top
+    for index in range(1, len(stats)):
+        x = int(stats[index, cv2.CC_STAT_LEFT])
+        width = int(stats[index, cv2.CC_STAT_WIDTH])
+        height = int(stats[index, cv2.CC_STAT_HEIGHT])
+        area = int(stats[index, cv2.CC_STAT_AREA])
+        center_x, center_y = centroids[index]
+        if (
+            center_x < first_x
+            and first_x - center_x < digit_height * 1.6
+            and top + digit_height * 0.25 <= center_y <= top + digit_height * 0.75
+            and width >= max(4, height * 2.2)
+            and area >= max(12, digit_height * 0.08)
+            and x + width <= first_x + digit_height * 0.15
+        ):
+            return index
+    return None
+
+
+def _detect_decimal_places(
+    stats: object,
+    centroids: object,
+    digits: Sequence[tuple[Any, ...]],
+) -> int | None:
+    import cv2
+    import numpy as np
+
+    digit_indices = {item[6] for item in digits}
+    median_height = float(np.median([item[3] for item in digits]))
+    top = min(item[1] for item in digits)
+    bottom = max(item[1] + item[3] for item in digits)
+    left = min(item[0] for item in digits)
+    right = max(item[0] + item[2] for item in digits)
+    candidates: list[tuple[int, float]] = []
+    for index in range(1, len(stats)):
+        if index in digit_indices:
+            continue
+        width = int(stats[index, cv2.CC_STAT_WIDTH])
+        height = int(stats[index, cv2.CC_STAT_HEIGHT])
+        area = int(stats[index, cv2.CC_STAT_AREA])
+        center_x, center_y = centroids[index]
+        if (
+            area >= 8
+            and width <= median_height * 0.30
+            and height <= median_height * 0.30
+            and 0.4 <= width / max(1, height) <= 2.5
+            and left <= center_x <= right
+            and top + median_height * 0.62 <= center_y <= bottom + median_height * 0.30
+        ):
+            candidates.append((area, float(center_x)))
+    if not candidates:
+        return None
+    dot_x = max(candidates)[1]
+    places = sum(item[0] + item[2] / 2.0 > dot_x for item in digits)
+    return places if 0 < places < len(digits) else None
 
 
 def normalize_digit_mask(mask: object) -> object:
@@ -473,37 +662,6 @@ def normalize_digit_mask(mask: object) -> object:
     top = (96 - target_height) // 2
     canvas[top : top + target_height, left : left + target_width] = resized
     return (canvas > 0).astype(np.uint8)
-
-
-def _active_column_runs(mask: object) -> list[tuple[int, int]]:
-    import numpy as np
-
-    projection = (mask > 0).sum(axis=0)
-    active = projection >= max(2, int(mask.shape[0] * 0.008))
-    runs: list[tuple[int, int]] = []
-    start: int | None = None
-    for index, value in enumerate(active):
-        if value and start is None:
-            start = index
-        elif not value and start is not None:
-            if index - start >= 4:
-                runs.append((start, index - 1))
-            start = None
-    if start is not None and len(active) - start >= 4:
-        runs.append((start, len(active) - 1))
-    return runs
-
-
-def _looks_like_minus(mask: object) -> bool:
-    import numpy as np
-
-    ys, xs = np.where(mask > 0)
-    if not len(xs):
-        return False
-    width = xs.max() - xs.min() + 1
-    height = ys.max() - ys.min() + 1
-    center_y = (ys.min() + ys.max()) / 2.0 / mask.shape[0]
-    return width >= height * 2.2 and 0.3 <= center_y <= 0.7
 
 
 def _dice_distance_with_shift(query: object, template: object) -> float:

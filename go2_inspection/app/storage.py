@@ -13,7 +13,7 @@ import sqlite3
 from typing import Any, Iterable, Iterator, Sequence
 
 from .domain import CaptureMetadata, InspectionResult
-from .errors import CaptureNotFoundError, ValidationError
+from .errors import BatchStateConflictError, CaptureNotFoundError, ValidationError
 
 
 _SAFE_NAME_RE = re.compile(r"[^A-Za-z0-9_.-]+")
@@ -158,6 +158,8 @@ class CaptureRepository:
                     thermal_frame_count INTEGER NOT NULL DEFAULT 0,
                     warning_count INTEGER NOT NULL DEFAULT 0,
                     diagnostics_json TEXT NOT NULL DEFAULT '[]',
+                    detection_confirmed_at TEXT,
+                    report_confirmed_at TEXT,
                     error TEXT
                 );
 
@@ -215,6 +217,57 @@ class CaptureRepository:
                 CREATE INDEX IF NOT EXISTS idx_sensor_samples_time
                 ON sensor_samples(batch_id, captured_at);
                 """
+            )
+            self._ensure_column(
+                connection,
+                "offline_batches",
+                "detection_confirmed_at",
+                "TEXT",
+            )
+            self._ensure_column(
+                connection,
+                "offline_batches",
+                "report_confirmed_at",
+                "TEXT",
+            )
+            # 旧版本中的 queued/running 表示已自动进入识别。升级到确认制后，
+            # 未留下确认时间的任务必须退回待确认，不能在服务启动时继续运行。
+            connection.execute(
+                """
+                UPDATE batch_capture_items SET status = 'pending'
+                WHERE status = 'running'
+                  AND batch_id IN (
+                      SELECT batch_id FROM offline_batches
+                      WHERE status = 'running' AND detection_confirmed_at IS NULL
+                  )
+                """
+            )
+            connection.execute(
+                """
+                UPDATE offline_batches
+                SET status = 'awaiting_detection_confirmation',
+                    started_at = NULL, finished_at = NULL, error = NULL
+                WHERE status IN ('queued', 'running')
+                  AND detection_confirmed_at IS NULL
+                """
+            )
+
+    @staticmethod
+    def _ensure_column(
+        connection: sqlite3.Connection,
+        table: str,
+        column: str,
+        declaration: str,
+    ) -> None:
+        """为既有 SQLite 库幂等补列。表名和字段声明只由代码常量提供。"""
+
+        columns = {
+            str(row["name"])
+            for row in connection.execute(f"PRAGMA table_info({table})").fetchall()
+        }
+        if column not in columns:
+            connection.execute(
+                f"ALTER TABLE {table} ADD COLUMN {column} {declaration}"
             )
 
     def capture_exists(self, capture_id: str) -> bool:
@@ -338,6 +391,46 @@ class CaptureRepository:
             ).fetchone()
             if exists is None:
                 raise CaptureNotFoundError(capture_id)
+            batch_rows = connection.execute(
+                """
+                SELECT DISTINCT batch_id FROM batch_capture_items
+                WHERE capture_id = ?
+                """,
+                (capture_id,),
+            ).fetchall()
+            batch_ids = [str(row["batch_id"]) for row in batch_rows]
+            connection.execute(
+                """
+                UPDATE batch_capture_items
+                SET status = 'failed', error = 'capture deleted by user'
+                WHERE capture_id = ?
+                """,
+                (capture_id,),
+            )
+            for batch_id in batch_ids:
+                connection.execute(
+                    """
+                    UPDATE offline_batches
+                    SET capture_succeeded = (
+                            SELECT COUNT(*) FROM batch_capture_items
+                            WHERE batch_id = ? AND status = 'succeeded'
+                        ),
+                        capture_failed = (
+                            SELECT COUNT(*) FROM batch_capture_items
+                            WHERE batch_id = ? AND status = 'failed'
+                        ),
+                        status = CASE
+                            WHEN EXISTS (
+                                SELECT 1 FROM batch_capture_items
+                                WHERE batch_id = ? AND status = 'succeeded'
+                            ) THEN 'completed_with_errors'
+                            ELSE 'failed'
+                        END,
+                        report_confirmed_at = NULL
+                    WHERE batch_id = ?
+                    """,
+                    (batch_id, batch_id, batch_id, batch_id),
+                )
             for table in ("corrections", "objects", "images"):
                 connection.execute(
                     f"DELETE FROM {table} WHERE capture_id = ?", (capture_id,)
@@ -362,6 +455,7 @@ class CaptureRepository:
         return {
             "capture_id": capture_id,
             "deleted": True,
+            "affected_batch_ids": batch_ids,
             "cleanup_warnings": cleanup_warnings,
         }
 
@@ -712,7 +806,7 @@ class CaptureRepository:
                         batch_id, source_path, discovered_at, queued_at, status,
                         capture_total, capture_failed, gas_row_count,
                         thermal_frame_count, warning_count, diagnostics_json
-                    ) VALUES (?, ?, ?, ?, 'queued', ?, ?, ?, ?, ?, ?)
+                    ) VALUES (?, ?, ?, ?, 'awaiting_detection_confirmation', ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         batch_id,
@@ -807,7 +901,108 @@ class CaptureRepository:
         result["progress_percent"] = (
             round((succeeded + failed) * 100 / total, 1) if total else 0.0
         )
+        terminal = result.get("status") in {
+            "completed",
+            "completed_with_errors",
+            "failed",
+        }
+        result["can_start_detection"] = (
+            result.get("status") == "awaiting_detection_confirmation"
+        )
+        result["can_confirm_report"] = (
+            terminal and not result.get("report_confirmed_at")
+        )
+        result["report_available"] = (
+            terminal and bool(result.get("report_confirmed_at"))
+        )
         return result
+
+    def confirm_offline_batch_detection(self, batch_id: str) -> dict[str, Any]:
+        """确认并原子地把预检批次放入后台队列；重复请求保持幂等。"""
+
+        with self._connection() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            row = connection.execute(
+                """
+                SELECT status, detection_confirmed_at
+                FROM offline_batches WHERE batch_id = ?
+                """,
+                (batch_id,),
+            ).fetchone()
+            if row is None:
+                raise CaptureNotFoundError(batch_id)
+            status = str(row["status"])
+            if status == "awaiting_detection_confirmation":
+                now = datetime.now(timezone.utc).isoformat()
+                connection.execute(
+                    """
+                    UPDATE offline_batches
+                    SET status = 'queued', queued_at = ?,
+                        detection_confirmed_at = ?, report_confirmed_at = NULL,
+                        started_at = NULL, finished_at = NULL, error = NULL
+                    WHERE batch_id = ?
+                    """,
+                    (now, now, batch_id),
+                )
+            elif row["detection_confirmed_at"] is None:
+                raise BatchStateConflictError(
+                    f"offline batch cannot start detection from status: {status}"
+                )
+            # 已确认且已排队、运行或完成时直接返回，避免双击造成重复任务。
+        return self.get_offline_batch(batch_id)
+
+    def confirm_offline_batch_report(self, batch_id: str) -> dict[str, Any]:
+        """确认当前终态结果可以生成报告；重复请求保持幂等。"""
+
+        terminal = {"completed", "completed_with_errors", "failed"}
+        with self._connection() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            row = connection.execute(
+                """
+                SELECT status, report_confirmed_at
+                FROM offline_batches WHERE batch_id = ?
+                """,
+                (batch_id,),
+            ).fetchone()
+            if row is None:
+                raise CaptureNotFoundError(batch_id)
+            status = str(row["status"])
+            if status not in terminal:
+                raise BatchStateConflictError(
+                    f"offline batch results cannot be confirmed from status: {status}"
+                )
+            if row["report_confirmed_at"] is None:
+                connection.execute(
+                    """
+                    UPDATE offline_batches SET report_confirmed_at = ?
+                    WHERE batch_id = ?
+                    """,
+                    (datetime.now(timezone.utc).isoformat(), batch_id),
+                )
+        return self.get_offline_batch(batch_id)
+
+    def invalidate_report_confirmation_for_capture(self, capture_id: str) -> list[str]:
+        """抓拍结果变化时撤销其所属批次的报告确认。"""
+
+        with self._connection() as connection:
+            rows = connection.execute(
+                """
+                SELECT DISTINCT batch_id FROM batch_capture_items
+                WHERE capture_id = ?
+                """,
+                (capture_id,),
+            ).fetchall()
+            batch_ids = [str(row["batch_id"]) for row in rows]
+            connection.execute(
+                """
+                UPDATE offline_batches SET report_confirmed_at = NULL
+                WHERE batch_id IN (
+                    SELECT batch_id FROM batch_capture_items WHERE capture_id = ?
+                )
+                """,
+                (capture_id,),
+            )
+        return batch_ids
 
     def reset_interrupted_offline_batches(self) -> int:
         """服务重启后把处理中批次和单项恢复到可领取状态。"""
@@ -1043,9 +1238,8 @@ class CaptureRepository:
 
     def retry_offline_batch(self, batch_id: str) -> dict[str, Any]:
         batch = self.get_offline_batch(batch_id, include_items=False)
-        if batch["status"] in {"queued", "running"}:
+        if batch["status"] in {"awaiting_detection_confirmation", "queued", "running"}:
             return self.get_offline_batch(batch_id)
-        now = datetime.now(timezone.utc).isoformat()
         diagnostics = list(batch.get("diagnostics") or [])
         if batch["sensor_status"] == "failed":
             diagnostics = [
@@ -1064,8 +1258,9 @@ class CaptureRepository:
             connection.execute(
                 """
                 UPDATE offline_batches
-                SET status = 'queued', queued_at = ?, started_at = NULL,
+                SET status = 'awaiting_detection_confirmation', started_at = NULL,
                     finished_at = NULL, error = NULL,
+                    detection_confirmed_at = NULL, report_confirmed_at = NULL,
                     warning_count = ?, diagnostics_json = ?,
                     sensor_status = CASE
                         WHEN sensor_status = 'failed' THEN 'pending'
@@ -1074,7 +1269,6 @@ class CaptureRepository:
                 WHERE batch_id = ?
                 """,
                 (
-                    now,
                     len(diagnostics),
                     json.dumps(diagnostics, ensure_ascii=False),
                     batch_id,

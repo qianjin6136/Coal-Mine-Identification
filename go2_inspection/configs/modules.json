@@ -25,9 +25,9 @@
     "enabled": true,
     "training_enabled": true,
     "samples_path": "configs/digital_meter_samples.json",
-    "model_path": "runtime_data/models/digital_meter_templates.npz",
-    "digit_count": 4,
-    "decimal_places": 1,
+    "model_path": "runtime_data/models/digital_meter_templates_v2.npz",
+    "digit_counts": [3, 4],
+    "decimal_places": 2,
     "allow_negative": true,
     "minimum_frame_confidence": 0.55
   },

@@ -21,6 +21,32 @@ class JsonResponse(BytesIO):
 
 
 class OfflineHandoffTests(unittest.TestCase):
+    def test_runtime_and_rtx4060_dependency_profiles_are_complete(self) -> None:
+        runtime_requirements = (
+            PROJECT_ROOT / "requirements-runtime.txt"
+        ).read_text(encoding="utf-8")
+        gpu_requirements = (
+            PROJECT_ROOT / "requirements-gpu-ubuntu4060.txt"
+        ).read_text(encoding="utf-8")
+        self.assertIn("python-docx", runtime_requirements)
+        self.assertIn("torch==2.12.1+cu126", gpu_requirements)
+        self.assertIn("torchvision==0.27.1+cu126", gpu_requirements)
+        self.assertIn("download.pytorch.org/whl/cu126", gpu_requirements)
+
+        for script_name in ("start_server.ps1", "start_server.sh"):
+            script = (PROJECT_ROOT / "scripts" / script_name).read_text(
+                encoding="utf-8"
+            )
+            self.assertIn("docx", script)
+            self.assertIn("requirements-runtime.txt", script)
+
+        installer = (PROJECT_ROOT / "scripts" / "install_ubuntu.sh").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("gpu-4060", installer)
+        self.assertIn("torch.cuda.is_available()", installer)
+        self.assertIn("RTX 4060", installer)
+
     def test_project_paths_are_self_contained_and_use_sample(self) -> None:
         settings = Settings.load()
 

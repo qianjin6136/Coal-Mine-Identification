@@ -55,7 +55,7 @@ runtime_data\station_number\training_metrics_v2.json
 
 ## 3. 使用当前最新版 YOLO26 训练
 
-项目内已有 `models/base/yolo26n.pt`，训练脚本默认权重也已切换为 YOLO26n。RTX 5060 Ti 8GB
+项目内已有 `models/base/yolo26n.pt`，训练脚本默认权重也已切换为 YOLO26n。RTX 4060 8GB
 先用 `batch=8`；如果显存不足改为 `4`。
 
 在 PowerShell 中运行：
