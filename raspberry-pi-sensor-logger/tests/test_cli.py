@@ -60,8 +60,8 @@ class WorkingUsbCamera:
         self.closed = False
         self.__class__.instances.append(self)
 
-    def capture_jpegs(self, count=3):
-        return tuple(b"\xff\xd8\xfftest" for _ in range(count))
+    def capture_color_jpeg(self):
+        return b"\xff\xd8\xfftest"
 
     def close(self) -> None:
         self.closed = True
@@ -70,7 +70,7 @@ class WorkingUsbCamera:
 def test_cli_defaults_match_hardware_design() -> None:
     args = cli.build_parser().parse_args([])
 
-    assert args.interval == 5.0
+    assert args.interval == 2.0
     assert args.camera_interval == 2.0
     assert args.serial_port == "/dev/serial0"
     assert args.data_dir == Path("data")
@@ -106,8 +106,6 @@ def test_once_mode_creates_csv_and_png_then_closes_hardware(
     result = cli.main(
         [
             "--once",
-            "--station-id",
-            "08",
             "--data-dir",
             str(tmp_path / "data"),
         ]
@@ -116,10 +114,9 @@ def test_once_mode_creates_csv_and_png_then_closes_hardware(
     assert result == 0
     assert len(list((tmp_path / "data" / "gas").glob("*.csv"))) == 1
     assert len(list((tmp_path / "data" / "thermal").glob("*.png"))) == 1
-    packages = list((tmp_path / "data" / "visible").glob("*/*"))
-    assert len(packages) == 1
-    assert len(list(packages[0].glob("frame_*.jpg"))) == 3
-    assert (packages[0] / "metadata.json").is_file()
+    images = list((tmp_path / "data" / "visible").glob("color_*.jpg"))
+    assert len(images) == 1
+    assert not list((tmp_path / "data" / "visible").rglob("metadata.json"))
     assert serial_port.closed is True
     assert WorkingCamera.instances[0].closed is True
     assert WorkingUsbCamera.instances[0].closed is True
@@ -177,10 +174,15 @@ def test_camera_close_failure_does_not_prevent_serial_close(
     assert serial_port.closed is True
 
 
-def test_main_requires_station_id(monkeypatch) -> None:
+def test_station_id_is_optional_but_legacy_value_is_still_accepted(monkeypatch) -> None:
     monkeypatch.delenv("SENSOR_LOGGER_STATION_ID", raising=False)
-    with pytest.raises(SystemExit):
-        cli.main(["--once"])
+    parser = cli.build_parser()
+
+    assert cli._validated_identifiers(parser, None, "raspberry_pi_usb") == (
+        "",
+        "raspberry_pi_usb",
+    )
+    assert cli._validated_identifiers(parser, "08", "raspberry_pi_usb")[0] == "08"
 
 
 def test_camera_argument_validation() -> None:

@@ -11,6 +11,7 @@ from .inference import (
     runtime_mode_for_backend,
 )
 from .modules.registry import build_module_registry_from_config
+from .offline_import import OfflineBatchManager
 from .pipeline import InspectionPipeline
 from .runtime_settings import (
     RuntimeSettingsManager,
@@ -136,7 +137,7 @@ def build_service(settings_path: str | None = None) -> InspectionService:
             "last_error": startup_inference_error,
         }
 
-    return InspectionService(
+    service = InspectionService(
         repository,
         pipeline,
         settings.max_image_bytes,
@@ -144,3 +145,7 @@ def build_service(settings_path: str | None = None) -> InspectionService:
         apply_runtime_settings=apply_runtime,
         inference_status_provider=inference_status,
     )
+    service.attach_offline_batches(
+        OfflineBatchManager(settings.dataset_inbox_path, repository, service)
+    )
+    return service

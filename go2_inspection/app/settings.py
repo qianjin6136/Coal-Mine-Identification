@@ -15,6 +15,7 @@ class Settings:
     """应用启动后保持不变的配置快照。"""
 
     project_root: Path
+    dataset_inbox_path: Path
     storage_root: Path
     database_path: Path
     detector_backend: str
@@ -53,6 +54,9 @@ class Settings:
         detector = data.get("detector", {})
         pipeline = data.get("pipeline", {})
         storage_root = resolve(data.get("storage_root", "data"))
+        dataset_inbox_path = resolve(
+            data.get("dataset_inbox_path", "dataset_inbox")
+        )
         database_path = resolve(data.get("database_path", "data/database/inspection.db"))
         classes_path = resolve(data.get("classes_path", "configs/classes.json"))
         stations_path = resolve(data.get("stations_path", "configs/stations.json"))
@@ -62,6 +66,7 @@ class Settings:
         )
         if None in (
             storage_root,
+            dataset_inbox_path,
             database_path,
             classes_path,
             stations_path,
@@ -79,6 +84,7 @@ class Settings:
 
         return cls(
             project_root=project_root,
+            dataset_inbox_path=dataset_inbox_path,
             storage_root=storage_root,
             database_path=database_path,
             detector_backend=str(detector.get("backend", "noop")),

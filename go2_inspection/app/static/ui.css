@@ -113,6 +113,88 @@ main {
   padding: 28px clamp(16px, 3vw, 42px) 52px;
 }
 
+.offline-batches-panel { margin-bottom: 20px; }
+.offline-batches-panel code {
+  padding: 2px 5px;
+  background: #eef3f7;
+  color: #304a64;
+  font: 11px/1.5 "Cascadia Code", Consolas, monospace;
+  word-break: break-all;
+}
+.offline-batch-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 12px;
+}
+.batch-empty {
+  padding: 22px;
+  border: 1px dashed var(--line-strong);
+  color: var(--muted);
+  text-align: center;
+}
+.offline-batch-card {
+  min-width: 0;
+  padding: 15px;
+  border: 1px solid var(--line);
+  border-left: 4px solid #8298ad;
+  background: #fbfcfd;
+}
+.offline-batch-card.running, .offline-batch-card.queued { border-left-color: var(--blue); }
+.offline-batch-card.completed { border-left-color: var(--green); }
+.offline-batch-card.completed_with_errors,
+.offline-batch-card.failed { border-left-color: var(--amber); }
+.batch-card-heading, .batch-card-actions, .batch-progress-copy {
+  display: flex;
+  align-items: center;
+}
+.batch-card-heading { justify-content: space-between; gap: 12px; }
+.batch-card-heading strong {
+  overflow: hidden;
+  color: var(--navy);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.batch-state {
+  flex: none;
+  padding: 4px 7px;
+  border: 1px solid var(--line-strong);
+  background: white;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+}
+.batch-state.running, .batch-state.queued { color: var(--blue); background: var(--blue-soft); }
+.batch-state.completed { color: var(--green); background: var(--green-soft); }
+.batch-state.completed_with_errors, .batch-state.failed {
+  color: var(--amber);
+  background: var(--amber-soft);
+}
+.batch-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+  margin: 13px 0;
+}
+.batch-metric { padding: 8px; border: 1px solid #e2e8ee; background: white; }
+.batch-metric span, .batch-metric small { display: block; color: var(--muted); }
+.batch-metric span { font-size: 10px; }
+.batch-metric strong { display: block; margin: 3px 0; color: #2d4964; font-size: 16px; }
+.batch-metric small { font-size: 9px; }
+.batch-progress-copy { justify-content: space-between; color: var(--muted); font-size: 10px; }
+.batch-progress-track { height: 5px; margin-top: 5px; background: #e5ebf0; }
+.batch-progress-value { height: 100%; background: var(--cyan); }
+.batch-diagnostics {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  color: var(--amber);
+  font-size: 10px;
+  line-height: 1.5;
+}
+.batch-card-actions { justify-content: flex-end; gap: 7px; margin-top: 12px; }
+.batch-source-missing { margin: 9px 0 0; color: var(--red); font-size: 10px; }
+.sensor-module-note { margin: 15px 0 0; color: var(--muted); font-size: 11px; }
+
 .workspace-grid {
   display: grid;
   grid-template-columns: minmax(620px, 1.45fr) minmax(380px, 0.75fr);
@@ -522,6 +604,7 @@ input[type="search"], input[type="text"], input[type="number"], select {
 }
 #capture-search { width: 180px; }
 #station-filter { width: 100px; }
+#batch-filter { max-width: 230px; }
 .auto-refresh { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; }
 .auto-refresh input { accent-color: var(--blue); }
 
@@ -864,6 +947,8 @@ tbody tr:hover { background: #f6fafc; }
   main { padding-top: 16px; }
   .panel { padding: 18px; }
   .panel-heading { align-items: flex-start; }
+  .offline-batch-list { grid-template-columns: 1fr; }
+  .batch-metrics { grid-template-columns: 1fr; }
   .inference-mode-panel { align-items: stretch; flex-direction: column; }
   .mode-selector { width: 100%; }
   .settings-content-grid { grid-template-columns: 1fr; }

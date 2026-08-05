@@ -14,6 +14,15 @@ const STATUS_LABELS = {
   failed: "失败",
 };
 
+const BATCH_STATUS_LABELS = {
+  discovered: "待导入",
+  queued: "等待处理",
+  running: "正在处理",
+  completed: "处理完成",
+  completed_with_errors: "部分完成",
+  failed: "处理失败",
+};
+
 const RECOGNITION_STATUS_LABELS = {
   processing: "识别中",
   recognized: "识别成功",
@@ -54,6 +63,9 @@ const state = {
     accepted_image_types: ["image/jpeg", "image/png", "image/bmp"],
   },
   runtime: null,
+  offlineBatches: [],
+  inboxPath: "dataset_inbox",
+  batchActions: new Set(),
   records: [],
   selectedRecordIds: new Set(),
   deletingRecords: false,
@@ -108,6 +120,222 @@ function formatDate(value) {
   return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleString("zh-CN", {
     hour12: false,
   });
+}
+
+async function loadOfflineBatches() {
+  try {
+    const payload = await apiFetch("/api/v1/offline-batches");
+    state.offlineBatches = payload.items || [];
+    state.inboxPath = payload.inbox_path || "dataset_inbox";
+    byId("inbox-path").textContent = state.inboxPath;
+    renderOfflineBatches();
+    renderBatchFilter();
+  } catch (error) {
+    const list = byId("offline-batch-list");
+    list.replaceChildren();
+    const empty = document.createElement("div");
+    empty.className = "batch-empty";
+    empty.textContent = `收件箱扫描失败：${error.message}`;
+    list.appendChild(empty);
+  }
+}
+
+function renderBatchFilter() {
+  const select = byId("batch-filter");
+  const selected = select.value;
+  select.replaceChildren();
+  const all = document.createElement("option");
+  all.value = "";
+  all.textContent = "全部批次";
+  select.appendChild(all);
+  state.offlineBatches.forEach((batch) => {
+    if (batch.status === "discovered" && !batch.capture_succeeded) return;
+    const option = document.createElement("option");
+    option.value = batch.batch_id;
+    option.textContent = batch.batch_id;
+    select.appendChild(option);
+  });
+  if ([...select.options].some((option) => option.value === selected)) {
+    select.value = selected;
+  }
+  updateExportLinks();
+}
+
+function updateExportLinks() {
+  const filters = new URLSearchParams();
+  const status = byId("status-filter").value;
+  const station = byId("station-filter").value.trim();
+  const batch = byId("batch-filter").value;
+  if (status) filters.set("status", status);
+  if (station) filters.set("station_id", station);
+  if (batch) filters.set("batch_id", batch);
+  const suffix = filters.toString();
+  byId("export-csv").href = `/api/v1/export?format=csv${suffix ? `&${suffix}` : ""}`;
+  byId("export-json").href = `/api/v1/export?format=json${suffix ? `&${suffix}` : ""}`;
+}
+
+function renderOfflineBatches() {
+  const list = byId("offline-batch-list");
+  list.replaceChildren();
+  if (!state.offlineBatches.length) {
+    const empty = document.createElement("div");
+    empty.className = "batch-empty";
+    empty.textContent = "未发现 inspection-export-* 批次，请先把 U 盘目录完整复制到收件箱。";
+    list.appendChild(empty);
+    return;
+  }
+  state.offlineBatches.forEach((batch) => list.appendChild(offlineBatchCard(batch)));
+}
+
+function offlineBatchCard(batch) {
+  const card = document.createElement("article");
+  card.className = `offline-batch-card ${batch.status}`;
+
+  const heading = document.createElement("div");
+  heading.className = "batch-card-heading";
+  const name = document.createElement("strong");
+  name.textContent = batch.batch_id;
+  name.title = batch.batch_id;
+  const stateChip = document.createElement("span");
+  stateChip.className = `batch-state ${batch.status}`;
+  stateChip.textContent = BATCH_STATUS_LABELS[batch.status] || batch.status;
+  heading.append(name, stateChip);
+  card.appendChild(heading);
+
+  const metrics = document.createElement("div");
+  metrics.className = "batch-metrics";
+  const finished = Number(batch.capture_succeeded || 0) + Number(batch.capture_failed || 0);
+  metrics.append(
+    batchMetric("可见光抓拍", `${finished} / ${batch.capture_total || 0}`,
+      `${batch.capture_failed || 0} 个失败`),
+    batchMetric("气体记录", String(batch.gas_row_count || 0), "已归档，待模块分析"),
+    batchMetric("红外热像", String(batch.thermal_frame_count || 0), "已归档，待模块分析"),
+  );
+  card.appendChild(metrics);
+
+  const progressCopy = document.createElement("div");
+  progressCopy.className = "batch-progress-copy";
+  const stage = document.createElement("span");
+  stage.textContent = batchProgressText(batch);
+  const percent = document.createElement("strong");
+  percent.textContent = `${Math.round(Number(batch.progress_percent || 0))}%`;
+  progressCopy.append(stage, percent);
+  const track = document.createElement("div");
+  track.className = "batch-progress-track";
+  const value = document.createElement("div");
+  value.className = "batch-progress-value";
+  value.style.width = `${Math.max(0, Math.min(100, Number(batch.progress_percent || 0)))}%`;
+  track.appendChild(value);
+  card.append(progressCopy, track);
+
+  const diagnostics = [...(batch.diagnostics || [])];
+  if (batch.first_item_error) diagnostics.unshift({message: batch.first_item_error});
+  if (batch.error) diagnostics.unshift({message: batch.error});
+  if (diagnostics.length) {
+    const warnings = document.createElement("ul");
+    warnings.className = "batch-diagnostics";
+    diagnostics.slice(0, 3).forEach((entry) => {
+      const item = document.createElement("li");
+      const location = entry.path ? `${entry.path}：` : "";
+      item.textContent = `${location}${entry.message || "数据校验警告"}`;
+      warnings.appendChild(item);
+    });
+    if (diagnostics.length > 3) {
+      const remainder = document.createElement("li");
+      remainder.textContent = `另有 ${diagnostics.length - 3} 条诊断信息`;
+      warnings.appendChild(remainder);
+    }
+    card.appendChild(warnings);
+  }
+  if (batch.source_available === false) {
+    const missing = document.createElement("p");
+    missing.className = "batch-source-missing";
+    missing.textContent = "收件箱中的原批次目录已不存在，无法继续或重试。";
+    card.appendChild(missing);
+  }
+
+  const actions = document.createElement("div");
+  actions.className = "batch-card-actions";
+  if (Number(batch.capture_succeeded || 0) > 0) {
+    const results = document.createElement("button");
+    results.className = "button button-quiet compact";
+    results.type = "button";
+    results.textContent = "查看结果";
+    results.addEventListener("click", () => showBatchResults(batch.batch_id));
+    actions.appendChild(results);
+  }
+  const acting = state.batchActions.has(batch.batch_id);
+  if (batch.status === "discovered") {
+    actions.appendChild(batchActionButton(batch, "import", "导入并识别", acting));
+  } else if (
+    batch.status === "failed"
+    || Number(batch.capture_failed || 0) > 0
+    || batch.sensor_status === "failed"
+  ) {
+    actions.appendChild(batchActionButton(batch, "retry", "重试失败项", acting));
+  }
+  if (actions.childElementCount) card.appendChild(actions);
+  return card;
+}
+
+function batchMetric(labelText, valueText, noteText) {
+  const item = document.createElement("div");
+  item.className = "batch-metric";
+  const label = document.createElement("span");
+  label.textContent = labelText;
+  const value = document.createElement("strong");
+  value.textContent = valueText;
+  const note = document.createElement("small");
+  note.textContent = noteText;
+  item.append(label, value, note);
+  return item;
+}
+
+function batchProgressText(batch) {
+  if (batch.status === "discovered") return "等待开始导入";
+  if (batch.status === "queued") return "已进入后台队列";
+  if (batch.status === "running") return "后台逐包识别中";
+  if (batch.status === "completed") return "所有有效抓拍处理完成";
+  if (batch.status === "completed_with_errors") return "有效数据已处理，存在警告或失败项";
+  return "批次处理失败";
+}
+
+function batchActionButton(batch, action, text, acting) {
+  const button = document.createElement("button");
+  button.className = action === "import"
+    ? "button button-primary compact"
+    : "button button-warning compact";
+  button.type = "button";
+  button.textContent = acting ? "正在提交…" : text;
+  button.disabled = acting || batch.source_available === false;
+  button.addEventListener("click", () => performBatchAction(batch.batch_id, action));
+  return button;
+}
+
+async function performBatchAction(batchId, action) {
+  if (state.batchActions.has(batchId)) return;
+  state.batchActions.add(batchId);
+  renderOfflineBatches();
+  try {
+    await apiFetch(
+      `/api/v1/offline-batches/${encodeURIComponent(batchId)}/${action}`,
+      {method: "POST"},
+    );
+    showToast(action === "import" ? "批次已进入后台队列" : "失败项已重新排队");
+  } catch (error) {
+    showToast(error.message, true);
+  } finally {
+    state.batchActions.delete(batchId);
+    await loadMonitoring();
+  }
+}
+
+function showBatchResults(batchId) {
+  byId("batch-filter").value = batchId;
+  state.page = 0;
+  updateExportLinks();
+  loadRecords();
+  byId("batch-filter").scrollIntoView({behavior: "smooth", block: "center"});
 }
 
 function randomCaptureId() {
@@ -625,9 +853,11 @@ function recordQuery() {
   const status = byId("status-filter").value;
   const station = byId("station-filter").value.trim();
   const captureId = byId("capture-search").value.trim();
+  const batchId = byId("batch-filter").value;
   if (status) params.set("status", status);
   if (station) params.set("station_id", station);
   if (captureId) params.set("capture_id", captureId);
+  if (batchId) params.set("batch_id", batchId);
   return params;
 }
 
@@ -722,9 +952,12 @@ function recordRow(item) {
   const source = document.createElement("td");
   source.className = "source-cell";
   const station = document.createElement("strong");
-  station.textContent = item.station_id;
+  station.textContent = item.station_id || "—";
   const camera = document.createElement("small");
-  camera.textContent = item.camera_id;
+  camera.textContent = item.source_batch_id
+    ? `${item.camera_id} · ${item.source_batch_id}`
+    : item.camera_id;
+  camera.title = item.source_batch_id || "";
   source.append(station, camera);
   row.appendChild(source);
   appendTextCell(row, String(item.image_count));
@@ -879,7 +1112,7 @@ function appendTextCell(row, text) {
 }
 
 async function loadMonitoring() {
-  await Promise.all([loadHealth(), loadRecords()]);
+  await Promise.all([loadHealth(), loadRecords(), loadOfflineBatches()]);
 }
 
 function openDrawer() {
@@ -1068,7 +1301,8 @@ function buildMetadataSection(capture) {
   [
     ["抓拍时间", formatDate(capture.capture_time)],
     ["接收时间", formatDate(capture.received_at)],
-    ["工位", capture.station_id],
+    ["离线批次", capture.source_batch_id || "手工上传 / 在线任务"],
+    ["工位", capture.station_id || "—"],
     ["相机", capture.camera_id],
     ["坐标系", capture.robot_pose.frame || "—"],
     ["位姿 X / Y / Yaw", poseText(capture.robot_pose)],
@@ -1465,6 +1699,7 @@ function detailSection(titleText) {
 }
 
 function bindEvents() {
+  byId("refresh-batches").addEventListener("click", loadOfflineBatches);
   const dropZone = byId("drop-zone");
   dropZone.addEventListener("click", () => byId("image-input").click());
   dropZone.addEventListener("keydown", (event) => {
@@ -1531,10 +1766,17 @@ function bindEvents() {
   });
   byId("station-filter").addEventListener("change", () => {
     state.page = 0;
+    updateExportLinks();
     loadRecords();
   });
   byId("status-filter").addEventListener("change", () => {
     state.page = 0;
+    updateExportLinks();
+    loadRecords();
+  });
+  byId("batch-filter").addEventListener("change", () => {
+    state.page = 0;
+    updateExportLinks();
     loadRecords();
   });
   byId("previous-page").addEventListener("click", () => {

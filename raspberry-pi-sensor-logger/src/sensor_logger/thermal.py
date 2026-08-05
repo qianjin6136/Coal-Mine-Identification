@@ -1,6 +1,7 @@
-"""MLX90640 帧读取与伪彩色 PNG 生成。"""
+"""MLX90640 帧读取、降噪与平滑伪彩色 PNG 生成。"""
 
 import math
+import statistics
 import time
 from collections.abc import Sequence
 from datetime import datetime
@@ -15,9 +16,18 @@ OUTPUT_WIDTH = 640
 OUTPUT_HEIGHT = 480
 HEADER_HEIGHT = 64
 
+# 每次温度采样读取三帧并逐像素取中值，降低偶发跳点。
+FRAMES_PER_READING = 3
+
+# 显示范围使用 2%～98% 分位数，避免单个异常像素控制整幅图的颜色。
+DISPLAY_LOW_PERCENTILE = 0.02
+DISPLAY_HIGH_PERCENTILE = 0.98
+DISPLAY_EMA_ALPHA = 0.25
+MINIMUM_DISPLAY_SPAN_C = 2.0
+
 
 def thermal_color(position: float) -> tuple[int, int, int]:
-    """把 0-1 的归一化温度映射为蓝到红的伪彩色。"""
+    """把 0～1 的归一化温度映射为蓝到红的伪彩色。"""
 
     position = max(0.0, min(1.0, position))
     stops = (
@@ -41,11 +51,47 @@ def thermal_color(position: float) -> tuple[int, int, int]:
     return stops[-1][1]
 
 
+def _percentile(values: Sequence[float], fraction: float) -> float:
+    """用线性插值计算分位数，不引入 NumPy 依赖。"""
+
+    ordered = sorted(float(value) for value in values)
+    if not ordered:
+        raise ValueError("不能计算空温度序列的分位数")
+    position = (len(ordered) - 1) * fraction
+    lower_index = math.floor(position)
+    upper_index = math.ceil(position)
+    if lower_index == upper_index:
+        return ordered[lower_index]
+    ratio = position - lower_index
+    return (
+        ordered[lower_index] * (1.0 - ratio)
+        + ordered[upper_index] * ratio
+    )
+
+
+def _median_filter_3x3(values: Sequence[float]) -> list[float]:
+    """对 32×24 温度矩阵做 3×3 中值滤波，去除孤立亮点。"""
+
+    filtered: list[float] = []
+    for y in range(HEIGHT):
+        for x in range(WIDTH):
+            neighbours = [
+                float(values[row * WIDTH + column])
+                for row in range(max(0, y - 1), min(HEIGHT, y + 2))
+                for column in range(max(0, x - 1), min(WIDTH, x + 2))
+            ]
+            filtered.append(float(statistics.median(neighbours)))
+    return filtered
+
+
 class Mlx90640Camera:
     """通过 Blinka 打开树莓派 I2C 上的 MLX90640。"""
 
-    def __init__(self) -> None:
-        # 延迟导入保证 Windows 上可运行无硬件单元测试。
+    def __init__(self, frames_per_reading: int = FRAMES_PER_READING) -> None:
+        if frames_per_reading <= 0:
+            raise ValueError("每次温度采样帧数必须大于 0")
+
+        # 延迟导入，保证无树莓派硬件的环境仍可导入本模块。
         import adafruit_mlx90640
         import board
         import busio
@@ -55,8 +101,9 @@ class Mlx90640Camera:
         self._sensor.refresh_rate = (
             adafruit_mlx90640.RefreshRate.REFRESH_2_HZ
         )
+        self._frames_per_reading = frames_per_reading
 
-    def read_frame(self) -> list[float]:
+    def _read_single_frame(self) -> list[float]:
         frame = [0.0] * PIXEL_COUNT
         for attempt in range(5):
             try:
@@ -66,7 +113,24 @@ class Mlx90640Camera:
                 if attempt == 4:
                     raise
                 time.sleep(0.1)
-        raise RuntimeError("MLX90640 帧读取失败")
+        raise RuntimeError("MLX90640 单帧读取失败")
+
+    def read_frame(self) -> list[float]:
+        """读取多帧并逐像素取中值，返回一个稳定的 32×24 温度帧。"""
+
+        frames: list[list[float]] = []
+        for index in range(self._frames_per_reading):
+            frames.append(self._read_single_frame())
+            if index + 1 < self._frames_per_reading:
+                # 2 Hz 刷新率下给下一帧留出更新时间。
+                time.sleep(0.25)
+
+        if len(frames) == 1:
+            return frames[0]
+        return [
+            float(statistics.median(frame[pixel] for frame in frames))
+            for pixel in range(PIXEL_COUNT)
+        ]
 
     def close(self) -> None:
         deinit = getattr(self._i2c, "deinit", None)
@@ -75,10 +139,43 @@ class Mlx90640Camera:
 
 
 class ThermalImageWriter:
-    """将一个 32×24 温度帧保存为带统计信息的 PNG。"""
+    """将 32×24 温度帧保存为平滑且带统计信息的 PNG。"""
 
     def __init__(self, root: Path) -> None:
         self.directory = Path(root) / "thermal"
+        self._display_minimum: float | None = None
+        self._display_maximum: float | None = None
+
+    def _display_bounds(self, values: Sequence[float]) -> tuple[float, float]:
+        target_minimum = _percentile(values, DISPLAY_LOW_PERCENTILE)
+        target_maximum = _percentile(values, DISPLAY_HIGH_PERCENTILE)
+
+        if target_maximum - target_minimum < MINIMUM_DISPLAY_SPAN_C:
+            midpoint = (target_minimum + target_maximum) / 2.0
+            half_span = MINIMUM_DISPLAY_SPAN_C / 2.0
+            target_minimum = midpoint - half_span
+            target_maximum = midpoint + half_span
+
+        if self._display_minimum is None or self._display_maximum is None:
+            self._display_minimum = target_minimum
+            self._display_maximum = target_maximum
+        else:
+            alpha = DISPLAY_EMA_ALPHA
+            # 新出现的更冷/更热目标立即扩展色域；恢复时缓慢收缩，减少闪烁。
+            self._display_minimum = (
+                target_minimum
+                if target_minimum < self._display_minimum
+                else self._display_minimum * (1.0 - alpha)
+                + target_minimum * alpha
+            )
+            self._display_maximum = (
+                target_maximum
+                if target_maximum > self._display_maximum
+                else self._display_maximum * (1.0 - alpha)
+                + target_maximum * alpha
+            )
+
+        return self._display_minimum, self._display_maximum
 
     def write(
         self,
@@ -97,17 +194,26 @@ class ThermalImageWriter:
         minimum = min(values)
         maximum = max(values)
         average = sum(values) / len(values)
-        span = maximum - minimum
-        positions = (
-            [0.5] * PIXEL_COUNT
-            if span == 0
-            else [(value - minimum) / span for value in values]
-        )
 
-        raw_image = Image.new("RGB", (WIDTH, HEIGHT))
-        raw_image.putdata([thermal_color(position) for position in positions])
-        heatmap = raw_image.resize(
-            (OUTPUT_WIDTH, OUTPUT_HEIGHT), Image.Resampling.NEAREST
+        # 中值滤波只用于显示；标题统计仍由多帧中值温度数据计算。
+        display_values = _median_filter_3x3(values)
+        display_minimum, display_maximum = self._display_bounds(display_values)
+        display_span = display_maximum - display_minimum
+        positions = [
+            (value - display_minimum) / display_span
+            for value in display_values
+        ]
+
+        # 先对归一化温度场做 BICUBIC 插值，再映射颜色，避免 20×20 大色块。
+        position_image = Image.new("F", (WIDTH, HEIGHT))
+        position_image.putdata(positions)
+        smooth_positions = position_image.resize(
+            (OUTPUT_WIDTH, OUTPUT_HEIGHT),
+            Image.Resampling.BICUBIC,
+        )
+        heatmap = Image.new("RGB", (OUTPUT_WIDTH, OUTPUT_HEIGHT))
+        heatmap.putdata(
+            [thermal_color(float(position)) for position in smooth_positions.getdata()]
         )
 
         output = Image.new(

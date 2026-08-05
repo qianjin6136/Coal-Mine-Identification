@@ -24,6 +24,7 @@ class OfflineHandoffTests(unittest.TestCase):
     def test_project_paths_are_self_contained_and_use_sample(self) -> None:
         settings = Settings.load()
 
+        self.assertEqual(settings.dataset_inbox_path, PROJECT_ROOT / "dataset_inbox")
         self.assertEqual(settings.storage_root, PROJECT_ROOT / "runtime_data")
         self.assertEqual(
             settings.database_path,

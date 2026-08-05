@@ -22,18 +22,40 @@
           <span class="status-dot"></span>
           <span>正在连接上位机</span>
         </div>
-        <a class="button button-quiet" href="/api/v1/export?format=csv">导出 CSV</a>
-        <a class="button button-quiet" href="/api/v1/export?format=json">导出 JSON</a>
+        <a id="export-csv" class="button button-quiet" href="/api/v1/export?format=csv">导出 CSV</a>
+        <a id="export-json" class="button button-quiet" href="/api/v1/export?format=json">导出 JSON</a>
       </div>
     </header>
 
     <main>
+      <section class="panel offline-batches-panel" aria-labelledby="offline-batches-title">
+        <div class="panel-heading">
+          <div>
+            <p class="section-kicker">01 · U 盘离线批次</p>
+            <h2 id="offline-batches-title">导入树莓派完整巡检数据</h2>
+            <p>
+              将完整的 <code>inspection-export-*</code> 文件夹复制到
+              <code id="inbox-path">dataset_inbox</code>，上位机会从未完成项继续处理。
+            </p>
+          </div>
+          <button id="refresh-batches" class="button button-quiet compact" type="button">
+            扫描收件箱
+          </button>
+        </div>
+        <div id="offline-batch-list" class="offline-batch-list" aria-live="polite">
+          <div class="batch-empty">正在扫描离线批次…</div>
+        </div>
+        <p class="sensor-module-note">
+          气体与热像本次仅校验并归档；后续将作为现有五个视觉项目之外的独立模块分析。
+        </p>
+      </section>
+
       <section class="workspace-grid" aria-label="上传和参数设置">
         <article class="panel upload-panel">
           <div class="panel-heading">
             <div>
-              <p class="section-kicker">02 · 图片传输</p>
-              <h2>上传一组巡检图片</h2>
+              <p class="section-kicker">03 · 辅助手工上传</p>
+              <h2>上传单组巡检图片</h2>
               <p>每次任务可包含 1–5 张连拍图片，上传后自动进入识别流程。</p>
             </div>
             <span id="file-count" class="count-pill">0 / 5</span>
@@ -91,7 +113,7 @@
         <aside class="panel settings-panel">
           <div class="panel-heading">
             <div>
-              <p class="section-kicker">01 · 识别参数</p>
+              <p class="section-kicker">02 · 识别参数</p>
               <h2>当前运行参数</h2>
               <p>保存后对新任务生效；历史记录需手动重新处理。</p>
             </div>
@@ -179,7 +201,7 @@
       <section class="panel records-panel">
         <div class="records-heading">
           <div>
-            <p class="section-kicker">03 · 传输监控</p>
+            <p class="section-kicker">04 · 传输监控</p>
             <h2>最近巡检任务</h2>
           </div>
           <div class="records-tools">
@@ -198,6 +220,12 @@
                 <option value="received">识别中</option>
                 <option value="processed">已完成</option>
                 <option value="failed">失败</option>
+              </select>
+            </label>
+            <label>
+              <span class="visually-hidden">按离线批次筛选</span>
+              <select id="batch-filter">
+                <option value="">全部批次</option>
               </select>
             </label>
             <label class="auto-refresh">

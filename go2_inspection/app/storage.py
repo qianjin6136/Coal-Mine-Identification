@@ -60,11 +60,13 @@ class CaptureRepository:
         self.incoming_root = self.storage_root / "incoming"
         self.processed_root = self.storage_root / "processed"
         self.evidence_root = self.storage_root / "evidence"
+        self.imported_batches_root = self.storage_root / "imported_batches"
         for path in (
             self.database_path.parent,
             self.incoming_root,
             self.processed_root,
             self.evidence_root,
+            self.imported_batches_root,
         ):
             path.mkdir(parents=True, exist_ok=True)
         self._initialize()
@@ -140,12 +142,78 @@ class CaptureRepository:
                     FOREIGN KEY(capture_id) REFERENCES captures(capture_id)
                 );
 
+                CREATE TABLE IF NOT EXISTS offline_batches (
+                    batch_id TEXT PRIMARY KEY,
+                    source_path TEXT NOT NULL,
+                    discovered_at TEXT NOT NULL,
+                    queued_at TEXT NOT NULL,
+                    started_at TEXT,
+                    finished_at TEXT,
+                    status TEXT NOT NULL,
+                    sensor_status TEXT NOT NULL DEFAULT 'pending',
+                    capture_total INTEGER NOT NULL DEFAULT 0,
+                    capture_succeeded INTEGER NOT NULL DEFAULT 0,
+                    capture_failed INTEGER NOT NULL DEFAULT 0,
+                    gas_row_count INTEGER NOT NULL DEFAULT 0,
+                    thermal_frame_count INTEGER NOT NULL DEFAULT 0,
+                    warning_count INTEGER NOT NULL DEFAULT 0,
+                    diagnostics_json TEXT NOT NULL DEFAULT '[]',
+                    error TEXT
+                );
+
+                CREATE TABLE IF NOT EXISTS batch_capture_items (
+                    batch_id TEXT NOT NULL,
+                    relative_path TEXT NOT NULL,
+                    capture_id TEXT,
+                    status TEXT NOT NULL,
+                    error TEXT,
+                    PRIMARY KEY(batch_id, relative_path),
+                    UNIQUE(batch_id, capture_id),
+                    FOREIGN KEY(batch_id) REFERENCES offline_batches(batch_id)
+                        ON DELETE CASCADE
+                );
+
+                CREATE TABLE IF NOT EXISTS sensor_samples (
+                    batch_id TEXT NOT NULL,
+                    sample_key TEXT NOT NULL,
+                    captured_at TEXT NOT NULL,
+                    sample_id TEXT NOT NULL,
+                    ch4_value REAL,
+                    ch4_unit TEXT,
+                    ch4_status TEXT,
+                    o2_value REAL,
+                    o2_unit TEXT,
+                    o2_status TEXT,
+                    co_value REAL,
+                    co_unit TEXT,
+                    co_status TEXT,
+                    h2s_value REAL,
+                    h2s_unit TEXT,
+                    h2s_status TEXT,
+                    gas_error TEXT,
+                    raw_row_json TEXT,
+                    thermal_stored_path TEXT,
+                    thermal_sha256 TEXT,
+                    warning TEXT,
+                    PRIMARY KEY(batch_id, sample_key),
+                    FOREIGN KEY(batch_id) REFERENCES offline_batches(batch_id)
+                        ON DELETE CASCADE
+                );
+
                 CREATE INDEX IF NOT EXISTS idx_captures_status
                 ON captures(status);
                 CREATE INDEX IF NOT EXISTS idx_captures_station
                 ON captures(station_id);
                 CREATE INDEX IF NOT EXISTS idx_corrections_capture
                 ON corrections(capture_id, created_at);
+                CREATE INDEX IF NOT EXISTS idx_offline_batches_status
+                ON offline_batches(status, queued_at);
+                CREATE INDEX IF NOT EXISTS idx_batch_capture_id
+                ON batch_capture_items(capture_id);
+                CREATE INDEX IF NOT EXISTS idx_batch_capture_status
+                ON batch_capture_items(batch_id, status);
+                CREATE INDEX IF NOT EXISTS idx_sensor_samples_time
+                ON sensor_samples(batch_id, captured_at);
                 """
             )
 
@@ -382,6 +450,14 @@ class CaptureRepository:
                 """,
                 (capture_id,),
             ).fetchall()
+            batch_rows = connection.execute(
+                """
+                SELECT batch_id FROM batch_capture_items
+                WHERE capture_id = ? AND status = 'succeeded'
+                ORDER BY batch_id
+                """,
+                (capture_id,),
+            ).fetchall()
         if row is None:
             raise CaptureNotFoundError(capture_id)
         original_result = (
@@ -401,6 +477,9 @@ class CaptureRepository:
             "received_at": row["received_at"],
             "station_id": row["station_id"],
             "camera_id": row["camera_id"],
+            "source_batch_id": (
+                batch_rows[0]["batch_id"] if batch_rows else None
+            ),
             "robot_pose": json.loads(row["pose_json"]),
             "status": row["status"],
             "result": effective_result,
@@ -472,6 +551,7 @@ class CaptureRepository:
         status: str | None = None,
         station_id: str | None = None,
         capture_id: str | None = None,
+        source_batch_id: str | None = None,
         limit: int = 50,
         offset: int = 0,
     ) -> dict[str, Any]:
@@ -488,6 +568,13 @@ class CaptureRepository:
         if capture_id:
             clauses.append("instr(lower(c.capture_id), lower(?)) > 0")
             parameters.append(capture_id)
+        if source_batch_id:
+            clauses.append(
+                "EXISTS (SELECT 1 FROM batch_capture_items b "
+                "WHERE b.capture_id = c.capture_id AND b.batch_id = ? "
+                "AND b.status = 'succeeded')"
+            )
+            parameters.append(source_batch_id)
         where_sql = f"WHERE {' AND '.join(clauses)}" if clauses else ""
         with self._connection() as connection:
             total = connection.execute(
@@ -499,6 +586,7 @@ class CaptureRepository:
                 SELECT
                     c.capture_id, c.capture_time, c.received_at, c.station_id,
                     c.camera_id, c.status, c.error,
+                    MIN(b.batch_id) AS source_batch_id,
                     COUNT(DISTINCT i.id) AS image_count,
                     COUNT(DISTINCT o.id) AS object_count,
                     MAX(CASE WHEN x.active = 1 THEN 1 ELSE 0 END) AS manually_corrected
@@ -506,6 +594,8 @@ class CaptureRepository:
                 LEFT JOIN images i ON i.capture_id = c.capture_id
                 LEFT JOIN objects o ON o.capture_id = c.capture_id
                 LEFT JOIN corrections x ON x.capture_id = c.capture_id
+                LEFT JOIN batch_capture_items b
+                    ON b.capture_id = c.capture_id AND b.status = 'succeeded'
                 {where_sql}
                 GROUP BY c.capture_id
                 ORDER BY c.capture_time DESC, c.received_at DESC
@@ -593,6 +683,447 @@ class CaptureRepository:
                 ),
             )
 
+    def offline_batch_exists(self, batch_id: str) -> bool:
+        with self._connection() as connection:
+            row = connection.execute(
+                "SELECT 1 FROM offline_batches WHERE batch_id = ?", (batch_id,)
+            ).fetchone()
+        return row is not None
+
+    def create_offline_batch(
+        self,
+        batch_id: str,
+        source_path: Path,
+        items: Sequence[dict[str, Any]],
+        *,
+        gas_row_count: int,
+        thermal_frame_count: int,
+        diagnostics: Sequence[dict[str, Any]] = (),
+    ) -> dict[str, Any]:
+        """原子登记一个经过预检的离线批次及其抓拍处理清单。"""
+
+        now = datetime.now(timezone.utc).isoformat()
+        failed_count = sum(1 for item in items if item.get("error"))
+        with self._connection() as connection:
+            try:
+                connection.execute(
+                    """
+                    INSERT INTO offline_batches (
+                        batch_id, source_path, discovered_at, queued_at, status,
+                        capture_total, capture_failed, gas_row_count,
+                        thermal_frame_count, warning_count, diagnostics_json
+                    ) VALUES (?, ?, ?, ?, 'queued', ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        batch_id,
+                        str(Path(source_path).resolve()),
+                        now,
+                        now,
+                        len(items),
+                        failed_count,
+                        gas_row_count,
+                        thermal_frame_count,
+                        len(diagnostics),
+                        json.dumps(list(diagnostics), ensure_ascii=False),
+                    ),
+                )
+            except sqlite3.IntegrityError as exc:
+                raise ValidationError(f"offline batch already exists: {batch_id}") from exc
+            connection.executemany(
+                """
+                INSERT INTO batch_capture_items (
+                    batch_id, relative_path, capture_id, status, error
+                ) VALUES (?, ?, ?, ?, ?)
+                """,
+                [
+                    (
+                        batch_id,
+                        str(item["relative_path"]),
+                        item.get("capture_id"),
+                        "failed" if item.get("error") else "pending",
+                        item.get("error"),
+                    )
+                    for item in items
+                ],
+            )
+        return self.get_offline_batch(batch_id)
+
+    def list_offline_batches(self) -> list[dict[str, Any]]:
+        with self._connection() as connection:
+            rows = connection.execute(
+                """
+                SELECT o.*,
+                    (
+                        SELECT i.error FROM batch_capture_items i
+                        WHERE i.batch_id = o.batch_id
+                          AND i.status = 'failed' AND i.error IS NOT NULL
+                        ORDER BY i.relative_path LIMIT 1
+                    ) AS first_item_error
+                FROM offline_batches o
+                ORDER BY o.discovered_at DESC
+                """
+            ).fetchall()
+        return [self._offline_batch_dict(row) for row in rows]
+
+    def get_offline_batch(
+        self, batch_id: str, *, include_items: bool = True
+    ) -> dict[str, Any]:
+        with self._connection() as connection:
+            row = connection.execute(
+                "SELECT * FROM offline_batches WHERE batch_id = ?", (batch_id,)
+            ).fetchone()
+            items = (
+                connection.execute(
+                    """
+                    SELECT relative_path, capture_id, status, error
+                    FROM batch_capture_items
+                    WHERE batch_id = ?
+                    ORDER BY relative_path
+                    """,
+                    (batch_id,),
+                ).fetchall()
+                if include_items and row is not None
+                else []
+            )
+        if row is None:
+            raise CaptureNotFoundError(batch_id)
+        result = self._offline_batch_dict(row)
+        if include_items:
+            result["items"] = [dict(item) for item in items]
+        return result
+
+    @staticmethod
+    def _offline_batch_dict(row: sqlite3.Row) -> dict[str, Any]:
+        result = dict(row)
+        try:
+            result["diagnostics"] = json.loads(result.pop("diagnostics_json"))
+        except (json.JSONDecodeError, TypeError):
+            result["diagnostics"] = []
+            result.pop("diagnostics_json", None)
+        total = int(result.get("capture_total") or 0)
+        succeeded = int(result.get("capture_succeeded") or 0)
+        failed = int(result.get("capture_failed") or 0)
+        result["capture_pending"] = max(0, total - succeeded - failed)
+        result["progress_percent"] = (
+            round((succeeded + failed) * 100 / total, 1) if total else 0.0
+        )
+        return result
+
+    def reset_interrupted_offline_batches(self) -> int:
+        """服务重启后把处理中批次和单项恢复到可领取状态。"""
+
+        with self._connection() as connection:
+            connection.execute(
+                """
+                UPDATE batch_capture_items SET status = 'pending'
+                WHERE status = 'running'
+                  AND batch_id IN (
+                      SELECT batch_id FROM offline_batches WHERE status = 'running'
+                  )
+                """
+            )
+            cursor = connection.execute(
+                """
+                UPDATE offline_batches
+                SET status = 'queued', started_at = NULL, finished_at = NULL,
+                    error = NULL,
+                    sensor_status = CASE
+                        WHEN sensor_status = 'running' THEN 'pending'
+                        ELSE sensor_status
+                    END
+                WHERE status = 'running'
+                """
+            )
+        return int(cursor.rowcount)
+
+    def claim_next_offline_batch(self) -> dict[str, Any] | None:
+        """以 SQLite 写锁原子领取最早排队的批次。"""
+
+        with self._connection() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            row = connection.execute(
+                """
+                SELECT batch_id FROM offline_batches
+                WHERE status = 'queued'
+                ORDER BY queued_at, batch_id
+                LIMIT 1
+                """
+            ).fetchone()
+            if row is None:
+                return None
+            now = datetime.now(timezone.utc).isoformat()
+            connection.execute(
+                """
+                UPDATE offline_batches
+                SET status = 'running', started_at = ?, finished_at = NULL, error = NULL
+                WHERE batch_id = ?
+                """,
+                (now, row["batch_id"]),
+            )
+        return self.get_offline_batch(row["batch_id"], include_items=False)
+
+    def pending_offline_items(self, batch_id: str) -> list[dict[str, Any]]:
+        with self._connection() as connection:
+            rows = connection.execute(
+                """
+                SELECT relative_path, capture_id, status, error
+                FROM batch_capture_items
+                WHERE batch_id = ? AND status = 'pending'
+                ORDER BY relative_path
+                """,
+                (batch_id,),
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def update_offline_item(
+        self,
+        batch_id: str,
+        relative_path: str,
+        *,
+        status: str,
+        capture_id: str | None = None,
+        error: str | None = None,
+    ) -> None:
+        if status not in {"pending", "running", "succeeded", "failed"}:
+            raise ValidationError(f"invalid offline item status: {status}")
+        with self._connection() as connection:
+            connection.execute(
+                """
+                UPDATE batch_capture_items
+                SET status = ?, capture_id = COALESCE(?, capture_id), error = ?
+                WHERE batch_id = ? AND relative_path = ?
+                """,
+                (status, capture_id, error, batch_id, relative_path),
+            )
+        self.refresh_offline_batch_counts(batch_id)
+
+    def refresh_offline_batch_counts(self, batch_id: str) -> None:
+        with self._connection() as connection:
+            row = connection.execute(
+                """
+                SELECT
+                    SUM(CASE WHEN status = 'succeeded' THEN 1 ELSE 0 END) AS succeeded,
+                    SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) AS failed
+                FROM batch_capture_items WHERE batch_id = ?
+                """,
+                (batch_id,),
+            ).fetchone()
+            connection.execute(
+                """
+                UPDATE offline_batches
+                SET capture_succeeded = ?, capture_failed = ?
+                WHERE batch_id = ?
+                """,
+                (int(row["succeeded"] or 0), int(row["failed"] or 0), batch_id),
+            )
+
+    def replace_sensor_samples(
+        self,
+        batch_id: str,
+        samples: Sequence[dict[str, Any]],
+        *,
+        gas_row_count: int,
+        thermal_frame_count: int,
+        diagnostics: Sequence[dict[str, Any]],
+    ) -> None:
+        columns = (
+            "batch_id", "sample_key", "captured_at", "sample_id",
+            "ch4_value", "ch4_unit", "ch4_status",
+            "o2_value", "o2_unit", "o2_status",
+            "co_value", "co_unit", "co_status",
+            "h2s_value", "h2s_unit", "h2s_status",
+            "gas_error", "raw_row_json", "thermal_stored_path",
+            "thermal_sha256", "warning",
+        )
+        with self._connection() as connection:
+            connection.execute(
+                "DELETE FROM sensor_samples WHERE batch_id = ?", (batch_id,)
+            )
+            connection.executemany(
+                f"INSERT INTO sensor_samples ({', '.join(columns)}) "
+                f"VALUES ({', '.join('?' for _ in columns)})",
+                [
+                    tuple(
+                        batch_id if column == "batch_id" else sample.get(column)
+                        for column in columns
+                    )
+                    for sample in samples
+                ],
+            )
+            existing = connection.execute(
+                "SELECT diagnostics_json FROM offline_batches WHERE batch_id = ?",
+                (batch_id,),
+            ).fetchone()
+            prior = json.loads(existing["diagnostics_json"]) if existing else []
+            combined = [*prior, *diagnostics]
+            connection.execute(
+                """
+                UPDATE offline_batches
+                SET sensor_status = 'completed', gas_row_count = ?,
+                    thermal_frame_count = ?, warning_count = ?,
+                    diagnostics_json = ?
+                WHERE batch_id = ?
+                """,
+                (
+                    gas_row_count,
+                    thermal_frame_count,
+                    len(combined),
+                    json.dumps(combined, ensure_ascii=False),
+                    batch_id,
+                ),
+            )
+
+    def mark_sensor_import_running(self, batch_id: str) -> None:
+        with self._connection() as connection:
+            connection.execute(
+                "UPDATE offline_batches SET sensor_status = 'running' WHERE batch_id = ?",
+                (batch_id,),
+            )
+
+    def sensor_samples_for_batch(self, batch_id: str) -> list[dict[str, Any]]:
+        """按时间返回结构化传感器样本，供后续气体/热像模块直接消费。"""
+
+        with self._connection() as connection:
+            rows = connection.execute(
+                """
+                SELECT * FROM sensor_samples
+                WHERE batch_id = ?
+                ORDER BY captured_at, sample_key
+                """,
+                (batch_id,),
+            ).fetchall()
+        result: list[dict[str, Any]] = []
+        for row in rows:
+            item = dict(row)
+            raw = item.pop("raw_row_json", None)
+            item["raw_gas_row"] = json.loads(raw) if raw else None
+            result.append(item)
+        return result
+
+    def mark_sensor_import_failed(self, batch_id: str, error: str) -> None:
+        diagnostic = {"scope": "sensors", "level": "error", "message": error[:2000]}
+        with self._connection() as connection:
+            row = connection.execute(
+                "SELECT diagnostics_json FROM offline_batches WHERE batch_id = ?",
+                (batch_id,),
+            ).fetchone()
+            diagnostics = json.loads(row["diagnostics_json"]) if row else []
+            diagnostics.append(diagnostic)
+            connection.execute(
+                """
+                UPDATE offline_batches
+                SET sensor_status = 'failed', warning_count = ?, diagnostics_json = ?
+                WHERE batch_id = ?
+                """,
+                (len(diagnostics), json.dumps(diagnostics, ensure_ascii=False), batch_id),
+            )
+
+    def finish_offline_batch(self, batch_id: str, error: str | None = None) -> dict[str, Any]:
+        self.refresh_offline_batch_counts(batch_id)
+        batch = self.get_offline_batch(batch_id, include_items=False)
+        succeeded = int(batch["capture_succeeded"])
+        failed = int(batch["capture_failed"])
+        if error or (succeeded == 0 and failed > 0):
+            status = "failed"
+        elif failed or batch["sensor_status"] == "failed" or batch["warning_count"]:
+            status = "completed_with_errors"
+        else:
+            status = "completed"
+        now = datetime.now(timezone.utc).isoformat()
+        with self._connection() as connection:
+            connection.execute(
+                """
+                UPDATE offline_batches
+                SET status = ?, finished_at = ?, error = ?
+                WHERE batch_id = ?
+                """,
+                (status, now, error[:2000] if error else None, batch_id),
+            )
+        return self.get_offline_batch(batch_id)
+
+    def retry_offline_batch(self, batch_id: str) -> dict[str, Any]:
+        batch = self.get_offline_batch(batch_id, include_items=False)
+        if batch["status"] in {"queued", "running"}:
+            return self.get_offline_batch(batch_id)
+        now = datetime.now(timezone.utc).isoformat()
+        diagnostics = list(batch.get("diagnostics") or [])
+        if batch["sensor_status"] == "failed":
+            diagnostics = [
+                item for item in diagnostics
+                if item.get("scope") not in {"sensors", "gas", "thermal"}
+            ]
+        with self._connection() as connection:
+            connection.execute(
+                """
+                UPDATE batch_capture_items
+                SET status = 'pending', error = NULL
+                WHERE batch_id = ? AND status = 'failed'
+                """,
+                (batch_id,),
+            )
+            connection.execute(
+                """
+                UPDATE offline_batches
+                SET status = 'queued', queued_at = ?, started_at = NULL,
+                    finished_at = NULL, error = NULL,
+                    warning_count = ?, diagnostics_json = ?,
+                    sensor_status = CASE
+                        WHEN sensor_status = 'failed' THEN 'pending'
+                        ELSE sensor_status
+                    END
+                WHERE batch_id = ?
+                """,
+                (
+                    now,
+                    len(diagnostics),
+                    json.dumps(diagnostics, ensure_ascii=False),
+                    batch_id,
+                ),
+            )
+        self.refresh_offline_batch_counts(batch_id)
+        return self.get_offline_batch(batch_id)
+
+    def requeue_running_offline_batch(self, batch_id: str) -> None:
+        """在服务正常关闭时保留已完成项，并把当前批次放回队列。"""
+
+        now = datetime.now(timezone.utc).isoformat()
+        with self._connection() as connection:
+            connection.execute(
+                """
+                UPDATE batch_capture_items SET status = 'pending'
+                WHERE batch_id = ? AND status = 'running'
+                """,
+                (batch_id,),
+            )
+            connection.execute(
+                """
+                UPDATE offline_batches
+                SET status = 'queued', queued_at = ?, started_at = NULL,
+                    finished_at = NULL, error = NULL,
+                    sensor_status = CASE
+                        WHEN sensor_status = 'running' THEN 'pending'
+                        ELSE sensor_status
+                    END
+                WHERE batch_id = ? AND status = 'running'
+                """,
+                (now, batch_id),
+            )
+
+    def offline_queue_counts(self) -> dict[str, int]:
+        with self._connection() as connection:
+            row = connection.execute(
+                """
+                SELECT
+                    SUM(CASE WHEN status = 'queued' THEN 1 ELSE 0 END) AS queued,
+                    SUM(CASE WHEN status = 'running' THEN 1 ELSE 0 END) AS running
+                FROM offline_batches
+                """
+            ).fetchone()
+        return {
+            "offline_batches_queued": int(row["queued"] or 0),
+            "offline_batches_running": int(row["running"] or 0),
+        }
+
     def registered_image_path(self, capture_id: str, position: int) -> Path:
         """返回数据库登记的原图路径，不接受任意文件系统路径。"""
 
@@ -636,4 +1167,5 @@ class CaptureRepository:
             "captures_total": int(row["total"] or 0),
             "captures_processed": int(row["processed"] or 0),
             "captures_failed": int(row["failed"] or 0),
+            **self.offline_queue_counts(),
         }

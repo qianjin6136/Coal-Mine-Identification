@@ -4,7 +4,12 @@ from math import nan
 import pytest
 from PIL import Image
 
-from sensor_logger.thermal import ThermalImageWriter, thermal_color
+from sensor_logger.thermal import (
+    ThermalImageWriter,
+    _median_filter_3x3,
+    _percentile,
+    thermal_color,
+)
 
 NOW = datetime(2026, 8, 3, 15, 30, 5, tzinfo=timezone(timedelta(hours=8)))
 
@@ -51,3 +56,14 @@ def test_rejects_non_finite_temperature(tmp_path) -> None:
 
     with pytest.raises(ValueError, match="有限"):
         ThermalImageWriter(tmp_path).write(temperatures, NOW, 1)
+
+
+def test_display_filters_isolated_hot_pixel() -> None:
+    temperatures = [20.0] * 768
+    center = 12 * 32 + 16
+    temperatures[center] = 100.0
+
+    filtered = _median_filter_3x3(temperatures)
+
+    assert filtered[center] == 20.0
+    assert _percentile([0.0, 10.0, 20.0], 0.5) == 10.0

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from threading import RLock
-from typing import Any, Callable, Mapping, Sequence
+from typing import Any, Callable, Mapping, Sequence, TYPE_CHECKING
 
 from .domain import BoundingBox, CaptureMetadata
 from .errors import ValidationError
@@ -12,6 +12,9 @@ from .pipeline import InspectionPipeline
 from .result_summary import build_recognition_summary
 from .runtime_settings import RuntimeSettingsManager
 from .storage import CaptureRepository
+
+if TYPE_CHECKING:
+    from .offline_import import OfflineBatchManager
 
 
 class InspectionService:
@@ -33,6 +36,18 @@ class InspectionService:
         self._apply_runtime_settings = apply_runtime_settings
         self._inference_status_provider = inference_status_provider
         self._runtime_lock = RLock()
+        self.offline_batches: OfflineBatchManager | None = None
+
+    def attach_offline_batches(self, manager: "OfflineBatchManager") -> None:
+        self.offline_batches = manager
+
+    def start_background_services(self) -> None:
+        if self.offline_batches is not None:
+            self.offline_batches.start()
+
+    def stop_background_services(self) -> None:
+        if self.offline_batches is not None:
+            self.offline_batches.stop()
 
     def ingest_capture(
         self,
@@ -72,12 +87,33 @@ class InspectionService:
 
         return self.repository.delete_capture(capture_id)
 
+    def list_offline_batches(self) -> dict[str, Any]:
+        if self.offline_batches is None:
+            raise ValidationError("offline batch service is not configured")
+        return self.offline_batches.discover_batches()
+
+    def queue_offline_batch(self, batch_id: str) -> dict[str, Any]:
+        if self.offline_batches is None:
+            raise ValidationError("offline batch service is not configured")
+        return self.offline_batches.queue_import(batch_id)
+
+    def get_offline_batch(self, batch_id: str) -> dict[str, Any]:
+        if self.offline_batches is None:
+            raise ValidationError("offline batch service is not configured")
+        return self.offline_batches.get_batch(batch_id)
+
+    def retry_offline_batch(self, batch_id: str) -> dict[str, Any]:
+        if self.offline_batches is None:
+            raise ValidationError("offline batch service is not configured")
+        return self.offline_batches.retry_batch(batch_id)
+
     def list_captures(
         self,
         *,
         status: str | None = None,
         station_id: str | None = None,
         capture_id: str | None = None,
+        source_batch_id: str | None = None,
         limit: int = 50,
         offset: int = 0,
     ) -> dict[str, Any]:
@@ -91,6 +127,7 @@ class InspectionService:
             status=status,
             station_id=station_id,
             capture_id=capture_id,
+            source_batch_id=source_batch_id,
             limit=limit,
             offset=offset,
         )
@@ -184,6 +221,7 @@ class InspectionService:
         *,
         status: str | None = None,
         station_id: str | None = None,
+        source_batch_id: str | None = None,
     ) -> list[dict[str, Any]]:
         """输出扁平记录；每个识别目标一行，无目标抓拍仍保留一行。"""
 
@@ -193,6 +231,7 @@ class InspectionService:
             summaries = self.list_captures(
                 status=status,
                 station_id=station_id,
+                source_batch_id=source_batch_id,
                 limit=500,
                 offset=offset,
             )
@@ -209,6 +248,7 @@ class InspectionService:
                             "received_at": capture["received_at"],
                             "station_id": capture["station_id"],
                             "camera_id": capture["camera_id"],
+                            "source_batch_id": capture.get("source_batch_id"),
                             "status": capture["status"],
                             "pose_frame": capture["robot_pose"].get("frame"),
                             "pose_x_m": capture["robot_pose"].get("x_m"),

@@ -1,5 +1,6 @@
 {
   "storage_root": "runtime_data",
+  "dataset_inbox_path": "dataset_inbox",
   "database_path": "runtime_data/database/inspection.db",
   "classes_path": "configs/classes.json",
   "stations_path": "configs/stations.json",

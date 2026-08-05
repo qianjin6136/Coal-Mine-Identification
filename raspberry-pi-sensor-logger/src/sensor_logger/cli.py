@@ -1,7 +1,5 @@
 """传感器与 USB 可见光相机采集器命令行入口。"""
-
 from __future__ import annotations
-
 import argparse
 import logging
 import os
@@ -44,7 +42,6 @@ def jpeg_quality(value: str) -> int:
 
 def camera_device(value: str) -> int | str:
     """数字使用 OpenCV 设备编号，其余值按 /dev/video* 路径处理。"""
-
     stripped = value.strip()
     if stripped.isdecimal():
         return int(stripped)
@@ -55,24 +52,24 @@ def camera_device(value: str) -> int | str:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="树莓派气体、红外热像与 USB 可见光三连拍采集器"
+        description="树莓派气体、红外热像与 USB 可见光采集器"
     )
     parser.add_argument(
         "--interval",
         type=positive_interval,
-        default=5.0,
-        help="气体和红外热像采样间隔秒数（默认：5）",
+        default=2.0,
+        help="气体和红外热像采样间隔秒数（默认：2）",
     )
     parser.add_argument(
         "--camera-interval",
         type=positive_interval,
         default=2.0,
-        help="USB 相机三连拍间隔秒数（默认：2）",
+        help="USB 相机拍照间隔秒数（默认：2）",
     )
     parser.add_argument(
         "--serial-port",
         default="/dev/serial0",
-        help="4MZ-HH4 串口设备（默认：/dev/serial0）",
+        help="4MZ‑HH4 串口设备（默认：/dev/serial0）",
     )
     parser.add_argument(
         "--data-dir",
@@ -95,20 +92,20 @@ def build_parser() -> argparse.ArgumentParser:
         "--camera-quality",
         type=jpeg_quality,
         default=95,
-        help="JPEG 质量 1-100（默认：95）",
+        help="JPEG 质量 1‑100（默认：95）",
     )
     parser.add_argument(
         "--camera-id",
         default="raspberry_pi_usb",
-        help="写入 metadata.json 的相机编号",
+        help="兼容旧启动命令保留；单图模式不写入元数据",
     )
     parser.add_argument(
         "--station-id",
         default=os.environ.get("SENSOR_LOGGER_STATION_ID"),
-        help="工位编号；也可通过 SENSOR_LOGGER_STATION_ID 提供（必填）",
+        help="兼容旧启动命令保留；单图模式可省略且不写入数据",
     )
     parser.add_argument(
-        "--once", action="store_true", help="只采集一组传感器数据和一组三连拍后退出"
+        "--once", action="store_true", help="只采集一组传感器数据和一组后退出"
     )
     parser.add_argument(
         "--log-level",
@@ -124,7 +121,7 @@ def configure_logging(level: str, directory: Path = Path("logs")) -> Path:
     log_path = directory / "sensor_logger.log"
     formatter = logging.Formatter(
         "%(asctime)s %(levelname)s %(name)s %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
+        datefmt="%Y‑%m‑%d %H:%M:%S",
     )
 
     for handler in LOGGER.handlers:
@@ -137,7 +134,7 @@ def configure_logging(level: str, directory: Path = Path("logs")) -> Path:
         log_path,
         maxBytes=2 * 1024 * 1024,
         backupCount=3,
-        encoding="utf-8",
+        encoding="utf‑8",
     )
     file_handler.setFormatter(formatter)
     LOGGER.addHandler(file_handler)
@@ -150,7 +147,6 @@ def configure_logging(level: str, directory: Path = Path("logs")) -> Path:
 
 def _open_serial(port: str):
     import serial
-
     return serial.Serial(
         port=port,
         baudrate=9600,
@@ -168,7 +164,7 @@ def _close_resource(resource, name: str) -> None:
     try:
         resource.close()
     except Exception:
-        LOGGER.exception("关闭%s失败", name)
+        LOGGER.exception("关闭 %s 失败", name)
 
 
 def _validated_identifiers(
@@ -176,20 +172,19 @@ def _validated_identifiers(
 ) -> tuple[str, str]:
     station = (station_id or "").strip()
     camera = camera_id.strip()
-    if not station or len(station) > 64:
-        parser.error("--station-id 必须提供且长度不能超过 64 个字符")
+    if len(station) > 64:
+        parser.error("--station‑id 长度不能超过 64 个字符")
     if not camera or len(camera) > 64:
-        parser.error("--camera-id 不能为空且长度不能超过 64 个字符")
+        parser.error("--camera‑id 不能为空且长度不能超过 64 个字符")
     return station, camera
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
-    station_id, camera_id = _validated_identifiers(
-        parser, args.station_id, args.camera_id
-    )
+    station_id, camera_id = _validated_identifiers(parser, args.station_id, args.camera_id)
     configure_logging(args.log_level)
+
     serial_port = None
     thermal_camera = None
     visible_logger = None
@@ -202,6 +197,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         serial_port = _open_serial(args.serial_port)
         LOGGER.info("正在打开 MLX90640（I2C 地址 0x33）")
         thermal_camera = Mlx90640Camera()
+
         sensor_logger = SensorLogger(
             gas_reader=FourGasReader(serial_port),
             camera=thermal_camera,
@@ -226,7 +222,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 LOGGER.warning(
                     "第 %06d 组传感器数据已保存，但存在错误：%s",
                     sample_id,
-                    "; ".join(result.errors),
+                    ";".join(result.errors),
                 )
             else:
                 LOGGER.info(
@@ -243,9 +239,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             if result.errors:
                 LOGGER.warning("%s", "; ".join(result.errors))
             else:
-                LOGGER.info(
-                    "可见光三连拍完成：%s（3 张）", result.package_path
-                )
+                LOGGER.info("可见光拍照完成：%s", result.package_path)
             return result
 
         if args.once:
@@ -254,7 +248,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             capture_visible(1, timestamp)
         else:
             LOGGER.info(
-                "开始连续采集：传感器 %.1f 秒，相机三连拍 %.1f 秒；按 Ctrl+C 停止",
+                "开始连续采集：传感器 %.1f 秒，相机拍照 %.1f 秒；按 Ctrl+C 停止",
                 args.interval,
                 args.camera_interval,
             )
@@ -273,18 +267,21 @@ def main(argv: Sequence[str] | None = None) -> int:
 
             visible_thread = threading.Thread(
                 target=visible_worker,
-                name="visible-camera",
+                name="visible‑camera",
                 daemon=True,
             )
             visible_thread.start()
+
             run_periodic(
                 capture_sensors,
                 interval=args.interval,
                 stop_event=stop_event,
             )
+
             if worker_errors:
                 raise RuntimeError("可见光采集线程异常退出") from worker_errors[0]
         return 0
+
     except KeyboardInterrupt:
         LOGGER.info("收到停止命令，正在安全关闭")
         return 130

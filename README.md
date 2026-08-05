@@ -84,10 +84,10 @@ ls -l /dev/serial0
 v4l2-ctl --list-devices
 ```
 
-工位编号必须明确指定。单次硬件测试：
+单次硬件测试无需提供工位编号；旧命令中的 `--station-id` 仍可使用，但单图模式不会把它写入数据：
 
 ```bash
-.venv/bin/python -m sensor_logger --once --station-id 08
+.venv/bin/python -m sensor_logger --once
 ```
 
 连续巡检：
@@ -95,16 +95,15 @@ v4l2-ctl --list-devices
 ```bash
 .venv/bin/python -m sensor_logger \
   --interval 5 \
-  --camera-interval 2 \
-  --station-id 08
+  --camera-interval 2
 ```
 
 - 气体和红外热像每 5 秒采样一次。
-- USB 相机每 2 秒连续拍三张，三张组成一个抓拍包。
-- 20 分钟约生成 600 个抓拍包、1800 张照片；程序不会自动删除数据。
+- USB 相机每 2 秒拍一张彩色照片并直接写入 `data/visible`。
+- 20 分钟约生成 600 张照片；程序不会自动删除数据。
 - 相机断开或写盘失败会写入 `logs/sensor_logger.log`，不会停止气体和红外采集。
 
-安装开机服务时也必须提供工位编号：
+安装脚本暂时保留工位参数以兼容已有部署命令，但该值不会写入单图数据：
 
 ```bash
 ./scripts/install_service.sh 08
@@ -117,19 +116,15 @@ journalctl -u sensor-logger.service -f
 ```text
 data/
 ├── gas/
-│   └── gas_2026-08-04.csv
+│   └── gas_2026-02-11.csv
 ├── thermal/
-│   └── thermal_20260804_153005_000001.png
+│   └── thermal_20260211_073025_000001.png
 └── visible/
-    └── 2026-08-04/
-        └── rpi_20260804_153005_123456/
-            ├── metadata.json
-            ├── frame_01.jpg
-            ├── frame_02.jpg
-            └── frame_03.jpg
+    └── color_20260211_073025_706675.jpg
 ```
 
-可见光抓拍包只有在三张照片和 `metadata.json` 全部落盘后才会发布，因此上位机不会读到半组数据。
+气体 CSV 使用 `时间、编号、CH4(%LEL)、O2(%VOL)、CO(ppm)、H2S(ppm)、状态`
+七列格式。可见光照片先写入临时文件，再原子发布为单张 JPG，因此上位机不会读到半张图片。
 
 ## U 盘导出
 
@@ -186,7 +181,20 @@ python -m pip install -r requirements.txt
 go2_inspection/dataset_inbox/inspection-export-批次时间/
 ```
 
-上位机服务启动后执行：
+打开工作台 `http://127.0.0.1:8000/ui`，在顶部“U 盘离线批次”区域：
+
+1. 点击“扫描收件箱”；
+2. 确认可见光抓拍、气体记录和红外热像数量；
+3. 点击“导入并识别”；
+4. 页面可以关闭，服务会在后台逐包处理；服务重启后会从未完成项自动续跑；
+5. 失败项修复后点击“重试失败项”，成功项不会重复识别。
+
+上位机不会修改或删除 `dataset_inbox` 中的原文件。气体 CSV 会结构化入库，气体和
+红外原文件会归档到 `runtime_data/imported_batches/<batch_id>/`。上位机同时兼容新的
+`color_*.jpg` 单图与旧的“三张图片 + metadata.json”抓拍包；气体和热像显示归档
+状态，留给后续独立模块分析。无元数据单图不保存工位号，时间按 UTC+08:00 解析。
+
+原命令行上传工具仍可作为兼容方案，只处理可见光抓拍包：
 
 ```powershell
 python .\scripts\upload_queue.py `
@@ -194,7 +202,8 @@ python .\scripts\upload_queue.py `
   --server http://127.0.0.1:8000
 ```
 
-工具会递归查找抓拍包、上传三张照片并写入 `upload_receipt.json`。成功包不会被删除，失败包可再次运行命令重试。气体 CSV 和红外 PNG 随批次保存，当前视觉流水线只自动处理可见光三连拍。
+当前树莓派保存的是带温度统计文字的伪彩色 PNG，没有保存 MLX90640 的原始
+32×24 温度矩阵；后续若需要精确温度计算，必须再扩展树莓派采集格式。
 
 ## 样本、模型与结果
 
@@ -233,6 +242,7 @@ python -m unittest discover -s tests -v
 - `/dev/serial0` 权限不足：确认运行过初始化脚本并已重启。
 - 找不到 `/dev/video0`：运行 `v4l2-ctl --list-devices`，并关闭占用相机的程序。
 - U 盘导出失败：确认参数是已挂载文件系统，而不是普通目录。
-- 上位机未识别抓拍包：确认目录内同时存在 `metadata.json` 和三张 `frame_*.jpg`。
+- 上位机未识别可见光数据：新格式应为 `visible/color_YYYYMMDD_HHMMSS_ffffff.jpg`；
+  旧格式应同时包含 `metadata.json` 和三张 `frame_*.jpg`。
 
 本项目用于实验和比赛数据采集，不是经过认证的生命安全或工业联锁报警系统。在爆炸性环境使用任何传感器和计算设备时，必须遵守现场规范并使用合格的本安设备与防护措施。

@@ -243,6 +243,8 @@ class ApiTests(unittest.TestCase):
                 page = client.get("/ui")
                 self.assertEqual(page.status_code, 200)
                 self.assertIn("GO2 图片传输与参数调试工作台", page.text)
+                self.assertIn("U 盘离线批次", page.text)
+                self.assertIn('id="batch-filter"', page.text)
                 self.assertEqual(client.get("/static/ui.css").status_code, 200)
                 self.assertEqual(client.get("/static/ui.js").status_code, 200)
 

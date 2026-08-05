@@ -35,6 +35,8 @@ def create_app() -> FastAPI:
     )
     static_root = Path(__file__).resolve().parent / "static"
     app.mount("/static", StaticFiles(directory=static_root), name="static")
+    app.router.add_event_handler("startup", service.start_background_services)
+    app.router.add_event_handler("shutdown", service.stop_background_services)
 
     @app.get("/health")
     def health() -> dict[str, object]:
@@ -68,6 +70,38 @@ def create_app() -> FastAPI:
         except InspectionError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
 
+    @app.get("/api/v1/offline-batches")
+    def list_offline_batches() -> dict[str, object]:
+        try:
+            return service.list_offline_batches()
+        except InspectionError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    @app.post("/api/v1/offline-batches/{batch_id}/import")
+    def import_offline_batch(batch_id: str) -> dict[str, object]:
+        try:
+            return service.queue_offline_batch(batch_id)
+        except InspectionError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    @app.get("/api/v1/offline-batches/{batch_id}")
+    def get_offline_batch(batch_id: str) -> dict[str, object]:
+        try:
+            return service.get_offline_batch(batch_id)
+        except CaptureNotFoundError as exc:
+            raise HTTPException(status_code=404, detail="offline batch not found") from exc
+        except InspectionError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    @app.post("/api/v1/offline-batches/{batch_id}/retry")
+    def retry_offline_batch(batch_id: str) -> dict[str, object]:
+        try:
+            return service.retry_offline_batch(batch_id)
+        except CaptureNotFoundError as exc:
+            raise HTTPException(status_code=404, detail="offline batch not found") from exc
+        except InspectionError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
     @app.post("/api/v1/captures")
     async def create_capture(
         metadata: str = Form(...),
@@ -91,6 +125,7 @@ def create_app() -> FastAPI:
         status: str | None = None,
         station_id: str | None = None,
         capture_id: str | None = None,
+        batch_id: str | None = None,
         limit: int = Query(50, ge=1, le=500),
         offset: int = Query(0, ge=0),
     ) -> dict[str, object]:
@@ -99,6 +134,7 @@ def create_app() -> FastAPI:
                 status=status,
                 station_id=station_id,
                 capture_id=capture_id,
+                source_batch_id=batch_id,
                 limit=limit,
                 offset=offset,
             )
@@ -110,9 +146,14 @@ def create_app() -> FastAPI:
         format: str = Query("json", pattern="^(json|csv)$"),
         status: str | None = None,
         station_id: str | None = None,
+        batch_id: str | None = None,
     ) -> Response:
         try:
-            rows = service.export_captures(status=status, station_id=station_id)
+            rows = service.export_captures(
+                status=status,
+                station_id=station_id,
+                source_batch_id=batch_id,
+            )
         except InspectionError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
         if format == "json":
@@ -129,6 +170,7 @@ def create_app() -> FastAPI:
             "capture_id",
             "capture_time",
             "station_id",
+            "source_batch_id",
             "status",
         ]
         writer = csv.DictWriter(stream, fieldnames=fieldnames, extrasaction="ignore")
