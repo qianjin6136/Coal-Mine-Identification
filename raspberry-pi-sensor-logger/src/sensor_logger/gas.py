@@ -1,5 +1,7 @@
 """4MZ-HH4 四通道气体模组读取与寄存器解析。"""
 
+from __future__ import annotations
+
 import logging
 from collections.abc import Sequence
 from decimal import Decimal

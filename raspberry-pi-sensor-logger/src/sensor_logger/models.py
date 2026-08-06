@@ -1,5 +1,7 @@
 """采集器在各模块之间传递的数据模型。"""
 
+from __future__ import annotations
+
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal

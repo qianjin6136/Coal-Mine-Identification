@@ -1,19 +1,19 @@
 [build-system]
-requires = ["setuptools>=75"]
+requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "raspberry-pi-sensor-logger"
-version = "1.1.0"
+version = "1.2.0"
 description = "MLX90640, 4MZ-HH4 and USB camera logger for Raspberry Pi"
 readme = {text = "Raspberry Pi sensor and USB camera logger.", content-type = "text/plain"}
-requires-python = ">=3.12"
+requires-python = ">=3.9"
 dependencies = [
-    "Adafruit-Blinka==9.2.0",
-    "adafruit-circuitpython-mlx90640==1.3.9",
-    "Pillow==12.3.0",
-    "opencv-python-headless>=4.10,<5",
-    "pyserial==3.5",
+    "Adafruit-Blinka>=8.20,<10",
+    "adafruit-circuitpython-mlx90640>=1.3,<2",
+    "Pillow>=9.1,<13",
+    "opencv-python-headless>=4.8,<5; platform_machine != 'aarch64' and platform_machine != 'armv7l' and platform_machine != 'armv6l'",
+    "pyserial>=3.5,<4",
 ]
 
 [project.scripts]

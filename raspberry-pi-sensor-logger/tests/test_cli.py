@@ -63,6 +63,9 @@ class WorkingUsbCamera:
     def capture_color_jpeg(self):
         return b"\xff\xd8\xfftest"
 
+    def open(self) -> None:
+        return None
+
     def close(self) -> None:
         self.closed = True
 
@@ -81,6 +84,7 @@ def test_cli_defaults_match_hardware_design() -> None:
     assert args.camera_quality == 95
     assert args.camera_id == "raspberry_pi_usb"
     assert args.once is False
+    assert args.require_all_hardware is False
 
 
 def test_once_flag_selects_single_capture() -> None:
@@ -117,6 +121,39 @@ def test_once_mode_creates_csv_and_png_then_closes_hardware(
     images = list((tmp_path / "data" / "visible").glob("color_*.jpg"))
     assert len(images) == 1
     assert not list((tmp_path / "data" / "visible").rglob("metadata.json"))
+    assert serial_port.closed is True
+    assert WorkingCamera.instances[0].closed is True
+    assert WorkingUsbCamera.instances[0].closed is True
+    assert (tmp_path / "logs" / "sensor_logger.log").exists()
+
+
+def test_require_all_hardware_checks_usb_camera_before_capture(
+    tmp_path, monkeypatch
+) -> None:
+    serial_port = WorkingSerial()
+    WorkingCamera.instances.clear()
+    WorkingUsbCamera.instances.clear()
+
+    class UnopenableUsbCamera(WorkingUsbCamera):
+        def open(self) -> None:
+            raise OSError("相机被占用")
+
+    monkeypatch.setattr(cli, "_open_serial", lambda _port: serial_port)
+    monkeypatch.setattr(cli, "Mlx90640Camera", WorkingCamera)
+    monkeypatch.setattr(cli, "UsbCamera", UnopenableUsbCamera)
+    monkeypatch.chdir(tmp_path)
+
+    result = cli.main(
+        [
+            "--once",
+            "--require-all-hardware",
+            "--data-dir",
+            str(tmp_path / "data"),
+        ]
+    )
+
+    assert result == 1
+    assert not (tmp_path / "data").exists()
     assert serial_port.closed is True
     assert WorkingCamera.instances[0].closed is True
     assert WorkingUsbCamera.instances[0].closed is True
@@ -191,3 +228,50 @@ def test_camera_argument_validation() -> None:
         parser.parse_args(["--camera-quality", "101"])
     with pytest.raises(SystemExit):
         parser.parse_args(["--camera-width", "0"])
+
+
+def test_serial_startup_failure_still_captures_thermal_and_visible(
+    tmp_path, monkeypatch
+) -> None:
+    WorkingCamera.instances.clear()
+    WorkingUsbCamera.instances.clear()
+    monkeypatch.setattr(
+        cli, "_open_serial", lambda _port: (_ for _ in ()).throw(OSError("无串口"))
+    )
+    monkeypatch.setattr(cli, "Mlx90640Camera", WorkingCamera)
+    monkeypatch.setattr(cli, "UsbCamera", WorkingUsbCamera)
+    monkeypatch.chdir(tmp_path)
+
+    result = cli.main(["--once", "--data-dir", str(tmp_path / "data")])
+
+    assert result == 1
+    assert len(list((tmp_path / "data" / "gas").glob("*.csv"))) == 1
+    assert len(list((tmp_path / "data" / "thermal").glob("*.png"))) == 1
+    assert len(list((tmp_path / "data" / "visible").glob("*.jpg"))) == 1
+    assert "气体串口初始化失败" in (tmp_path / "logs" / "sensor_logger.log").read_text(
+        encoding="utf-8"
+    )
+
+
+def test_require_all_hardware_exits_before_capture_on_startup_failure(
+    tmp_path, monkeypatch
+) -> None:
+    WorkingCamera.instances.clear()
+    monkeypatch.setattr(
+        cli, "_open_serial", lambda _port: (_ for _ in ()).throw(OSError("无串口"))
+    )
+    monkeypatch.setattr(cli, "Mlx90640Camera", WorkingCamera)
+    monkeypatch.chdir(tmp_path)
+
+    result = cli.main(
+        [
+            "--once",
+            "--require-all-hardware",
+            "--data-dir",
+            str(tmp_path / "data"),
+        ]
+    )
+
+    assert result == 1
+    assert not (tmp_path / "data").exists()
+    assert WorkingCamera.instances[0].closed is True

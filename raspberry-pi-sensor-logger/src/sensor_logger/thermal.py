@@ -1,5 +1,7 @@
 """MLX90640 帧读取、降噪与平滑伪彩色 PNG 生成。"""
 
+from __future__ import annotations
+
 import json
 import math
 import statistics
@@ -100,7 +102,13 @@ class Mlx90640Camera:
         import busio
 
         self._i2c = busio.I2C(board.SCL, board.SDA, frequency=400_000)
-        self._sensor = adafruit_mlx90640.MLX90640(self._i2c)
+        try:
+            self._sensor = adafruit_mlx90640.MLX90640(self._i2c)
+        except Exception:
+            deinit = getattr(self._i2c, "deinit", None)
+            if callable(deinit):
+                deinit()
+            raise
         self._sensor.refresh_rate = (
             adafruit_mlx90640.RefreshRate.REFRESH_2_HZ
         )
@@ -215,9 +223,11 @@ class ThermalImageWriter:
             Image.Resampling.BICUBIC,
         )
         heatmap = Image.new("RGB", (OUTPUT_WIDTH, OUTPUT_HEIGHT))
-        heatmap.putdata(
-            [thermal_color(float(position)) for position in smooth_positions.getdata()]
+        flattened = getattr(smooth_positions, "get_flattened_data", None)
+        position_data = (
+            flattened() if callable(flattened) else smooth_positions.getdata()
         )
+        heatmap.putdata([thermal_color(float(position)) for position in position_data])
 
         output = Image.new(
             "RGB", (OUTPUT_WIDTH, HEADER_HEIGHT + OUTPUT_HEIGHT), "#101820"

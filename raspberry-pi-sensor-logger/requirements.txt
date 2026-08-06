@@ -1,5 +1,6 @@
-Adafruit-Blinka==9.2.0
-adafruit-circuitpython-mlx90640==1.3.9
-Pillow==12.3.0
-opencv-python-headless>=4.10,<5
-pyserial==3.5
+Adafruit-Blinka>=8.20,<10
+adafruit-circuitpython-mlx90640>=1.3,<2
+Pillow>=9.1,<13
+# ARM 树莓派由 setup_raspberry_pi.sh 安装发行版的 python3-opencv，避免本机编译。
+opencv-python-headless>=4.8,<5; platform_machine != "aarch64" and platform_machine != "armv7l" and platform_machine != "armv6l"
+pyserial>=3.5,<4

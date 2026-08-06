@@ -1,5 +1,7 @@
 """采样协调与固定周期调度。"""
 
+from __future__ import annotations
+
 import time
 import math
 from collections.abc import Callable

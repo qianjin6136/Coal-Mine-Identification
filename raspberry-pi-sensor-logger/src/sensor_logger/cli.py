@@ -69,7 +69,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--serial-port",
         default="/dev/serial0",
-        help="4MZ‑HH4 串口设备（默认：/dev/serial0）",
+        help="4MZ-HH4 串口设备（默认：/dev/serial0）",
     )
     parser.add_argument(
         "--data-dir",
@@ -92,7 +92,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--camera-quality",
         type=jpeg_quality,
         default=95,
-        help="JPEG 质量 1‑100（默认：95）",
+        help="JPEG 质量 1-100（默认：95）",
     )
     parser.add_argument(
         "--camera-id",
@@ -108,6 +108,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--once", action="store_true", help="只采集一组传感器数据和一组后退出"
     )
     parser.add_argument(
+        "--require-all-hardware",
+        action="store_true",
+        help="任一硬件初始化失败时立即退出；默认会继续采集仍可用的设备",
+    )
+    parser.add_argument(
         "--log-level",
         choices=("DEBUG", "INFO", "WARNING", "ERROR"),
         default="INFO",
@@ -121,7 +126,7 @@ def configure_logging(level: str, directory: Path = Path("logs")) -> Path:
     log_path = directory / "sensor_logger.log"
     formatter = logging.Formatter(
         "%(asctime)s %(levelname)s %(name)s %(message)s",
-        datefmt="%Y‑%m‑%d %H:%M:%S",
+        datefmt="%Y-%m-%d %H:%M:%S",
     )
 
     for handler in LOGGER.handlers:
@@ -134,7 +139,7 @@ def configure_logging(level: str, directory: Path = Path("logs")) -> Path:
         log_path,
         maxBytes=2 * 1024 * 1024,
         backupCount=3,
-        encoding="utf‑8",
+        encoding="utf-8",
     )
     file_handler.setFormatter(formatter)
     LOGGER.addHandler(file_handler)
@@ -167,15 +172,35 @@ def _close_resource(resource, name: str) -> None:
         LOGGER.exception("关闭 %s 失败", name)
 
 
+class _UnavailableGasReader:
+    """让串口初始化失败只影响气体通道，不阻塞热像和可见光。"""
+
+    def __init__(self, reason: str) -> None:
+        self.reason = reason
+
+    def read_all(self):
+        raise OSError(self.reason)
+
+
+class _UnavailableThermalCamera:
+    """让 I2C 初始化失败只影响热像，不阻塞气体和可见光。"""
+
+    def __init__(self, reason: str) -> None:
+        self.reason = reason
+
+    def read_frame(self):
+        raise OSError(self.reason)
+
+
 def _validated_identifiers(
     parser: argparse.ArgumentParser, station_id: str | None, camera_id: str
 ) -> tuple[str, str]:
     station = (station_id or "").strip()
     camera = camera_id.strip()
     if len(station) > 64:
-        parser.error("--station‑id 长度不能超过 64 个字符")
+        parser.error("--station-id 长度不能超过 64 个字符")
     if not camera or len(camera) > 64:
-        parser.error("--camera‑id 不能为空且长度不能超过 64 个字符")
+        parser.error("--camera-id 不能为空且长度不能超过 64 个字符")
     return station, camera
 
 
@@ -193,27 +218,56 @@ def main(argv: Sequence[str] | None = None) -> int:
     worker_errors: list[BaseException] = []
 
     try:
-        LOGGER.info("正在打开气体串口 %s", args.serial_port)
-        serial_port = _open_serial(args.serial_port)
-        LOGGER.info("正在打开 MLX90640（I2C 地址 0x33）")
-        thermal_camera = Mlx90640Camera()
+        startup_errors: list[str] = []
+        try:
+            LOGGER.info("正在打开气体串口 %s", args.serial_port)
+            serial_port = _open_serial(args.serial_port)
+            gas_reader = FourGasReader(serial_port)
+        except Exception as error:
+            message = f"气体串口初始化失败（{args.serial_port}）：{error}"
+            startup_errors.append(message)
+            LOGGER.error("%s；气体列将留空，其他设备继续采集", message)
+            gas_reader = _UnavailableGasReader(message)
+
+        try:
+            LOGGER.info("正在打开 MLX90640（I2C 地址 0x33）")
+            thermal_camera = Mlx90640Camera()
+            thermal_reader = thermal_camera
+        except Exception as error:
+            message = f"MLX90640 初始化失败：{error}"
+            startup_errors.append(message)
+            LOGGER.error("%s；其他设备继续采集", message)
+            thermal_reader = _UnavailableThermalCamera(message)
+
+        visible_camera = UsbCamera(
+            device=args.camera_device,
+            width=args.camera_width,
+            height=args.camera_height,
+            fps=args.camera_fps,
+            quality=args.camera_quality,
+        )
+        visible_logger = VisibleCameraLogger(
+            visible_camera,
+            VisiblePackageWriter(args.data_dir, station_id, camera_id),
+        )
+        if args.require_all_hardware:
+            try:
+                LOGGER.info("正在检查 USB 相机 %s", args.camera_device)
+                visible_camera.open()
+            except Exception as error:
+                message = f"USB 相机初始化失败（{args.camera_device}）：{error}"
+                startup_errors.append(message)
+                LOGGER.error("%s", message)
+
+        if args.require_all_hardware and startup_errors:
+            LOGGER.error("硬件完整性检查失败，因 --require-all-hardware 退出")
+            return 1
 
         sensor_logger = SensorLogger(
-            gas_reader=FourGasReader(serial_port),
-            camera=thermal_camera,
+            gas_reader=gas_reader,
+            camera=thermal_reader,
             csv_writer=GasCsvWriter(args.data_dir),
             image_writer=ThermalImageWriter(args.data_dir),
-        )
-
-        visible_logger = VisibleCameraLogger(
-            UsbCamera(
-                device=args.camera_device,
-                width=args.camera_width,
-                height=args.camera_height,
-                fps=args.camera_fps,
-                quality=args.camera_quality,
-            ),
-            VisiblePackageWriter(args.data_dir, station_id, camera_id),
         )
 
         def capture_sensors(sample_id: int, timestamp: datetime):
@@ -244,8 +298,11 @@ def main(argv: Sequence[str] | None = None) -> int:
 
         if args.once:
             timestamp = datetime.now().astimezone()
-            capture_sensors(1, timestamp)
-            capture_visible(1, timestamp)
+            sensor_result = capture_sensors(1, timestamp)
+            visible_result = capture_visible(1, timestamp)
+            if sensor_result.errors or visible_result.errors:
+                LOGGER.error("单次硬件测试未全部通过，请查看上方错误和日志")
+                return 1
         else:
             LOGGER.info(
                 "开始连续采集：传感器 %.1f 秒，相机拍照 %.1f 秒；按 Ctrl+C 停止",
@@ -267,7 +324,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
             visible_thread = threading.Thread(
                 target=visible_worker,
-                name="visible‑camera",
+                name="visible-camera",
                 daemon=True,
             )
             visible_thread.start()

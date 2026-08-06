@@ -4,6 +4,10 @@
 树莓派在约 20 分钟的巡检过程中只负责采集和保存；比赛结束后通过 U 盘把完整数据复制到上位机，再进行图像识别、结果处理与报告生成。
 上位机正式部署目标为 Ubuntu 22.04、Python 3.12 和 NVIDIA GeForce RTX 4060。
 
+> **不要把整个仓库都当作树莓派程序运行。** 树莓派只运行
+> `raspberry-pi-sensor-logger`；`go2_inspection` 是上位机程序。树莓派端的完整安装、
+> 参数与逐项排错说明见[树莓派采集端部署与使用手册](raspberry-pi-sensor-logger/README.md)。
+
 ## 最新赛项范围
 
 本阶段已按最新 18 项比赛清单重新对齐。仓库继续负责可见光、热像、气体采集，U 盘
@@ -75,33 +79,35 @@ I2C 地址为 `0x33`。
 
 ## 树莓派安装与运行
 
-目标系统为树莓派 Ubuntu 24.04、Python 3.12。把 `raspberry-pi-sensor-logger` 复制到树莓派后执行：
+推荐系统为 64 位 Raspberry Pi OS Bookworm，也支持树莓派 Ubuntu 22.04/24.04；
+Python 要求已放宽到 3.9 及以上。把 `raspberry-pi-sensor-logger` 复制到树莓派，
+不要复用 Windows 或 x86 电脑生成的 `.venv`：
 
 ```powershell
-scp -r ".\raspberry-pi-sensor-logger" aabb942218@192.168.137.30:/home/aabb942218/sensor-reader
+scp -r ".\raspberry-pi-sensor-logger" pi@raspberrypi.local:~/sensor-reader
 ```
 
 登录树莓派后执行：
 
 ```bash
-cd /home/aabb942218/sensor-reader
+cd ~/sensor-reader
 chmod +x scripts/*.sh
-./scripts/setup_ubuntu.sh
+./scripts/setup_raspberry_pi.sh
 sudo reboot
 ```
 
-重启后检查硬件：
+其中第一行应按实际用户目录修改，例如 `cd ~/sensor-reader`。安装脚本会自动识别
+Raspberry Pi OS/Ubuntu 的启动配置位置、安装 ARM 版 OpenCV、创建 Linux 虚拟环境，
+并配置当前用户的串口、I2C 和相机权限。重启后先运行完整诊断：
 
 ```bash
-i2cdetect -y 1
-ls -l /dev/serial0
-v4l2-ctl --list-devices
+./scripts/diagnose_hardware.sh
 ```
 
-单次硬件测试无需提供工位编号；旧命令中的 `--station-id` 仍可使用，但单图模式不会把它写入数据：
+单次硬件验收要求三类设备全部成功；无需提供工位编号：
 
 ```bash
-.venv/bin/python -m sensor_logger --once
+.venv/bin/python -m sensor_logger --once --require-all-hardware
 ```
 
 连续巡检：
@@ -115,15 +121,20 @@ v4l2-ctl --list-devices
 - 气体和红外热像每 5 秒采样一次。
 - USB 相机每 2 秒拍一张彩色照片并直接写入 `data/visible`。
 - 20 分钟约生成 600 张照片；程序不会自动删除数据。
-- 相机断开或写盘失败会写入 `logs/sensor_logger.log`，不会停止气体和红外采集。
+- 日志写入 `logs/sensor_logger.log` 并自动轮转。
+- 任一路硬件暂时不可用时，默认记录该路错误并继续采集其他设备；USB 相机会在后续周期重试。
+- 加 `--require-all-hardware` 时，气体串口或热像初始化失败会立即退出，适合安装验收。
 
-安装脚本暂时保留工位参数以兼容已有部署命令，但该值不会写入单图数据：
+安装开机服务时会自动使用当前用户名和当前项目目录，不再绑定固定账户或路径：
 
 ```bash
-./scripts/install_service.sh 08
+./scripts/install_service.sh
 sudo systemctl status sensor-logger.service
 journalctl -u sensor-logger.service -f
 ```
+
+旧流程也可传可选工位号，例如 `./scripts/install_service.sh 08`，但该值不会写入当前
+单图数据。
 
 ## 树莓派数据格式
 
@@ -258,7 +269,8 @@ go2_inspection/dataset_inbox/
 
 ```bash
 cd raspberry-pi-sensor-logger
-python -m pytest -q
+.venv/bin/python -m pip install --requirement requirements-dev.txt
+.venv/bin/python -m pytest -q
 ```
 
 上位机端：
@@ -273,6 +285,10 @@ python -m unittest discover -s tests -v
 - 找不到 `0x33`：断电检查 MLX90640 的 VCC、GND、SDA 和 SCL。
 - `/dev/serial0` 权限不足：确认运行过初始化脚本并已重启。
 - 找不到 `/dev/video0`：运行 `v4l2-ctl --list-devices`，并关闭占用相机的程序。
+- 报 `unknown encoding: utf‑8`：说明仍在运行旧版入口；新版已把错误的 Unicode 减号修正为标准 `utf-8`。
+- 报 `externally-managed-environment`：不要使用系统 `pip` 或 `sudo pip`，应运行安装脚本创建 `.venv`。
+- ARM 上 OpenCV 安装失败或长时间编译：使用 `setup_raspberry_pi.sh`，它通过系统包安装 `python3-opencv`。
+- systemd 服务路径错误：在项目实际目录重新执行 `./scripts/install_service.sh`。
 - U 盘导出失败：确认参数是已挂载文件系统，而不是普通目录。
 - 上位机未识别可见光数据：新格式应为 `visible/color_YYYYMMDD_HHMMSS_ffffff.jpg`；
   旧格式应同时包含 `metadata.json` 和三张 `frame_*.jpg`。

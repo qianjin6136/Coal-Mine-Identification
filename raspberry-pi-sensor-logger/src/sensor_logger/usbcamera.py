@@ -69,6 +69,11 @@ class UsbCamera:
         self._capture = capture
         return capture
 
+    def open(self) -> None:
+        """提前打开设备，用于启动阶段的硬件完整性检查。"""
+
+        self._open()
+
     def capture_color_jpeg(self) -> bytes:
         """读取一帧并编码为彩色 JPEG。"""
 
