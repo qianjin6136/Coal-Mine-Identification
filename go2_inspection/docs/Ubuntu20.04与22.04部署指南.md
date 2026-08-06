@@ -1,4 +1,4 @@
-# Ubuntu 22.04 / RTX 4060 部署指南
+# Ubuntu 20.04 / 22.04 / 24.04 上位机部署指南
 
 ## 1. 兼容范围
 
@@ -9,10 +9,12 @@
 | --- | --- | --- |
 | Ubuntu 20.04 LTS | 3.12 | 系统已有时复用，否则从官方源码构建到项目目录 |
 | Ubuntu 22.04 LTS | 3.12 | 系统已有时复用，否则从官方源码构建到项目目录 |
+| Ubuntu 24.04 LTS | 3.12 | 通过 Ubuntu 官方包安装并直接创建项目虚拟环境 |
 
-Ubuntu 20.04 和 22.04 自带 Python 版本不同，不能用 `/usr/bin/python3`
-作为项目解释器。安装脚本不会替换系统 Python；源码构建结果位于
-`.python/cpython-3.12.13/`，应用依赖位于 `.venv/`。
+Ubuntu 22.04 的默认 Python 是 3.10，Ubuntu 24.04 的默认 Python 是 3.12，不能
+对两个版本使用相同安装分支。安装脚本不会替换系统 Python：20.04/22.04 需要源码
+构建时，结果位于 `.python/cpython-3.12.13/`；24.04 复用系统 Python 3.12；所有
+应用依赖均隔离在 `.venv/`。
 
 Ubuntu 20.04 已进入扩展安全维护阶段。生产机器应启用 Ubuntu Pro/ESM，
 或制定升级到仍处于标准支持期的 LTS 版本的计划。
@@ -38,6 +40,16 @@ Ubuntu 20.04 已进入扩展安全维护阶段。生产机器应启用 Ubuntu Pr
 cd /opt/coal-mine-identification/go2_inspection
 ```
 
+安装脚本必须由普通登录用户运行，并要求该用户可写项目目录。若项目是通过 `sudo`
+复制到 `/opt`、当前用户没有写权限，先执行一次（路径按实际情况修改）：
+
+```bash
+sudo chown -R "$(id -un):$(id -gn)" /opt/coal-mine-identification/go2_inspection
+```
+
+不要使用 `sudo bash scripts/install_ubuntu.sh`，否则生成的 `.python`、`.venv` 和运行
+数据会归 root 所有。
+
 脚本可通过 `bash` 直接执行，不依赖文件的可执行位：
 
 ```bash
@@ -60,11 +72,11 @@ bash scripts/install_ubuntu.sh --profile gpu-4060
 
 安装脚本将执行：
 
-1. 确认系统是 Ubuntu 20.04 或 22.04；
-2. 通过 `apt-get` 安装 CPython/OpenCV 所需系统库和编译工具；
-3. 优先复用已有 `python3.12`；
-4. 没有 Python 3.12 时，下载经过 SHA-256 校验的 CPython 3.12.13 官方源码，
-   编译到项目 `.python/` 目录；
+1. 确认系统是 Ubuntu 20.04、22.04 或 24.04，并检查项目目录写权限；
+2. 在 GPU 配置下先检查 x86_64、`nvidia-smi` 和驱动；
+3. Ubuntu 24.04 从官方仓库安装并使用 Python 3.12；
+4. Ubuntu 20.04/22.04 优先复用已有的完整 `python3.12`，否则下载经过 SHA-256
+   校验的 CPython 3.12.13 官方源码，编译到项目 `.python/` 目录；
 5. 创建 `.venv` 并安装项目依赖；
 6. 对 `app/` 和 `scripts/` 执行字节码编译检查；
 7. 导入 OpenCV、python-docx、FastAPI、NumPy、Pillow、Uvicorn 并创建应用实例做冒烟检查；
@@ -83,7 +95,25 @@ bash scripts/install_ubuntu.sh --profile runtime --build-python
 ```
 
 已有 `.venv` 如果来自 Windows 或不是 Python 3.12，脚本会停止并提示处理，不会自动
-删除或覆盖环境。
+删除或覆盖环境。使用下面的参数可以把它移动到 `.venv.backup.时间戳` 后安全重建：
+
+```bash
+bash scripts/install_ubuntu.sh --profile runtime --recreate-venv
+```
+
+源码编译默认最多使用 4 个并行任务，内存较小时可主动降低：
+
+```bash
+GO2_BUILD_JOBS=2 bash scripts/install_ubuntu.sh --profile runtime
+```
+
+网络环境无法访问 Python 官方下载地址时，可指定同一文件的可信镜像；脚本仍使用
+内置 SHA-256 强制校验内容：
+
+```bash
+GO2_PYTHON_SOURCE_URL="https://可信镜像/Python-3.12.13.tar.xz" \
+  bash scripts/install_ubuntu.sh --profile runtime
+```
 
 ## 4. 依赖配置
 
@@ -141,9 +171,8 @@ bash scripts/start_server.sh
 脚本按以下顺序寻找解释器：
 
 1. 项目 `.venv/bin/python`；
-2. 工作区 `.venv/bin/python`；
-3. 项目本地 `.python/cpython-3.12.13/bin/python3.12`；
-4. 系统 `python3.12`。
+2. 项目本地 `.python/cpython-3.12.13/bin/python3.12`；
+3. 系统 `python3.12`。
 
 发现的解释器不是 Python 3.12 时，脚本会拒绝启动。默认监听
 `0.0.0.0:8000`，可通过环境变量修改：
@@ -221,6 +250,87 @@ sudo ufw allow from 192.168.1.0/24 to any port 8000 proto tcp
 - 写入 `runtime_data/runtime_settings.json` 和 `YOLO_CONFIG_DIR`。
 
 ## 9. 常见问题
+
+### 先确认失败发生在哪一步
+
+新安装脚本会打印 `[1/5]` 至 `[5/5]`，并在失败时显示脚本行号和失败命令。建议保留
+完整日志：
+
+```bash
+cd /opt/coal-mine-identification/go2_inspection
+mkdir -p runtime_data/logs
+set -o pipefail
+bash scripts/install_ubuntu.sh --profile runtime 2>&1 \
+  | tee runtime_data/logs/install-runtime.log
+```
+
+先用 `runtime` 配置确认 Python 和基础依赖，再执行
+`bash scripts/install_ubuntu.sh --profile gpu-4060`，可以把 Python 问题和 CUDA/模型
+依赖问题分开。
+
+### Ubuntu 24.04 被提示“不支持”
+
+说明树莓派或上位机上仍是旧版 `install_ubuntu.sh`。新版支持 24.04，并直接安装
+`python3.12`、`python3.12-dev`、`python3.12-venv`，不会编译 Python。确认版本：
+
+```bash
+. /etc/os-release
+echo "$PRETTY_NAME"
+grep -E '20.04|22.04|24.04' scripts/install_ubuntu.sh
+```
+
+### 在 `.python` 目录报 `Permission denied`
+
+当前用户没有项目写权限，常见原因是用 `sudo cp` 把项目复制到了 `/opt`。不要用 sudo
+运行整个安装脚本；按“准备目录”一节修正所有权后重新执行。
+
+### 出现 `$'\r': command not found` 或 `pipefail\r`
+
+这是 Shell 脚本被 Windows 转成 CRLF 换行造成的。仓库已通过 `.gitattributes` 固定
+`*.sh` 为 LF；对已经复制到 Ubuntu 的旧文件可执行：
+
+```bash
+sed -i 's/\r$//' scripts/*.sh
+bash -n scripts/install_ubuntu.sh
+```
+
+### 下载 CPython 超时或失败
+
+Ubuntu 20.04/22.04 的源码分支需要访问 Python 官方站点。先检查时间、DNS 和 HTTPS：
+
+```bash
+timedatectl status
+getent hosts www.python.org
+curl -I https://www.python.org/ftp/python/3.12.13/Python-3.12.13.tar.xz
+df -h /tmp .
+```
+
+源码文件的官方 SHA-256 是
+`c08bc65a81971c1dd5783182826503369466c7e67374d1646519adf05207b684`；校验不一致时
+脚本必须停止，不要绕过校验。版本与校验值可在
+[Python 3.12.13 官方发布页](https://www.python.org/downloads/release/python-31213/)核对。
+
+### 编译 Python 时进程被终止
+
+通常是 `/tmp` 空间或内存不足。脚本会在编译前要求临时目录至少有约 1.5 GiB，并把
+默认并行数限制为最多 4。内存较少时使用 `GO2_BUILD_JOBS=2`；`/tmp` 空间不足时可
+把临时目录放到其他磁盘：
+
+```bash
+mkdir -p "$PWD/runtime_data/tmp"
+TMPDIR="$PWD/runtime_data/tmp" GO2_BUILD_JOBS=2 \
+  bash scripts/install_ubuntu.sh --profile runtime
+```
+
+### 提示 `.venv` 不是 Linux 环境或不是 Python 3.12
+
+不要复用 Windows 的 `.venv`。执行：
+
+```bash
+bash scripts/install_ubuntu.sh --profile runtime --recreate-venv
+```
+
+旧目录会改名保留；确认新环境正常后再由操作人员决定是否清理备份。
 
 ### 系统显示 Python 3.8 或 3.10
 

@@ -31,6 +31,16 @@ class OfflineHandoffTests(unittest.TestCase):
         self.assertIn("gpu-4060", installer)
         self.assertIn("torch.cuda.is_available()", installer)
         self.assertIn("RTX 4060", installer)
+        self.assertIn("20.04|22.04|24.04", installer)
+        self.assertIn("python3.12-venv", installer)
+        self.assertIn("--recreate-venv", installer)
+        self.assertIn("GO2_BUILD_JOBS", installer)
+        self.assertIn(
+            "c08bc65a81971c1dd5783182826503369466c7e67374d1646519adf05207b684",
+            installer,
+        )
+        attributes = (PROJECT_ROOT / ".gitattributes").read_text(encoding="utf-8")
+        self.assertIn("*.sh text eol=lf", attributes)
 
     def test_project_paths_are_self_contained_and_use_sample(self) -> None:
         settings = Settings.load()

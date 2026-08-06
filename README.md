@@ -178,7 +178,10 @@ udisksctl unmount -b /dev/sda1
 
 ## 上位机安装与启动
 
-正式的 Ubuntu 22.04 / RTX 4060 上位机进入 `go2_inspection` 后执行：
+正式目标仍是 Ubuntu 22.04 / RTX 4060；安装脚本同时支持 Ubuntu 20.04 和 24.04。
+Ubuntu 24.04 直接使用系统 Python 3.12，Ubuntu 20.04/22.04 没有可用的系统
+Python 3.12 时才会把经过 SHA-256 校验的 CPython 3.12.13 编译到项目目录。
+使用普通登录用户进入 `go2_inspection` 后执行，不要在整个命令前加 `sudo`：
 
 ```bash
 bash scripts/install_ubuntu.sh --profile gpu-4060
@@ -186,7 +189,9 @@ bash scripts/start_server.sh
 ```
 
 安装脚本固定使用 PyTorch 2.12.1 CUDA 12.6，并检查 NVIDIA 驱动、CUDA 可用性和
-RTX 4060 设备名称；完整步骤见 Ubuntu 部署指南。
+RTX 4060 设备名称。如果复制来的 `.venv` 属于 Windows、其他机器或错误 Python，
+可加 `--recreate-venv`；旧环境会备份而不是删除。完整步骤和 Python 安装排错见
+Ubuntu 部署指南。
 
 Windows 可继续作为开发和现场调试环境。进入 `go2_inspection`，重新创建项目自己的
 虚拟环境；整理副本不附带 `.venv`：

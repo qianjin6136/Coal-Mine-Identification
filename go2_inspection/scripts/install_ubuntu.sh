@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
+trap 'status=$?; printf "\n安装失败（退出码 %s，脚本第 %s 行）：%s\n" "$status" "$LINENO" "$BASH_COMMAND" >&2; printf "请保留上方最后 30 行输出用于排错。\n" >&2; exit "$status"' ERR
+
 readonly python_version="3.12.13"
 readonly python_sha256="c08bc65a81971c1dd5783182826503369466c7e67374d1646519adf05207b684"
 readonly python_archive="Python-${python_version}.tar.xz"
-readonly python_url="https://www.python.org/ftp/python/${python_version}/${python_archive}"
+readonly official_python_url="https://www.python.org/ftp/python/${python_version}/${python_archive}"
+readonly python_url="${GO2_PYTHON_SOURCE_URL:-${official_python_url}}"
 
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 project_root="$(cd -- "${script_dir}/.." && pwd -P)"
@@ -13,6 +16,7 @@ venv_root="${project_root}/.venv"
 profile="runtime"
 install_system_deps=true
 force_source_build=false
+recreate_venv=false
 
 usage() {
     cat <<'EOF'
@@ -25,7 +29,12 @@ Options:
   --profile dev      Install runtime and test dependencies.
   --skip-system-deps Do not run apt-get; required packages must already exist.
   --build-python     Build the project-local CPython 3.12.13 even if python3.12 exists.
+  --recreate-venv    Back up the existing .venv and create a clean Linux environment.
   -h, --help         Show this help.
+
+Environment:
+  GO2_BUILD_JOBS=2             Limit parallel CPython compilation jobs.
+  GO2_PYTHON_SOURCE_URL=<URL>  Use a source mirror; SHA-256 is still verified.
 EOF
 }
 
@@ -45,6 +54,10 @@ while (($# > 0)); do
             ;;
         --build-python)
             force_source_build=true
+            shift
+            ;;
+        --recreate-venv)
+            recreate_venv=true
             shift
             ;;
         -h|--help)
@@ -70,6 +83,12 @@ case "${profile}" in
         ;;
 esac
 
+if ((EUID == 0)); then
+    echo "请使用普通登录用户运行安装脚本，不要在命令前加 sudo。" >&2
+    echo "脚本会在 apt-get 阶段自行调用 sudo。" >&2
+    exit 2
+fi
+
 if [[ ! -r /etc/os-release ]]; then
     echo "Cannot identify this Linux distribution: /etc/os-release is missing" >&2
     exit 1
@@ -82,12 +101,41 @@ if [[ "${ID:-}" != "ubuntu" ]]; then
     exit 1
 fi
 case "${VERSION_ID:-}" in
-    20.04|22.04) ;;
+    20.04|22.04|24.04) ;;
     *)
-        echo "Supported releases are Ubuntu 20.04 and 22.04; detected: ${VERSION_ID:-unknown}" >&2
+        echo "Supported releases are Ubuntu 20.04, 22.04 and 24.04; detected: ${VERSION_ID:-unknown}" >&2
         exit 1
         ;;
 esac
+
+write_probe="${project_root}/.go2-install-write-test.$$"
+if ! (umask 077 && : >"${write_probe}") 2>/dev/null; then
+    echo "当前用户 $(id -un) 无法写入项目目录：${project_root}" >&2
+    echo "如果项目位于 /opt，请先修正所有权，例如：" >&2
+    echo "  sudo chown -R $(id -un):$(id -gn) \"${project_root}\"" >&2
+    exit 1
+fi
+rm -f -- "${write_probe}"
+for managed_path in "${project_root}/.python" "${venv_root}" "${project_root}/runtime_data"; do
+    if [[ -e "${managed_path}" && ! -w "${managed_path}" ]]; then
+        echo "当前用户 $(id -un) 无法写入：${managed_path}" >&2
+        echo "这通常是以前用 sudo 运行安装程序造成的；请修正项目所有权后重试。" >&2
+        exit 1
+    fi
+done
+
+if [[ "${profile}" == "gpu-4060" ]]; then
+    if [[ "$(uname -m)" != "x86_64" ]]; then
+        echo "gpu-4060 配置要求 x86_64 Ubuntu，当前架构：$(uname -m)。" >&2
+        exit 1
+    fi
+    if ! command -v nvidia-smi >/dev/null 2>&1; then
+        echo "未找到 nvidia-smi。请先安装 NVIDIA 驱动并重启，再安装 GPU 依赖。" >&2
+        exit 1
+    fi
+    echo "NVIDIA 驱动预检："
+    nvidia-smi --query-gpu=name,driver_version --format=csv,noheader
+fi
 
 run_as_root() {
     if ((EUID == 0)); then
@@ -100,36 +148,59 @@ run_as_root() {
     fi
 }
 
-install_build_dependencies() {
+install_system_dependencies() {
     run_as_root apt-get update
-    run_as_root env DEBIAN_FRONTEND=noninteractive apt-get install -y \
-        build-essential \
-        ca-certificates \
-        curl \
-        libbz2-dev \
-        libffi-dev \
-        libgdbm-dev \
-        libglib2.0-0 \
-        libgl1 \
-        liblzma-dev \
-        libncurses-dev \
-        libnss3-dev \
-        libreadline-dev \
-        libsqlite3-dev \
-        libssl-dev \
-        pkg-config \
-        uuid-dev \
-        xz-utils \
-        zlib1g-dev
+    if [[ "${VERSION_ID}" == "24.04" && "${force_source_build}" == false ]]; then
+        echo "Ubuntu 24.04：安装系统 Python 3.12，不执行源码编译。"
+        run_as_root env DEBIAN_FRONTEND=noninteractive apt-get install -y \
+            ca-certificates \
+            curl \
+            libglib2.0-0 \
+            libgl1 \
+            python3.12 \
+            python3.12-dev \
+            python3.12-venv
+    else
+        echo "Ubuntu ${VERSION_ID}：准备 CPython ${python_version} 源码构建依赖。"
+        run_as_root env DEBIAN_FRONTEND=noninteractive apt-get install -y \
+            build-essential \
+            ca-certificates \
+            curl \
+            libbz2-dev \
+            libexpat1-dev \
+            libffi-dev \
+            libgdbm-compat-dev \
+            libgdbm-dev \
+            libglib2.0-0 \
+            libgl1 \
+            liblzma-dev \
+            libncurses-dev \
+            libnss3-dev \
+            libreadline-dev \
+            libsqlite3-dev \
+            libssl-dev \
+            pkg-config \
+            uuid-dev \
+            xz-utils \
+            zlib1g-dev
+    fi
 }
 
 build_project_python() (
+    tmp_base="$(realpath -m "${TMPDIR:-/tmp}")"
+    available_kb="$(df -Pk "${tmp_base}" | awk 'NR == 2 {print $4}')"
+    if [[ ! "${available_kb}" =~ ^[0-9]+$ ]] || ((available_kb < 1572864)); then
+        echo "编译 Python 的临时目录至少需要约 1.5 GiB 空间：${tmp_base}" >&2
+        echo "当前可用：${available_kb:-unknown} KiB；可用 TMPDIR 指定其他磁盘。" >&2
+        exit 1
+    fi
+
     mkdir -p -- "$(dirname -- "${python_prefix}")"
-    build_root="$(mktemp -d "${TMPDIR:-/tmp}/go2-python-build.XXXXXX")"
+    build_root="$(mktemp -d "${tmp_base}/go2-python-build.XXXXXX")"
 
     cleanup() {
         case "${build_root}" in
-            "${TMPDIR:-/tmp}"/go2-python-build.*)
+            "${tmp_base}"/go2-python-build.*)
                 rm -rf -- "${build_root}"
                 ;;
         esac
@@ -137,26 +208,60 @@ build_project_python() (
     trap cleanup EXIT
 
     cd -- "${build_root}"
-    curl --fail --location --retry 3 --output "${python_archive}" "${python_url}"
+    echo "下载 CPython ${python_version}：${python_url}"
+    curl \
+        --fail \
+        --location \
+        --retry 3 \
+        --connect-timeout 20 \
+        --output "${python_archive}" \
+        "${python_url}"
     printf '%s  %s\n' "${python_sha256}" "${python_archive}" | sha256sum --check -
     tar --extract --file "${python_archive}"
     cd -- "Python-${python_version}"
     ./configure \
         --prefix="${python_prefix}" \
         --with-ensurepip=install
-    make -j"$(getconf _NPROCESSORS_ONLN 2>/dev/null || printf '2')"
+    build_jobs="${GO2_BUILD_JOBS:-$(getconf _NPROCESSORS_ONLN 2>/dev/null || printf '2')}"
+    if [[ ! "${build_jobs}" =~ ^[1-9][0-9]*$ ]]; then
+        echo "GO2_BUILD_JOBS 必须是正整数，当前值：${build_jobs}" >&2
+        exit 2
+    fi
+    if [[ -z "${GO2_BUILD_JOBS:-}" ]] && ((build_jobs > 4)); then
+        build_jobs=4
+    fi
+    echo "使用 ${build_jobs} 个并行任务编译；可通过 GO2_BUILD_JOBS 调整。"
+    make -j"${build_jobs}"
     make install
 )
 
 is_compatible_python() {
     "$1" -c \
-        'import ensurepip, sqlite3, ssl, sys, venv; raise SystemExit(0 if sys.version_info[:2] == (3, 12) else 1)'
+        'import bz2, ctypes, decimal, ensurepip, lzma, readline, sqlite3, ssl, sys, uuid, venv, zlib; raise SystemExit(0 if sys.version_info[:2] == (3, 12) else 1)'
+}
+
+report_python_problem() {
+    "$1" - <<'PY' || true
+import importlib
+import sys
+
+print(f"解释器：{sys.executable}；版本：{sys.version.split()[0]}")
+for name in ("bz2", "ctypes", "decimal", "ensurepip", "lzma", "readline", "sqlite3", "ssl", "uuid", "venv", "zlib"):
+    try:
+        importlib.import_module(name)
+    except Exception as exc:
+        print(f"  模块 {name} 不可用：{exc}")
+PY
 }
 
 if [[ "${install_system_deps}" == true ]]; then
-    install_build_dependencies
+    echo "[1/5] 准备 Ubuntu 系统依赖"
+    install_system_dependencies
+else
+    echo "[1/5] 已按参数跳过 Ubuntu 系统依赖"
 fi
 
+echo "[2/5] 选择 Python 3.12 解释器"
 python_exe=""
 if [[ "${force_source_build}" == false ]] && command -v python3.12 >/dev/null 2>&1; then
     candidate="$(command -v python3.12)"
@@ -177,15 +282,31 @@ fi
 
 if ! is_compatible_python "${python_exe}"; then
     echo "Python 3.12 build is incomplete: ${python_exe}" >&2
+    report_python_problem "${python_exe}"
     exit 1
+fi
+echo "使用：${python_exe}（$("${python_exe}" --version 2>&1)）"
+
+if [[ "${recreate_venv}" == true && ( -e "${venv_root}" || -L "${venv_root}" ) ]]; then
+    venv_backup="${venv_root}.backup.$(date +%Y%m%d-%H%M%S)"
+    if [[ -e "${venv_backup}" || -L "${venv_backup}" ]]; then
+        venv_backup="${venv_backup}.$$"
+    fi
+    echo "备份现有虚拟环境：${venv_backup}"
+    mv -- "${venv_root}" "${venv_backup}"
 fi
 
 if [[ -d "${venv_root}" && ! -x "${venv_root}/bin/python" ]]; then
     echo "Existing ${venv_root} is not a Linux virtual environment." >&2
-    echo "Move or remove it explicitly, then run this installer again." >&2
+    echo "请重新执行并添加 --recreate-venv；旧目录会保留为带时间戳的备份。" >&2
+    exit 1
+fi
+if [[ ( -e "${venv_root}" || -L "${venv_root}" ) && ! -d "${venv_root}" ]]; then
+    echo "${venv_root} 存在，但它不是目录。请移走该文件后重试。" >&2
     exit 1
 fi
 
+echo "[3/5] 创建或复用项目虚拟环境"
 if [[ ! -x "${venv_root}/bin/python" ]]; then
     "${python_exe}" -m venv "${venv_root}"
 fi
@@ -193,13 +314,16 @@ fi
 venv_python="${venv_root}/bin/python"
 if ! is_compatible_python "${venv_python}"; then
     echo "Existing virtual environment does not use Python 3.12: ${venv_root}" >&2
-    echo "Move or remove it explicitly, then run this installer again." >&2
+    report_python_problem "${venv_python}"
+    echo "请重新执行并添加 --recreate-venv。" >&2
     exit 1
 fi
 
+echo "[4/5] 安装 ${profile} Python 依赖"
 "${venv_python}" -m pip install --upgrade pip setuptools wheel
 "${venv_python}" -m pip install --requirement "${requirements_file}"
 
+echo "[5/5] 验证应用导入与运行环境"
 cd -- "${project_root}"
 "${venv_python}" -m compileall -q app scripts
 "${venv_python}" -c \
