@@ -21,7 +21,7 @@ class TrainingDataTests(unittest.TestCase):
             Image.new("RGB", (100, 80), "black").save(unlabelled)
             labelled.with_name(labelled.name + ".labels.json").write_text(
                 json.dumps(
-                    [{"class": "tool_wrench", "bbox_xyxy": [10, 10, 60, 50]}]
+                    [{"class": "station_marker", "bbox_xyxy": [10, 10, 60, 50]}]
                 ),
                 encoding="utf-8",
             )
@@ -50,7 +50,7 @@ class TrainingDataTests(unittest.TestCase):
             )
             classes = root / "classes.json"
             classes.write_text(
-                json.dumps({"tool_wrench": {"id": "wrench"}}),
+                json.dumps({"station_marker": {"id": "station_marker"}}),
                 encoding="utf-8",
             )
 

@@ -15,7 +15,6 @@ from app.inference import gpu_inference_status, runtime_mode_for_backend
 class RuntimeSettingsTests(unittest.TestCase):
     def setUp(self) -> None:
         self.module_config = {
-            "tool_and_safety_sign": {"enabled": False},
             "coal_presence": {"enabled": True},
             "station_number": {"enabled": True},
             "digital_meter": {
@@ -53,6 +52,24 @@ class RuntimeSettingsTests(unittest.TestCase):
                 json.loads(path.read_text(encoding="utf-8")),
                 self.defaults,
             )
+
+    def test_load_migrates_retired_module_switch(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = Path(temp_dir) / "runtime_settings.json"
+            legacy = {
+                **self.defaults,
+                "modules": {
+                    **self.defaults["modules"],
+                    "tool_and_safety_sign": True,
+                },
+            }
+            path.write_text(json.dumps(legacy), encoding="utf-8")
+
+            current = RuntimeSettingsManager(path, self.defaults).snapshot()
+
+            self.assertNotIn("tool_and_safety_sign", current["modules"])
+            persisted = json.loads(path.read_text(encoding="utf-8"))
+            self.assertNotIn("tool_and_safety_sign", persisted["modules"])
 
     def test_rejects_unknown_fields_and_invalid_values(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

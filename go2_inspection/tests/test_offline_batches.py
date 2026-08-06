@@ -602,7 +602,7 @@ class OfflineBatchTests(unittest.TestCase):
             write_batch(inbox)
             config_paths = {
                 name: root / f"{name}.json"
-                for name in ("classes", "stations", "modules", "analog")
+                for name in ("classes", "stations", "modules")
             }
             config_paths["classes"].write_text("{}", encoding="utf-8")
             config_paths["stations"].write_text(
@@ -614,7 +614,6 @@ class OfflineBatchTests(unittest.TestCase):
                     {
                         name: {"enabled": False}
                         for name in (
-                            "tool_and_safety_sign",
                             "coal_presence",
                             "station_number",
                             "digital_meter",
@@ -624,7 +623,6 @@ class OfflineBatchTests(unittest.TestCase):
                 ),
                 encoding="utf-8",
             )
-            config_paths["analog"].write_text("{}", encoding="utf-8")
             settings_path = root / "app.json"
             settings_path.write_text(
                 json.dumps(
@@ -635,7 +633,6 @@ class OfflineBatchTests(unittest.TestCase):
                         "classes_path": str(config_paths["classes"]),
                         "stations_path": str(config_paths["stations"]),
                         "modules_path": str(config_paths["modules"]),
-                        "analog_references_path": str(config_paths["analog"]),
                         "detector": {"backend": "noop", "weights": None},
                     }
                 ),

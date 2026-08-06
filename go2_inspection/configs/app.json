@@ -5,7 +5,6 @@
   "classes_path": "configs/classes.json",
   "stations_path": "configs/stations.json",
   "modules_path": "configs/modules.json",
-  "analog_references_path": "configs/analog_references.json",
   "max_image_bytes": 20971520,
   "detector": {
     "backend": "noop",

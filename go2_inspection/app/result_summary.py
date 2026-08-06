@@ -4,25 +4,28 @@ from __future__ import annotations
 
 from typing import Any, Mapping
 
+from .runtime_settings import RETIRED_MODULE_IDS
+
 
 MODULE_NAMES = {
-    "tool_and_safety_sign": "工具 / 安全标牌",
-    "coal_presence": "煤堆检测",
-    "station_number": "工位编号",
-    "digital_meter": "数字表",
-    "analog_meter": "指针表",
+    "coal_presence": "堆煤检测（待现场模型）",
+    "station_number": "编号位置关联（内部）",
+    "digital_meter": "变电硐室 LED 仪表",
+    "analog_meter": "水泵三表（待样本）",
 }
+
+# 只在读取历史结果时过滤；不会改写原始识别 JSON。
+RETIRED_OBJECT_TYPES = {"tool", "safety_sign"}
 
 _PRIMARY_PRIORITY = {
     "station_number": 0,
     "digital_meter": 1,
     "analog_meter": 2,
     "coal_presence": 3,
-    "tool_and_safety_sign": 4,
-    "manual_review": 5,
-    "yolo": 6,
-    "json_replay": 7,
-    "detector": 8,
+    "manual_review": 4,
+    "yolo": 5,
+    "json_replay": 6,
+    "detector": 7,
 }
 
 
@@ -53,6 +56,8 @@ def build_recognition_summary(
         for index, raw_object in enumerate(raw_objects):
             if not isinstance(raw_object, Mapping):
                 continue
+            if str(raw_object.get("type") or "") in RETIRED_OBJECT_TYPES:
+                continue
             label = str(
                 raw_object.get("class_cn")
                 or raw_object.get("class")
@@ -81,6 +86,8 @@ def build_recognition_summary(
     raw_modules = result.get("modules")
     if isinstance(raw_modules, Mapping):
         for module_id, raw_module in raw_modules.items():
+            if str(module_id) in RETIRED_MODULE_IDS:
+                continue
             if not isinstance(raw_module, Mapping):
                 continue
             raw_status = str(raw_module.get("status") or "unknown")
@@ -152,14 +159,6 @@ def _module_value(
     if module_id == "coal_presence":
         present = result.get("present")
         return present, "检测到煤堆" if present else "未检测到煤堆"
-    if module_id == "tool_and_safety_sign":
-        objects = result.get("objects")
-        labels = [
-            str(item.get("class_cn") or item.get("class") or item.get("type"))
-            for item in objects or []
-            if isinstance(item, Mapping)
-        ]
-        return labels, "、".join(labels) if labels else "未检测到工具 / 安全标牌"
     if module_id == "analog_meter":
         meters = result.get("meters")
         count = len(meters) if isinstance(meters, list) else 0

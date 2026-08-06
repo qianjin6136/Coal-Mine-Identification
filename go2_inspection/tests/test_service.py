@@ -78,9 +78,9 @@ class ServiceTests(unittest.TestCase):
                     "reason": "人工复核",
                     "objects": [
                         {
-                            "type": "tool",
-                            "class": "wrench",
-                            "class_cn": "扳手",
+                            "type": "coal_pile",
+                            "class": "coal_pile",
+                            "class_cn": "堆煤",
                             "bbox_xyxy": [1, 2, 10, 20],
                             "confidence": 1.0,
                         }
@@ -88,7 +88,9 @@ class ServiceTests(unittest.TestCase):
                 },
             )
             self.assertTrue(corrected["manually_corrected"])
-            self.assertEqual(corrected["result"]["objects"][0]["class"], "wrench")
+            self.assertEqual(
+                corrected["result"]["objects"][0]["class"], "coal_pile"
+            )
             self.assertEqual(corrected["original_result"]["objects"], [])
             self.assertEqual(
                 corrected["recognition_summary"]["primary"]["source_id"],
@@ -142,7 +144,6 @@ class ServiceTests(unittest.TestCase):
                 detector_confidence=0.35,
                 fusion_iou=0.45,
                 module_config={
-                    "tool_and_safety_sign": {"enabled": False},
                     "coal_presence": {"enabled": False},
                     "station_number": {"enabled": False},
                     "digital_meter": {"enabled": False},
@@ -233,7 +234,6 @@ class ServiceTests(unittest.TestCase):
                 detector_confidence=0.35,
                 fusion_iou=0.45,
                 module_config={
-                    "tool_and_safety_sign": {"enabled": False},
                     "coal_presence": {"enabled": False},
                     "station_number": {"enabled": False},
                     "digital_meter": {"enabled": False},

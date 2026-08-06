@@ -27,7 +27,6 @@ def main() -> None:
     settings = Settings.load(args.settings)
     classes = load_json_mapping(settings.classes_path)
     stations = load_json_mapping(settings.stations_path)
-    references = load_json_mapping(settings.analog_references_path)
     checks: list[dict[str, Any]] = []
 
     def add(name: str, status: str, detail: str) -> None:
@@ -41,49 +40,27 @@ def main() -> None:
     add(
         "classes",
         "ok" if trainable else "blocker",
-        f"{len(trainable)} 个可训练类别；正式标注前需替换工程占位清单",
+        (
+            f"{len(trainable)} 个已冻结的现场可训练类别"
+            if trainable
+            else "当前无已冻结的现场可训练类别；等待最新赛项样本与类别确认"
+        ),
     )
     add(
         "stations",
         "ok" if stations else "blocker",
         f"{len(stations)} 个工位配置",
     )
-    missing_references = []
-    invalid_references = []
-    for reference_id, config in references.items():
-        if not isinstance(config, dict):
-            invalid_references.append(reference_id)
-            continue
-        if not all(
-            name in config
-            for name in ("station_id", "normal_angle_deg", "tolerance_deg")
-        ):
-            invalid_references.append(reference_id)
-        image_value = config.get("normal_reference_image")
-        if image_value:
-            image_path = Path(str(image_value))
-            if not image_path.is_absolute():
-                image_path = PROJECT_ROOT / image_path
-            if not image_path.is_file():
-                missing_references.append(str(image_path))
-    if invalid_references:
-        add(
-            "analog_references",
-            "blocker",
-            f"字段不完整：{', '.join(invalid_references)}",
-        )
-    elif missing_references:
-        add(
-            "analog_references",
-            "warning",
-            f"{len(missing_references)} 张正常参考图尚未到位",
-        )
-    else:
-        add(
-            "analog_references",
-            "ok" if references else "warning",
-            f"{len(references)} 个指针表参考配置",
-        )
+    add(
+        "pump_analog_meters",
+        "warning",
+        "3 个水泵硐室仪表的现场样本、读数真值与刻度标定尚未提供",
+    )
+    add(
+        "pending_field_samples",
+        "warning",
+        "仍需 5 类巡检标牌、彩色布条与空皮带、堆煤正负样本、红绿灯和损坏托辊样本",
+    )
 
     add(
         "opencv",

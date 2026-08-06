@@ -13,7 +13,6 @@ from .base import InspectionModule, ModuleContext
 from .coal_presence import CoalPresenceModule
 from .digital_meter import DigitalMeterModule
 from .station_number import StationNumberModule
-from .tool_sign import ToolAndSafetySignModule
 
 
 class ModuleRegistry:
@@ -34,14 +33,17 @@ class ModuleRegistry:
             if not enabled:
                 status = "disabled"
                 reason = str(config.get("reason", "disabled_by_configuration"))
-            elif isinstance(module, (ToolAndSafetySignModule, AnalogMeterModule)) and config.get(
-                "reason"
-            ):
+            elif isinstance(module, AnalogMeterModule) and config.get("reason"):
                 status = "unavailable"
                 reason = str(config["reason"])
             elif isinstance(module, DigitalMeterModule) and module.recognizer is None:
                 status = "unavailable"
                 reason = "digital_meter_model_not_trained"
+            elif isinstance(module, CoalPresenceModule) and not config.get(
+                "model_ready", False
+            ):
+                status = "unavailable"
+                reason = str(config.get("reason") or "coal_field_model_not_trained")
             elif isinstance(module, CoalPresenceModule) and not detector_configured:
                 status = "unavailable"
                 reason = "coal_detector_not_configured"
@@ -117,7 +119,6 @@ def build_module_registry_from_config(
 
     return ModuleRegistry(
         [
-            ToolAndSafetySignModule(config.get("tool_and_safety_sign", {})),
             CoalPresenceModule(config.get("coal_presence", {})),
             StationNumberModule(config.get("station_number", {}), project_root),
             DigitalMeterModule(config.get("digital_meter", {}), project_root),

@@ -82,24 +82,7 @@ class UltralyticsDetector:
             class_id = str(config.get("id", model_name))
             confidence = float(box.conf[0].item())
             attributes = dict(config.get("attributes", {}))
-            minimum = config.get("min_confidence")
-            if (
-                str(config.get("type", model_name.split("_", 1)[0])) == "tool"
-                and minimum is not None
-                and confidence < float(minimum)
-            ):
-                attributes.update(
-                    {
-                        "predicted_class": class_id,
-                        "predicted_class_cn": str(
-                            config.get("name_cn", class_id)
-                        ),
-                    }
-                )
-                class_id = "unknown_tool"
-                class_cn = "未知工具"
-            else:
-                class_cn = str(config.get("name_cn", class_id))
+            class_cn = str(config.get("name_cn", class_id))
             detections.append(
                 Detection(
                     type=str(config.get("type", model_name.split("_", 1)[0])),

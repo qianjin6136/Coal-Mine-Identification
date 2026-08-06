@@ -13,12 +13,13 @@ from .errors import ConfigurationError, ValidationError
 
 
 MODULE_IDS = (
-    "tool_and_safety_sign",
     "coal_presence",
     "station_number",
     "digital_meter",
     "analog_meter",
 )
+
+RETIRED_MODULE_IDS = {"tool_and_safety_sign"}
 
 INFERENCE_MODES = {"noop", "gpu", "json_replay"}
 
@@ -78,7 +79,19 @@ class RuntimeSettingsManager:
         if not isinstance(raw, Mapping):
             raise ConfigurationError("runtime settings must be a JSON object")
         try:
-            return self._merge_patch(self._defaults, raw)
+            migrated = deepcopy(dict(raw))
+            raw_modules = migrated.get("modules")
+            retired_present = False
+            if isinstance(raw_modules, Mapping):
+                modules = dict(raw_modules)
+                retired_present = bool(RETIRED_MODULE_IDS.intersection(modules))
+                for module_id in RETIRED_MODULE_IDS:
+                    modules.pop(module_id, None)
+                migrated["modules"] = modules
+            loaded = self._merge_patch(self._defaults, migrated)
+            if retired_present:
+                self._persist(loaded)
+            return loaded
         except ValidationError as exc:
             raise ConfigurationError(f"invalid runtime settings: {exc}") from exc
 

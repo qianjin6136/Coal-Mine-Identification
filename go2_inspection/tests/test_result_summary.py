@@ -4,6 +4,26 @@ from app.result_summary import build_recognition_summary
 
 
 class ResultSummaryTests(unittest.TestCase):
+    def test_retired_historical_results_are_hidden_during_migration(self) -> None:
+        summary = build_recognition_summary(
+            capture_status="processed",
+            result={
+                "objects": [
+                    {"type": "tool", "class": "legacy", "confidence": 0.9},
+                    {"type": "safety_sign", "class": "legacy", "confidence": 0.8},
+                ],
+                "modules": {
+                    "tool_and_safety_sign": {
+                        "enabled": True,
+                        "status": "confirmed",
+                    }
+                },
+            },
+        )
+
+        self.assertEqual(summary["status"], "unrecognized")
+        self.assertEqual(summary["items"], [])
+
     def test_yolo_detection_and_unreadable_number_are_kept_separate(self) -> None:
         summary = build_recognition_summary(
             capture_status="processed",

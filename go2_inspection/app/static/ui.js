@@ -1,11 +1,10 @@
 "use strict";
 
 const MODULE_LABELS = {
-  tool_and_safety_sign: "工具 / 安全标牌",
-  coal_presence: "煤堆检测",
-  station_number: "工位编号",
-  digital_meter: "数字表",
-  analog_meter: "指针表",
+  coal_presence: "堆煤检测（待现场模型）",
+  station_number: "编号位置关联（内部）",
+  digital_meter: "变电硐室 LED 仪表",
+  analog_meter: "水泵三表（待样本）",
 };
 
 const STATUS_LABELS = {
@@ -47,12 +46,13 @@ const REASON_LABELS = {
   invalid_station_marker_bbox: "YOLO 编号牌目标框无效",
   no_confirmed_frame_readings: "没有获得可信的数字表读数",
   coal_detector_not_configured: "煤堆检测模型未配置",
+  coal_field_model_not_trained: "堆煤现场模型尚未训练",
   normal_and_abnormal_reference_images_are_not_available: "缺少正常与异常参考图",
-  final_class_list_is_not_frozen: "最终类别清单尚未冻结",
   "normal and abnormal reference images are not available": "缺少正常与异常参考图",
-  "final class list is not frozen": "最终类别清单尚未冻结",
   disabled_by_configuration: "已在配置中停用",
 };
+
+const RETIRED_OBJECT_TYPES = new Set(["tool", "safety_sign"]);
 
 const state = {
   files: [],
@@ -1173,7 +1173,10 @@ async function openDetail(captureId) {
     const capture = await apiFetch(`/api/v1/results/${encodeURIComponent(captureId)}`);
     if (state.selectedCaptureId !== captureId) return;
     state.selectedCapture = capture;
-    state.correctedObjects = structuredClone((capture.result && capture.result.objects) || []);
+    state.correctedObjects = structuredClone(
+      ((capture.result && capture.result.objects) || [])
+        .filter((item) => !RETIRED_OBJECT_TYPES.has(String(item.type || "")))
+    );
     renderDetail();
   } catch (error) {
     byId("detail-content").replaceChildren();

@@ -8,7 +8,6 @@ from app.modules.base import ModuleContext
 from app.modules.coal_presence import CoalPresenceModule
 from app.modules.station_number import StationNumberModule
 from app.modules.station_number_model import StationNumberRecognition
-from app.modules.tool_sign import ToolAndSafetySignModule
 
 
 def _context(*, configured: bool = False, objects=()) -> ModuleContext:
@@ -32,16 +31,19 @@ def _context(*, configured: bool = False, objects=()) -> ModuleContext:
 
 class IndependentModuleTests(unittest.TestCase):
     def test_unavailable_detector_is_not_reported_as_no_coal(self) -> None:
-        result = CoalPresenceModule({"enabled": True}).run(_context())
+        result = CoalPresenceModule({"enabled": True, "model_ready": False}).run(
+            _context(configured=True)
+        )
         self.assertEqual(result["status"], "unavailable")
         self.assertIsNone(result["present"])
+        self.assertEqual(result["reason"], "coal_field_model_not_trained")
 
     def test_binary_coal_module_only_reads_coal_objects(self) -> None:
-        result = CoalPresenceModule({"enabled": True}).run(
+        result = CoalPresenceModule({"enabled": True, "model_ready": True}).run(
             _context(
                 configured=True,
                 objects=(
-                    {"type": "tool", "class": "wrench"},
+                    {"type": "station_marker", "class": "station_marker"},
                     {"type": "coal_pile", "class": "coal_pile"},
                 ),
             )
@@ -124,10 +126,6 @@ class IndependentModuleTests(unittest.TestCase):
         self.assertEqual(result["reason"], "station_marker_not_detected")
 
     def test_deferred_modules_are_explicitly_disabled(self) -> None:
-        self.assertEqual(
-            ToolAndSafetySignModule({"enabled": False}).run(_context())["status"],
-            "disabled",
-        )
         self.assertEqual(
             AnalogMeterModule({"enabled": False}).run(_context())["status"],
             "disabled",

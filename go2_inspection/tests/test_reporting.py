@@ -21,13 +21,77 @@ from app.reporting import (
     build_prototype_report,
     render_report_docx,
     summarize_gas_samples,
+    _hottest_event_per_position,
+    _thermal_assessment,
+    _thermal_event_assessments,
 )
 from app.storage import CaptureRepository
+from app.thermal_analysis import analyze_thermal_samples
 from tests.test_offline_batches import write_batch
 from tests.test_service import MINIMAL_PNG
 
 
 class ReportJudgementTests(unittest.TestCase):
+    def test_thermal_report_deduplicates_positions_and_reviews_unknowns(self) -> None:
+        def thermal(timestamp: str, maximum: float, suffix: str) -> dict:
+            return {
+                "sample_key": f"thermal_{suffix}",
+                "captured_at": timestamp,
+                "thermal_stored_path": f"missing_{suffix}.png",
+                "thermal_maximum_c": maximum,
+                "thermal_metadata_status": "valid",
+            }
+
+        def numbered(timestamp: str, number: int, suffix: str) -> dict:
+            return {
+                "capture_id": f"capture_{suffix}",
+                "capture_time": timestamp,
+                "result": {
+                    "modules": {
+                        "station_number": {
+                            "status": "confirmed",
+                            "number": number,
+                            "confidence": 0.9,
+                        }
+                    }
+                },
+            }
+
+        samples = [
+            thermal("2026-08-05T09:00:00+08:00", 70.0, "a"),
+            thermal("2026-08-05T09:00:01+08:00", 80.0, "b"),
+            thermal("2026-08-05T09:00:12+08:00", 75.0, "c"),
+            thermal("2026-08-05T09:00:20+08:00", 76.0, "d"),
+            thermal("2026-08-05T09:00:30+08:00", 77.0, "e"),
+        ]
+        captures = [
+            numbered("2026-08-05T09:00:00+08:00", 1, "one"),
+            numbered("2026-08-05T09:00:12+08:00", 1, "one_later"),
+            numbered("2026-08-05T09:00:20+08:00", 2, "two"),
+            numbered("2026-08-05T09:00:30+08:00", 3, "three"),
+        ]
+
+        analysis = analyze_thermal_samples(samples, captures)
+        hottest = _hottest_event_per_position(analysis)
+        summary = _thermal_assessment(
+            {"thermal_frame_count": len(samples)}, samples, analysis
+        )
+
+        self.assertEqual([item.station_number for item in hottest], [1, 2, 3])
+        self.assertEqual(hottest[0].maximum_c, 80.0)
+        self.assertIn("已识别 3/3 处", summary.result)
+        self.assertEqual(summary.status, STATUS_ABNORMAL)
+
+        unknown_samples = [thermal("2026-08-05T10:00:00+08:00", 70.0, "unknown")]
+        unknown = analyze_thermal_samples(unknown_samples, [])
+        unknown_summary = _thermal_assessment(
+            {"thermal_frame_count": 1}, unknown_samples, unknown
+        )
+        unknown_details = _thermal_event_assessments(unknown)
+        self.assertEqual(unknown_summary.status, STATUS_REVIEW)
+        self.assertIn("已识别 0/3 处", unknown_summary.result)
+        self.assertEqual(unknown_details[0].status, STATUS_REVIEW)
+
     def test_gas_summary_distinguishes_alarm_fault_and_normal(self) -> None:
         summaries = summarize_gas_samples(
             [
@@ -103,19 +167,30 @@ class ReportJudgementTests(unittest.TestCase):
                 capture_pose=metadata.robot_pose,
                 objects=[
                     {
-                        "type": "tool",
-                        "class": "wrench",
-                        "class_cn": "扳手",
-                        "confidence": 0.96,
+                        "type": "analog_meter",
+                        "class": "analog_meter",
+                        "class_cn": "水泵仪表",
+                        "raw_text": "0.42 MPa",
+                        "meter_confidence": 0.90,
+                        "confidence": 0.95,
                         "bbox_xyxy": [1, 1, 10, 10],
                     },
                     {
                         "type": "analog_meter",
                         "class": "analog_meter",
-                        "class_cn": "指针式仪表",
-                        "status": "abnormal",
-                        "meter_confidence": 0.9,
-                        "confidence": 0.95,
+                        "class_cn": "水泵仪表",
+                        "raw_text": "0.46 MPa",
+                        "meter_confidence": 0.88,
+                        "confidence": 0.93,
+                        "bbox_xyxy": [11, 1, 20, 10],
+                    },
+                    {
+                        "type": "analog_meter",
+                        "class": "analog_meter",
+                        "class_cn": "水泵仪表",
+                        "raw_text": "0.44 MPa",
+                        "meter_confidence": 0.91,
+                        "confidence": 0.94,
                         "bbox_xyxy": [1, 1, 10, 10],
                     },
                 ],
@@ -171,17 +246,20 @@ class ReportJudgementTests(unittest.TestCase):
 
             report = build_batch_report(repository, "report-batch")
             overview = {item.item_id: item for item in report.overview}
-            self.assertEqual(len(report.overview), 11)
+            self.assertEqual(len(report.overview), 13)
             self.assertEqual(report.overall_status, STATUS_ABNORMAL)
-            self.assertEqual(overview["tool"].status, STATUS_ABNORMAL)
-            self.assertEqual(overview["coal_presence"].status, STATUS_NORMAL)
-            self.assertEqual(overview["station_number"].status, STATUS_ABNORMAL)
-            self.assertEqual(overview["digital_meter"].status, STATUS_REVIEW)
-            self.assertEqual(overview["analog_meter"].status, STATUS_ABNORMAL)
+            self.assertEqual(overview["foreign_object"].status, STATUS_REVIEW)
+            self.assertEqual(overview["coal_pile"].status, STATUS_NORMAL)
+            self.assertEqual(overview["inspection_marker"].status, STATUS_REVIEW)
+            self.assertEqual(overview["substation_led_meter"].status, STATUS_NORMAL)
+            self.assertEqual(overview["pump_analog_meters"].status, STATUS_NORMAL)
             self.assertEqual(overview["gas_o2"].status, STATUS_ABNORMAL)
-            self.assertEqual(overview["thermal"].status, STATUS_ABNORMAL)
+            self.assertEqual(overview["roller_jam"].status, STATUS_ABNORMAL)
+            self.assertEqual(overview["equipment_temperature"].status, STATUS_REVIEW)
+            self.assertNotIn("station_number", overview)
             thermal_events = [
-                item for item in report.details if item.item_id == "thermal_event"
+                item for item in report.details if item.item_id == "roller_jam"
+                and item.capture_id
             ]
             self.assertEqual(len(thermal_events), 1)
             self.assertIn("70.00℃", thermal_events[0].result)
@@ -198,7 +276,7 @@ class ReportJudgementTests(unittest.TestCase):
             )
             self.assertIn("最高温 70.00℃", table_text)
             self.assertIn("9 号牌位置", table_text)
-            self.assertEqual(len(document.inline_shapes), 2)
+            self.assertEqual(len(document.inline_shapes), 1)
 
             corrected = result.to_dict()
             corrected["objects"] = []
@@ -206,13 +284,16 @@ class ReportJudgementTests(unittest.TestCase):
                 capture_id,
                 corrected,
                 operator="reviewer",
-                reason="现场复核未发现工具",
+                reason="现场复核仪表证据不足",
             )
             corrected_report = build_batch_report(repository, "report-batch")
             corrected_overview = {
                 item.item_id: item for item in corrected_report.overview
             }
-            self.assertEqual(corrected_overview["tool"].status, STATUS_NORMAL)
+            self.assertEqual(
+                corrected_overview["pump_analog_meters"].status,
+                STATUS_REVIEW,
+            )
             self.assertTrue(
                 any("人工修正" in issue for issue in corrected_report.quality_issues)
             )
@@ -231,7 +312,7 @@ class ReportJudgementTests(unittest.TestCase):
         self.assertIn("6. 复核与签字", text)
         self.assertGreaterEqual(len(document.tables), 7)
         overview = document.tables[1]
-        self.assertEqual(len(overview.rows), 12)
+        self.assertEqual(len(overview.rows), 14)
         self.assertIn("tblHeader", overview.rows[0]._tr.xml)
         self.assertIn('w:w="9360"', overview._tbl.xml)
         self.assertEqual(len(document.inline_shapes), 1)
@@ -272,16 +353,14 @@ class ReportApiTests(unittest.TestCase):
             root = Path(temp_dir)
             inbox = root / "dataset_inbox"
             write_batch(inbox)
-            paths = {name: root / f"{name}.json" for name in ("classes", "stations", "modules", "analog")}
+            paths = {name: root / f"{name}.json" for name in ("classes", "stations", "modules")}
             paths["classes"].write_text("{}", encoding="utf-8")
             paths["stations"].write_text("{}", encoding="utf-8")
-            paths["analog"].write_text("{}", encoding="utf-8")
             paths["modules"].write_text(
                 json.dumps(
                     {
                         name: {"enabled": False}
                         for name in (
-                            "tool_and_safety_sign",
                             "coal_presence",
                             "station_number",
                             "digital_meter",
@@ -301,7 +380,6 @@ class ReportApiTests(unittest.TestCase):
                         "classes_path": str(paths["classes"]),
                         "stations_path": str(paths["stations"]),
                         "modules_path": str(paths["modules"]),
-                        "analog_references_path": str(paths["analog"]),
                         "detector": {"backend": "noop", "weights": None},
                     }
                 ),

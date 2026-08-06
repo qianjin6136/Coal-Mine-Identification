@@ -1,9 +1,0 @@
-{
-  "meter_station_08": {
-    "station_id": "08",
-    "normal_reference_image": "references/meter_station_08_normal.jpg",
-    "normal_angle_deg": 42.0,
-    "tolerance_deg": 5.0,
-    "min_confidence": 0.55
-  }
-}

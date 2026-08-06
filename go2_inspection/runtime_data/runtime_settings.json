@@ -10,7 +10,6 @@
     "minimum_frame_confidence": 0.55
   },
   "modules": {
-    "tool_and_safety_sign": false,
     "coal_presence": false,
     "station_number": true,
     "digital_meter": true,

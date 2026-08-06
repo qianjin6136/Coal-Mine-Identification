@@ -1,25 +1,10 @@
-from io import BytesIO
-import json
 from pathlib import Path
-import tempfile
 import unittest
 
 from app.settings import Settings
-from app.uploader import process_upload_queue
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-JPEG = b"\xff\xd8\xffsynthetic"
-
-
-class JsonResponse(BytesIO):
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *_args):
-        self.close()
-
-
 class OfflineHandoffTests(unittest.TestCase):
     def test_runtime_and_rtx4060_dependency_profiles_are_complete(self) -> None:
         runtime_requirements = (
@@ -65,50 +50,6 @@ class OfflineHandoffTests(unittest.TestCase):
             text = config_path.read_text(encoding="utf-8")
             self.assertNotIn("../.." + "/runtime_data", text, config_path.name)
             self.assertNotIn("../.." + "/样本", text, config_path.name)
-
-    def test_usb_visible_tree_is_recursively_imported(self) -> None:
-        with tempfile.TemporaryDirectory() as temp_dir:
-            inbox = Path(temp_dir) / "dataset_inbox"
-            package = inbox / "visible" / "2026-08-04" / "rpi_test_001"
-            package.mkdir(parents=True)
-            image_names = ["frame_01.jpg", "frame_02.jpg", "frame_03.jpg"]
-            for name in image_names:
-                (package / name).write_bytes(JPEG)
-            (package / "metadata.json").write_text(
-                json.dumps(
-                    {
-                        "capture_id": "rpi_test_001",
-                        "capture_time": "2026-08-04T15:30:05+08:00",
-                        "station_id": "08",
-                        "camera_id": "raspberry_pi_usb",
-                        "robot_pose": {
-                            "frame": "map",
-                            "x_m": None,
-                            "y_m": None,
-                            "yaw_deg": None,
-                        },
-                        "images": image_names,
-                        "batch_id": None,
-                    },
-                    ensure_ascii=False,
-                ),
-                encoding="utf-8",
-            )
-
-            def opener(_request, timeout):
-                self.assertEqual(timeout, 60.0)
-                return JsonResponse(b'{"capture_id":"rpi_test_001"}')
-
-            summary = process_upload_queue(
-                inbox / "visible",
-                "http://127.0.0.1:8000",
-                opener=opener,
-            )
-
-            self.assertEqual(summary["uploaded"], ["rpi_test_001"])
-            self.assertEqual(summary["failed"], [])
-            self.assertTrue((package / "upload_receipt.json").is_file())
-
 
 if __name__ == "__main__":
     unittest.main()

@@ -17,7 +17,6 @@ class ApiTests(unittest.TestCase):
             root = Path(temp_dir)
             classes_path = root / "classes.json"
             stations_path = root / "stations.json"
-            analog_path = root / "analog.json"
             modules_path = root / "modules.json"
             settings_path = root / "app.json"
             classes_path.write_text("{}", encoding="utf-8")
@@ -25,11 +24,9 @@ class ApiTests(unittest.TestCase):
                 json.dumps({"08": {"location_name": "08号区段"}}, ensure_ascii=False),
                 encoding="utf-8",
             )
-            analog_path.write_text("{}", encoding="utf-8")
             modules_path.write_text(
                 json.dumps(
                     {
-                        "tool_and_safety_sign": {"enabled": False},
                         "coal_presence": {"enabled": False},
                         "station_number": {"enabled": False},
                         "digital_meter": {"enabled": False},
@@ -46,7 +43,6 @@ class ApiTests(unittest.TestCase):
                         "classes_path": str(classes_path),
                         "stations_path": str(stations_path),
                         "modules_path": str(modules_path),
-                        "analog_references_path": str(analog_path),
                         "detector": {
                             "backend": "noop",
                             "weights": None,
@@ -139,8 +135,8 @@ class ApiTests(unittest.TestCase):
                         "reason": "checked",
                         "objects": [
                             {
-                                "type": "tool",
-                                "class": "wrench",
+                                "type": "coal_pile",
+                                "class": "coal_pile",
                                 "bbox_xyxy": [1, 1, 10, 10],
                                 "confidence": 0.99,
                             }
@@ -154,7 +150,7 @@ class ApiTests(unittest.TestCase):
                 self.assertEqual(exported_json.status_code, 200)
                 self.assertEqual(
                     exported_json.json()[0]["class"],
-                    "wrench",
+                    "coal_pile",
                 )
                 exported_csv = client.get("/api/v1/export?format=csv")
                 self.assertEqual(exported_csv.status_code, 200)

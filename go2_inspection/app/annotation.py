@@ -51,10 +51,8 @@ def annotate_image(
 
 def _color_for_type(object_type: str) -> tuple[int, int, int]:
     return {
-        "tool": (30, 144, 255),
         "coal_pile": (255, 140, 0),
         "analog_meter": (148, 0, 211),
         "digital_meter": (220, 20, 60),
         "station_marker": (0, 160, 70),
-        "safety_sign": (255, 70, 0),
     }.get(object_type, (255, 215, 0))

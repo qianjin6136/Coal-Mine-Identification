@@ -14,9 +14,9 @@ class StaticDetector:
     def detect(self, image_path, metadata, frame_index):
         return [
             Detection(
-                type="tool",
-                class_id="wrench",
-                class_cn="扳手",
+                type="station_marker",
+                class_id="station_marker",
+                class_cn="编号牌",
                 bbox=BoundingBox(10 + frame_index, 20, 100 + frame_index, 120),
                 confidence=0.9 + frame_index * 0.01,
                 source_frame=frame_index,
@@ -104,7 +104,7 @@ class PipelineTests(unittest.TestCase):
             )
             result = pipeline.process(metadata, image_paths)
             self.assertEqual(len(result.objects), 1)
-            self.assertEqual(result.objects[0]["class"], "wrench")
+            self.assertEqual(result.objects[0]["class"], "station_marker")
             self.assertEqual(result.objects[0]["observations"], 3)
             self.assertEqual(result.objects[0]["location_text"], "08号区段传送带")
             self.assertTrue(Path(result.annotated_image).exists())

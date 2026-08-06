@@ -25,6 +25,7 @@ from .thermal_analysis import (
     THERMAL_COOLDOWN_SECONDS,
     THERMAL_THRESHOLD_C,
     ThermalAnalysis,
+    ThermalEvent,
     analyze_thermal_samples,
 )
 
@@ -49,26 +50,35 @@ STATUS_PRECEDENCE = {
 }
 
 ITEM_DEFINITIONS = (
-    ("tool", "传送带工具"),
-    ("safety_sign", "安全标牌"),
-    ("coal_presence", "煤堆"),
-    ("station_number", "工位编号"),
-    ("digital_meter", "数字表"),
-    ("analog_meter", "指针表"),
+    ("roller_jam", "托辊卡死检测"),
+    ("foreign_object", "皮带机异物检测"),
+    ("coal_pile", "堆煤检测"),
+    ("inspection_marker", "沿线巡检标牌"),
+    ("substation_led_meter", "变电硐室 LED 仪表"),
+    ("indicator_red", "红色指示灯"),
+    ("indicator_green", "绿色指示灯"),
+    ("pump_analog_meters", "水泵硐室仪表"),
     ("gas_ch4", "CH4"),
     ("gas_o2", "O2"),
     ("gas_co", "CO"),
     ("gas_h2s", "H2S"),
-    ("thermal", "托辊卡死检测"),
+    ("equipment_temperature", "设备表面温度检测（备选）"),
 )
 
 VISUAL_ITEM_IDS = {
-    "tool",
-    "safety_sign",
-    "coal_presence",
-    "station_number",
-    "digital_meter",
-    "analog_meter",
+    "foreign_object",
+    "coal_pile",
+    "inspection_marker",
+    "substation_led_meter",
+    "indicator_red",
+    "indicator_green",
+    "pump_analog_meters",
+}
+
+CAPTURE_ITEM_IDS = {
+    "coal_pile",
+    "substation_led_meter",
+    "pump_analog_meters",
 }
 
 GAS_CHANNELS = {
@@ -90,6 +100,7 @@ GAS_ALARM_STATUSES = {
 
 REASON_LABELS = {
     "coal_detector_not_configured": "煤堆检测模型未配置",
+    "coal_field_model_not_trained": "堆煤现场模型尚未训练",
     "digital_meter_model_not_trained": "数字表模型尚未训练",
     "station_image_classifier_not_trained": "工位编号模型尚未训练",
     "station_marker_not_detected": "未检测到编号牌",
@@ -99,7 +110,6 @@ REASON_LABELS = {
     "multi_frame_readings_do_not_agree": "多帧数字表读数不一致",
     "analog_reference_missing": "缺少指针表正常参考",
     "pointer_not_reliably_detected": "指针未被可靠检测",
-    "final class list is not frozen": "安全标牌类别清单尚未冻结",
     "normal and abnormal reference images are not available": "缺少正常与异常参考图",
 }
 
@@ -205,7 +215,8 @@ def build_batch_report(
             )
 
     if not captures:
-        details.extend(_empty_visual_assessments())
+        details.extend(_empty_capture_assessments())
+    details.extend(_pending_required_assessments())
 
     sensor_samples = repository.sensor_samples_for_batch(batch_id)
     gas_summaries = summarize_gas_samples(sensor_samples)
@@ -214,6 +225,7 @@ def build_batch_report(
     thermal_summary = _thermal_assessment(batch, sensor_samples, thermal_analysis)
     details.append(thermal_summary)
     details.extend(_thermal_event_assessments(thermal_analysis))
+    details.append(_equipment_temperature_assessment(thermal_analysis))
 
     for diagnostic in batch.get("diagnostics") or []:
         if not isinstance(diagnostic, Mapping):
@@ -229,11 +241,8 @@ def build_batch_report(
     )
     if manually_corrected:
         quality_issues.append(f"本报告采用 {manually_corrected} 条人工修正后的有效结果")
-    quality_issues.extend(
-        [
-            "安全标牌类别与业务判定规则待补充训练",
-            "数字表已记录读数，正常范围待补充后才能自动判定",
-        ]
+    quality_issues.append(
+        "皮带异物、5类巡检标牌、红绿指示灯及3个水泵仪表尚待现场样本与标定"
     )
     if thermal_analysis.unreadable_count:
         quality_issues.append(
@@ -348,35 +357,41 @@ def build_prototype_report(evidence_path: str | None = None) -> BatchReport:
 
     details = [
         Assessment(
-            "tool", "传送带工具", STATUS_ABNORMAL, "检测到扳手 1 个",
-            "传送带检测到工具即判为异常", "demo_capture_001",
+            "roller_jam", "托辊卡死检测", STATUS_ABNORMAL,
+            "已识别 3/3 处；最高温 72.30℃",
+            "热像最高温严格超过 65.00℃，并关联到 3 个不同编号位置",
+            "thermal_demo_001",
             "2026-08-05T09:15:12+08:00", "08号区段；map (1.20, 2.40, 90.0°)",
-            0.96, evidence_path,
+            evidence_path=evidence_path,
         ),
         Assessment(
-            "safety_sign", "安全标牌", STATUS_REVIEW, "检测到安全标牌 1 个",
-            "安全标牌类别和业务规则待补充训练", "demo_capture_001",
-            "2026-08-05T09:15:12+08:00", "08号区段", 0.88, evidence_path,
+            "foreign_object", "皮带机异物检测", STATUS_REVIEW,
+            "待样本/不可用", "彩色布条现场正负样本尚未提供",
         ),
         Assessment(
-            "coal_presence", "煤堆", STATUS_NORMAL, "未检测到煤堆",
-            "检测模型已运行且 present=false", "demo_capture_001",
-            "2026-08-05T09:15:12+08:00", "08号区段",
+            "coal_pile", "堆煤检测", STATUS_REVIEW,
+            "待样本/不可用", "现有样本不足，煤堆检测模型未配置",
         ),
         Assessment(
-            "station_number", "工位编号", STATUS_NORMAL, "识别为 8 号；期望 08 号",
-            "识别编号与期望工位一致", "demo_capture_001",
-            "2026-08-05T09:15:12+08:00", "08号区段", 0.94,
+            "inspection_marker", "沿线巡检标牌", STATUS_REVIEW,
+            "待样本/不可用；已识别 0/5 个", "5 类巡检标牌现场样本尚未提供",
         ),
         Assessment(
-            "digital_meter", "数字表", STATUS_REVIEW, "读数 067.8",
-            "正常范围待补充，当前只记录读数", "demo_capture_001",
+            "substation_led_meter", "变电硐室 LED 仪表", STATUS_NORMAL,
+            "读数 4.38", "LED 数字仪表读数已确认", "demo_capture_001",
             "2026-08-05T09:15:12+08:00", "08号区段", 0.91,
         ),
         Assessment(
-            "analog_meter", "指针表", STATUS_ABNORMAL, "检测到 1 个异常指针表",
-            "指针角度偏差超过允许范围", "demo_capture_001",
-            "2026-08-05T09:15:12+08:00", "08号区段", 0.89, evidence_path,
+            "indicator_red", "红色指示灯", STATUS_REVIEW,
+            "待样本/不可用", "红色指示灯现场样本尚未提供",
+        ),
+        Assessment(
+            "indicator_green", "绿色指示灯", STATUS_REVIEW,
+            "待样本/不可用", "绿色指示灯现场样本尚未提供",
+        ),
+        Assessment(
+            "pump_analog_meters", "水泵硐室仪表", STATUS_REVIEW,
+            "待样本/不可用；已读取 0/3 个", "3 个仪表的现场样本、读数真值和刻度标定尚未提供",
         ),
     ]
     gas_summaries = [
@@ -386,12 +401,13 @@ def build_prototype_report(evidence_path: str | None = None) -> BatchReport:
         GasSummary("h2s", "H2S", "ppm", 0.0, 0.0, 22, 0, 2, None, STATUS_REVIEW, "存在通信超时样本"),
     ]
     details.extend(_gas_assessments(gas_summaries))
-    thermal = Assessment(
-        "thermal", "托辊卡死检测", STATUS_NORMAL,
-        "已分析 24 帧；批次最高温 52.40℃；未发现超过 65.00℃ 的热像",
-        "全部可读热像最高温均不超过 65.00℃",
+    thermal = details[0]
+    details.append(
+        Assessment(
+            "equipment_temperature", "设备表面温度检测（备选）", STATUS_REVIEW,
+            "待样本/不可用；热像采集链路已保留", "开关柜测温区域、阈值与现场样本尚未提供",
+        )
     )
-    details.append(thermal)
     overview = _aggregate_overview(details)
     return BatchReport(
         batch_id="prototype-20260805",
@@ -410,8 +426,7 @@ def build_prototype_report(evidence_path: str | None = None) -> BatchReport:
         gas_summaries=gas_summaries,
         thermal_summary=thermal,
         quality_issues=[
-            "安全标牌类别与业务判定规则待补充训练",
-            "数字表已记录读数，正常范围待补充后才能自动判定",
+            "皮带异物、5类巡检标牌、红绿指示灯及3个水泵仪表尚待现场样本与标定",
             "H2S 有 2 条通信超时样本，需人工复核传感器连接",
         ],
     )
@@ -423,47 +438,23 @@ def _assess_capture(capture: Mapping[str, Any]) -> list[Assessment]:
     modules = result.get("modules") if isinstance(result.get("modules"), Mapping) else {}
     capture_id = str(capture.get("capture_id") or "")
     capture_time = str(capture.get("capture_time") or "")
-    station_id = str(capture.get("station_id") or "").strip()
-    location = _capture_location(capture, objects)
+    location = _capture_location(capture, objects, modules)
     evidence = _capture_evidence_path(capture, result)
     manual = bool(capture.get("manually_corrected"))
-    detector_available = _detector_available(result) or manual
 
-    tools = [
-        item for item in objects
-        if item.get("type") == "tool"
-        or item.get("class") in {"wrench", "hammer", "unknown_tool"}
+    capture_assessments: list[Assessment] = []
+    foreign_objects = [
+        item for item in objects if item.get("type") == "foreign_object"
     ]
-    if tools:
-        labels = "、".join(_object_label(item) for item in tools)
-        tool = Assessment(
-            "tool", "传送带工具", STATUS_ABNORMAL,
-            f"检测到 {labels}", "传送带检测到工具即判为异常",
-            capture_id, capture_time, location, _max_confidence(tools), evidence, manual,
+    if foreign_objects:
+        capture_assessments.append(
+            Assessment(
+                "foreign_object", "皮带机异物检测", STATUS_ABNORMAL,
+                f"检测到异物 {len(foreign_objects)} 处", "皮带机上检测到异物目标",
+                capture_id, capture_time, location,
+                _max_confidence(foreign_objects), evidence, manual,
+            )
         )
-    elif detector_available:
-        tool = Assessment(
-            "tool", "传送带工具", STATUS_NORMAL, "未检测到工具",
-            "检测模型已运行且无工具目标", capture_id, capture_time, location,
-            manually_corrected=manual,
-        )
-    else:
-        tool = Assessment(
-            "tool", "传送带工具", STATUS_REVIEW, "未形成可信工具检测结论",
-            "工具检测模型未配置或未运行", capture_id, capture_time, location,
-            manually_corrected=manual,
-        )
-
-    signs = [item for item in objects if item.get("type") == "safety_sign"]
-    sign_result = (
-        f"检测到 {'、'.join(_object_label(item) for item in signs)}"
-        if signs else "未形成可自动判定的安全标牌结论"
-    )
-    safety_sign = Assessment(
-        "safety_sign", "安全标牌", STATUS_REVIEW, sign_result,
-        "安全标牌类别和业务规则待补充训练", capture_id, capture_time,
-        location, _max_confidence(signs), evidence if signs else None, manual,
-    )
 
     coal_objects = [item for item in objects if item.get("type") == "coal_pile"]
     coal_module = modules.get("coal_presence") if isinstance(modules, Mapping) else None
@@ -474,7 +465,7 @@ def _assess_capture(capture: Mapping[str, Any]) -> list[Assessment]:
         and not manual
     ):
         coal = Assessment(
-            "coal_presence", "煤堆", STATUS_ABNORMAL, "检测到煤堆",
+            "coal_pile", "堆煤检测", STATUS_ABNORMAL, "检测到堆煤",
             "检测到煤堆即判为异常", capture_id, capture_time, location,
             _max_confidence(coal_objects), evidence, manual,
         )
@@ -482,23 +473,19 @@ def _assess_capture(capture: Mapping[str, Any]) -> list[Assessment]:
         isinstance(coal_module, Mapping)
         and coal_module.get("status") == "confirmed"
         and coal_module.get("present") is False
-    ) or detector_available:
+    ):
         coal = Assessment(
-            "coal_presence", "煤堆", STATUS_NORMAL, "未检测到煤堆",
+            "coal_pile", "堆煤检测", STATUS_NORMAL, "未检测到堆煤",
             "检测模型已运行且 present=false", capture_id, capture_time, location,
             manually_corrected=manual,
         )
     else:
         coal = Assessment(
-            "coal_presence", "煤堆", STATUS_REVIEW, "未形成可信煤堆检测结论",
+            "coal_pile", "堆煤检测", STATUS_REVIEW, "待样本/不可用",
             _module_reason(coal_module, "煤堆检测模型未配置或未运行"),
             capture_id, capture_time, location, manually_corrected=manual,
         )
 
-    station_module = modules.get("station_number") if isinstance(modules, Mapping) else None
-    station = _station_assessment(
-        station_module, station_id, capture_id, capture_time, location, evidence, manual
-    )
     digital_module = modules.get("digital_meter") if isinstance(modules, Mapping) else None
     digital = _digital_assessment(
         digital_module, objects, capture_id, capture_time, location, evidence, manual
@@ -507,44 +494,7 @@ def _assess_capture(capture: Mapping[str, Any]) -> list[Assessment]:
     analog = _analog_assessment(
         analog_module, objects, capture_id, capture_time, location, evidence, manual
     )
-    return [tool, safety_sign, coal, station, digital, analog]
-
-
-def _station_assessment(
-    module: object,
-    expected: str,
-    capture_id: str,
-    capture_time: str,
-    location: str,
-    evidence: str | None,
-    manual: bool,
-) -> Assessment:
-    if isinstance(module, Mapping) and module.get("status") == "confirmed":
-        number = module.get("number")
-        recognized = _as_int(number)
-        expected_number = _as_int(expected)
-        result = f"识别为 {number} 号"
-        if expected:
-            result += f"；期望 {expected} 号"
-        if expected_number is None or recognized is None:
-            status = STATUS_REVIEW
-            basis = "缺少可比较的期望工位编号"
-        elif recognized == expected_number:
-            status = STATUS_NORMAL
-            basis = "识别编号与期望工位一致"
-        else:
-            status = STATUS_ABNORMAL
-            basis = "识别编号与期望工位不一致"
-        return Assessment(
-            "station_number", "工位编号", status, result, basis,
-            capture_id, capture_time, location, _as_float(module.get("confidence")),
-            evidence if status == STATUS_ABNORMAL else None, manual,
-        )
-    return Assessment(
-        "station_number", "工位编号", STATUS_REVIEW, "未获得可信工位编号",
-        _module_reason(module, "工位编号不可读或模型未运行"),
-        capture_id, capture_time, location, manually_corrected=manual,
-    )
+    return [*capture_assessments, coal, digital, analog]
 
 
 def _digital_assessment(
@@ -576,12 +526,13 @@ def _digital_assessment(
                 break
     result = f"读数 {value}" if value is not None else "未获得可信数字表读数"
     basis = (
-        "正常范围待补充，当前只记录读数"
+        "LED 数字仪表读数已确认"
         if value is not None
         else _module_reason(module, "数字表不可读、未检测到或模型未运行")
     )
     return Assessment(
-        "digital_meter", "数字表", STATUS_REVIEW, result, basis,
+        "substation_led_meter", "变电硐室 LED 仪表",
+        STATUS_NORMAL if value is not None else STATUS_REVIEW, result, basis,
         capture_id, capture_time, location, confidence,
         evidence if value is not None else None, manual,
     )
@@ -601,31 +552,57 @@ def _analog_assessment(
         meters = [
             item for item in module.get("meters") or [] if isinstance(item, Mapping)
         ]
-    statuses = [str(item.get("status") or "uncertain") for item in meters]
-    if "abnormal" in statuses:
-        status = STATUS_ABNORMAL
-        result = f"检测到 {statuses.count('abnormal')} 个异常指针表"
-        basis = "指针角度偏差超过允许范围"
-    elif statuses and all(value == "normal" for value in statuses):
-        status = STATUS_NORMAL
-        result = f"检测到 {len(statuses)} 个正常指针表"
-        basis = "指针角度处于正常参考容差内"
-    else:
-        status = STATUS_REVIEW
-        result = "指针表状态无法可靠判定" if meters else "未形成指针表状态结论"
-        basis = _module_reason(module, "缺少参考、目标不可读或模块未运行")
+    readings = [
+        value
+        for item in meters
+        for value in (_meter_display_value(item),)
+        if value is not None
+    ]
+    complete = len(readings) == 3
+    status = STATUS_NORMAL if complete else STATUS_REVIEW
+    result = (
+        f"已读取 3/3 个：{'、'.join(readings)}"
+        if complete
+        else f"待样本/不可用；已读取 {len(readings)}/3 个"
+    )
+    basis = (
+        "3 个水泵硐室仪表读数均已确认"
+        if complete
+        else "3 个仪表的现场样本、读数真值和刻度标定尚未完整提供"
+    )
     return Assessment(
-        "analog_meter", "指针表", status, result, basis,
+        "pump_analog_meters", "水泵硐室仪表", status, result, basis,
         capture_id, capture_time, location, _max_meter_confidence(meters),
         evidence if meters else None, manual,
     )
 
 
-def _empty_visual_assessments() -> list[Assessment]:
+def _empty_capture_assessments() -> list[Assessment]:
     return [
         Assessment(item_id, label, STATUS_REVIEW, "无可用抓拍结果", "批次没有成功处理的可见光抓拍")
         for item_id, label in ITEM_DEFINITIONS
-        if item_id in VISUAL_ITEM_IDS
+        if item_id in CAPTURE_ITEM_IDS
+    ]
+
+
+def _pending_required_assessments() -> list[Assessment]:
+    return [
+        Assessment(
+            "foreign_object", "皮带机异物检测", STATUS_REVIEW,
+            "待样本/不可用", "彩色布条现场正负样本尚未提供",
+        ),
+        Assessment(
+            "inspection_marker", "沿线巡检标牌", STATUS_REVIEW,
+            "待样本/不可用；已识别 0/5 个", "5 类巡检标牌现场样本尚未提供；编号牌不能替代巡检标牌",
+        ),
+        Assessment(
+            "indicator_red", "红色指示灯", STATUS_REVIEW,
+            "待样本/不可用", "红色指示灯现场样本尚未提供",
+        ),
+        Assessment(
+            "indicator_green", "绿色指示灯", STATUS_REVIEW,
+            "待样本/不可用", "绿色指示灯现场样本尚未提供",
+        ),
     ]
 
 
@@ -664,6 +641,10 @@ def _thermal_assessment(
     ]
     valid = sum(1 for path in stored if path.is_file())
     missing = max(0, recorded - valid)
+    position_events = _hottest_event_per_position(analysis)
+    unknown_events = [
+        event for event in analysis.events if event.station_number is None
+    ]
     result = (
         f"已登记 {recorded} 帧；可访问 {valid} 帧；"
         f"温度可读 {analysis.readable_count} 帧"
@@ -673,15 +654,24 @@ def _thermal_assessment(
     result += (
         f"；超温候选 {len(analysis.candidates)} 条；"
         f"10秒抑制 {analysis.suppressed_count} 条；"
-        f"报告异常 {len(analysis.events)} 条"
+        f"已识别 {len(position_events)}/3 处"
     )
+    if unknown_events:
+        result += f"；位置未知候选 {len(unknown_events)} 条"
     if missing:
         result += f"；缺失 {missing} 帧"
-    if analysis.events:
+    if position_events:
         status = STATUS_ABNORMAL
         basis = (
             f"检测到最高温严格超过 {THERMAL_THRESHOLD_C:.2f}℃ 的热像；"
-            f"同编号异常在 {THERMAL_COOLDOWN_SECONDS:.0f} 秒内只报告一次"
+            f"同编号异常在 {THERMAL_COOLDOWN_SECONDS:.0f} 秒内抑制重复，"
+            "报告按编号位置保留最高温证据"
+        )
+    elif unknown_events:
+        status = STATUS_REVIEW
+        basis = (
+            f"检测到最高温严格超过 {THERMAL_THRESHOLD_C:.2f}℃ 的热像，"
+            "但未关联到可信编号位置"
         )
     elif (
         not recorded
@@ -698,17 +688,22 @@ def _thermal_assessment(
     else:
         status = STATUS_NORMAL
         basis = f"全部可读热像最高温均不超过 {THERMAL_THRESHOLD_C:.2f}℃"
-    return Assessment("thermal", "托辊卡死检测", status, result, basis)
+    return Assessment("roller_jam", "托辊卡死检测", status, result, basis)
 
 
 def _thermal_event_assessments(
     analysis: ThermalAnalysis,
 ) -> list[Assessment]:
     details: list[Assessment] = []
-    for event in analysis.events:
+    events = [
+        *_hottest_event_per_position(analysis),
+        *(event for event in analysis.events if event.station_number is None),
+    ]
+    for event in events:
         if event.station_number is None:
             station_text = "编号未知"
             location = "编号未知（需复核）"
+            status = STATUS_REVIEW
             association = (
                 f"前后 {THERMAL_ASSOCIATION_WINDOW_SECONDS:.0f} 秒内"
                 "没有可信编号识别结果"
@@ -716,6 +711,7 @@ def _thermal_event_assessments(
         else:
             station_text = f"关联 {event.station_number} 号编号牌"
             location = f"{event.station_number} 号牌位置"
+            status = STATUS_ABNORMAL
             association = (
                 f"最近编号帧 {event.station_capture_id}，"
                 f"时间差 {event.association_delta_seconds or 0.0:.3f} 秒"
@@ -724,9 +720,9 @@ def _thermal_event_assessments(
         capture_id = Path(image_path).stem if image_path else event.sample_key
         details.append(
             Assessment(
-                "thermal_event",
+                "roller_jam",
                 "疑似托辊卡死",
-                STATUS_ABNORMAL,
+                status,
                 f"最高温 {event.maximum_c:.2f}℃；{station_text}",
                 (
                     f"最高温严格超过 {THERMAL_THRESHOLD_C:.2f}℃；"
@@ -739,6 +735,40 @@ def _thermal_event_assessments(
             )
         )
     return details
+
+
+def _hottest_event_per_position(
+    analysis: ThermalAnalysis,
+) -> list[ThermalEvent]:
+    by_position: dict[int, ThermalEvent] = {}
+    for event in analysis.candidates:
+        if event.station_number is None:
+            continue
+        current = by_position.get(event.station_number)
+        if current is None or (event.maximum_c, event.captured_at) > (
+            current.maximum_c,
+            current.captured_at,
+        ):
+            by_position[event.station_number] = event
+    return [by_position[number] for number in sorted(by_position)]
+
+
+def _equipment_temperature_assessment(
+    analysis: ThermalAnalysis,
+) -> Assessment:
+    if analysis.readable_count:
+        result = f"热像采集链路可用；已读取 {analysis.readable_count} 帧"
+        if analysis.maximum_c is not None:
+            result += f"；整帧最高温 {analysis.maximum_c:.2f}℃"
+    else:
+        result = "没有可用于设备表面测温的有效热像"
+    return Assessment(
+        "equipment_temperature",
+        "设备表面温度检测（备选）",
+        STATUS_REVIEW,
+        f"待样本/不可用；{result}",
+        "开关柜测温区域、异常阈值与现场样本尚未提供，当前不得判定正常或异常",
+    )
 
 
 def _aggregate_overview(details: Sequence[Assessment]) -> list[Assessment]:
@@ -810,21 +840,26 @@ def _gas_status_from_error(error: str, channel: str) -> str | None:
     return None
 
 
-def _detector_available(result: Mapping[str, Any]) -> bool:
-    parameters = result.get("processing_parameters")
-    detector = parameters.get("detector") if isinstance(parameters, Mapping) else None
-    mode = detector.get("mode") if isinstance(detector, Mapping) else None
-    return mode in {"gpu", "json_replay"}
-
-
 def _capture_location(
     capture: Mapping[str, Any],
     objects: Sequence[Mapping[str, Any]],
+    modules: Mapping[str, Any],
 ) -> str:
     station_id = str(capture.get("station_id") or "").strip()
+    station_module = modules.get("station_number")
+    recognized_number = (
+        station_module.get("number")
+        if isinstance(station_module, Mapping)
+        and station_module.get("status") == "confirmed"
+        else None
+    )
     location = next(
         (str(item.get("location_text")) for item in objects if item.get("location_text")),
-        f"{station_id}号区段" if station_id else "未提供区段",
+        (
+            f"{recognized_number} 号牌位置"
+            if recognized_number is not None
+            else f"{station_id}号区段" if station_id else "未提供区段"
+        ),
     )
     pose = capture.get("robot_pose") if isinstance(capture.get("robot_pose"), Mapping) else {}
     coordinates = [pose.get("x_m"), pose.get("y_m"), pose.get("yaw_deg")]
@@ -878,20 +913,19 @@ def _max_meter_confidence(items: Sequence[Mapping[str, Any]]) -> float | None:
     return max(finite) if finite else None
 
 
+def _meter_display_value(item: Mapping[str, Any]) -> str | None:
+    for field in ("raw_text", "value", "reading"):
+        value = item.get(field)
+        if value is not None and str(value).strip():
+            return str(value)
+    return None
+
+
 def _as_float(value: object) -> float | None:
     if value is None or value == "":
         return None
     try:
         return float(value)
-    except (TypeError, ValueError):
-        return None
-
-
-def _as_int(value: object) -> int | None:
-    if value is None or value == "":
-        return None
-    try:
-        return int(str(value))
     except (TypeError, ValueError):
         return None
 
@@ -1170,10 +1204,31 @@ def _add_sensor_section(document: Document, report: BatchReport) -> None:
 
     document.add_heading("4.2 红外热像", level=2)
     thermal = report.thermal_summary
+    equipment_temperature = next(
+        (
+            item for item in report.details
+            if item.item_id == "equipment_temperature"
+        ),
+        Assessment(
+            "equipment_temperature", "设备表面温度检测（备选）",
+            STATUS_REVIEW, "无可用结果", "开关柜测温尚未配置",
+        ),
+    )
     _add_table(
         document,
         ["检查项目", "数据状态", "结论", "说明"],
-        [([thermal.label, thermal.result, STATUS_LABELS[thermal.status], thermal.basis], thermal.status)],
+        [
+            ([thermal.label, thermal.result, STATUS_LABELS[thermal.status], thermal.basis], thermal.status),
+            (
+                [
+                    equipment_temperature.label,
+                    equipment_temperature.result,
+                    STATUS_LABELS[equipment_temperature.status],
+                    equipment_temperature.basis,
+                ],
+                equipment_temperature.status,
+            ),
+        ],
         [1500, 2600, 1100, 4160],
         status_column=2,
     )

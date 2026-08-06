@@ -25,7 +25,6 @@ class Settings:
     classes_path: Path
     stations_path: Path
     modules_path: Path
-    analog_references_path: Path
     max_image_bytes: int = 20 * 1024 * 1024
 
     @classmethod
@@ -61,9 +60,6 @@ class Settings:
         classes_path = resolve(data.get("classes_path", "configs/classes.json"))
         stations_path = resolve(data.get("stations_path", "configs/stations.json"))
         modules_path = resolve(data.get("modules_path", "configs/modules.json"))
-        analog_path = resolve(
-            data.get("analog_references_path", "configs/analog_references.json")
-        )
         if None in (
             storage_root,
             dataset_inbox_path,
@@ -71,7 +67,6 @@ class Settings:
             classes_path,
             stations_path,
             modules_path,
-            analog_path,
         ):
             raise ConfigurationError("required settings paths cannot be null")
 
@@ -94,7 +89,6 @@ class Settings:
             classes_path=classes_path,
             stations_path=stations_path,
             modules_path=modules_path,
-            analog_references_path=analog_path,
             max_image_bytes=int(data.get("max_image_bytes", 20 * 1024 * 1024)),
         )
 

@@ -1,12 +1,9 @@
 {
-  "tool_and_safety_sign": {
-    "enabled": false,
-    "training_enabled": false,
-    "reason": "final class list is not frozen"
-  },
   "coal_presence": {
     "enabled": true,
     "training_enabled": false,
+    "model_ready": false,
+    "reason": "coal_field_model_not_trained",
     "mode": "binary_presence",
     "positive_class": "coal_pile"
   },

@@ -1,4 +1,4 @@
-"""煤堆有/无模块，与工具、标牌和仪表结果完全解耦。"""
+"""煤堆有/无模块；未训练现场模型时只返回不可用。"""
 
 from __future__ import annotations
 
@@ -16,6 +16,16 @@ class CoalPresenceModule:
     def run(self, context: ModuleContext) -> dict[str, Any]:
         if not self.config.get("enabled", True):
             return {"enabled": False, "status": "disabled", "present": None}
+        if not self.config.get("model_ready", False):
+            return {
+                "enabled": True,
+                "status": "unavailable",
+                "present": None,
+                "reason": str(
+                    self.config.get("reason") or "coal_field_model_not_trained"
+                ),
+                "detections": [],
+            }
         if not context.detector_configured:
             # 未加载煤堆检测模型时不能把“没有检测框”解释成“没有煤堆”。
             return {
