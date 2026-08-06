@@ -1,6 +1,7 @@
 import csv
 import base64
 from datetime import datetime, timezone
+from io import BytesIO
 import json
 import os
 from pathlib import Path
@@ -11,6 +12,7 @@ import time
 import unittest
 
 from fastapi.testclient import TestClient
+from PIL import Image, PngImagePlugin
 
 from app.api import create_app
 from app.detectors.noop import NoopDetector
@@ -19,6 +21,7 @@ from app.offline_import import OfflineBatchManager
 from app.pipeline import InspectionPipeline
 from app.service import InspectionService
 from app.storage import CaptureRepository
+from app.thermal_analysis import THERMAL_STATS_METADATA_KEY
 
 
 MINIMAL_PNG = base64.b64decode(
@@ -39,6 +42,37 @@ CHINESE_GAS_FIELDS = [
     "H2S(ppm)",
     "状态",
 ]
+
+
+def thermal_png(
+    captured_at: str,
+    sample_id: str,
+    *,
+    minimum_c: float = 24.0,
+    maximum_c: float = 31.0,
+    average_c: float = 27.0,
+) -> bytes:
+    image = Image.new("RGB", (640, 544), "navy")
+    info = PngImagePlugin.PngInfo()
+    info.add_text(
+        THERMAL_STATS_METADATA_KEY,
+        json.dumps(
+            {
+                "schema_version": 1,
+                "captured_at": captured_at,
+                "sample_id": int(sample_id),
+                "width": 32,
+                "height": 24,
+                "minimum_c": minimum_c,
+                "maximum_c": maximum_c,
+                "average_c": average_c,
+            },
+            separators=(",", ":"),
+        ),
+    )
+    output = BytesIO()
+    image.save(output, format="PNG", pnginfo=info)
+    return output.getvalue()
 
 
 def build_service(root: Path) -> tuple[InspectionService, CaptureRepository]:
@@ -116,7 +150,10 @@ def write_batch(
     thermal_root = batch / "thermal"
     thermal_root.mkdir(parents=True)
     (thermal_root / f"thermal_20260804_153005_{thermal_sample_id}.png").write_bytes(
-        MINIMAL_PNG
+        thermal_png(
+            "2026-08-04T15:30:05+08:00",
+            thermal_sample_id,
+        )
     )
     return batch
 
@@ -162,7 +199,7 @@ def write_flat_batch(
     thermal_root = batch / "thermal"
     thermal_root.mkdir(parents=True)
     (thermal_root / f"thermal_{compact_date}_{compact_time}_000001.png").write_bytes(
-        MINIMAL_PNG
+        thermal_png(captured_at, "000001")
     )
     return batch
 
@@ -282,10 +319,42 @@ class OfflineBatchTests(unittest.TestCase):
                 self.assertEqual(len(sensor_samples), 1)
                 self.assertEqual(sensor_samples[0]["ch4_value"], 1.25)
                 self.assertIsNotNone(sensor_samples[0]["thermal_stored_path"])
+                self.assertEqual(sensor_samples[0]["thermal_minimum_c"], 24.0)
+                self.assertEqual(sensor_samples[0]["thermal_maximum_c"], 31.0)
+                self.assertEqual(sensor_samples[0]["thermal_average_c"], 27.0)
+                self.assertEqual(
+                    sensor_samples[0]["thermal_metadata_status"], "valid"
+                )
                 self.assertEqual(
                     next(source.rglob("metadata.json")).read_bytes(), original_metadata
                 )
                 self.assertFalse(list(source.rglob("upload_receipt.json")))
+            finally:
+                manager.stop()
+
+    def test_missing_thermal_metadata_is_archived_and_marked_for_review(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            inbox = root / "dataset_inbox"
+            source = write_batch(inbox)
+            thermal_source = next((source / "thermal").glob("thermal_*.png"))
+            thermal_source.write_bytes(MINIMAL_PNG)
+            service, repository = build_service(root)
+            manager = OfflineBatchManager(inbox, repository, service)
+            try:
+                batch_id = manager.discover_batches()["items"][0]["batch_id"]
+                manager.queue_import(batch_id)
+                finished = confirm_and_wait(manager, repository, batch_id)
+
+                self.assertEqual(finished["status"], "completed_with_errors")
+                messages = [item["message"] for item in finished["diagnostics"]]
+                self.assertTrue(
+                    any(THERMAL_STATS_METADATA_KEY in message for message in messages)
+                )
+                stored = repository.sensor_samples_for_batch(batch_id)[0]
+                self.assertEqual(stored["thermal_metadata_status"], "missing")
+                self.assertIsNone(stored["thermal_maximum_c"])
+                self.assertTrue(Path(stored["thermal_stored_path"]).is_file())
             finally:
                 manager.stop()
 

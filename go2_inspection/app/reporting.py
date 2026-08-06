@@ -20,6 +20,13 @@ from docx.shared import Inches, Pt, RGBColor
 
 from .errors import ReportNotReadyError
 from .storage import CaptureRepository
+from .thermal_analysis import (
+    THERMAL_ASSOCIATION_WINDOW_SECONDS,
+    THERMAL_COOLDOWN_SECONDS,
+    THERMAL_THRESHOLD_C,
+    ThermalAnalysis,
+    analyze_thermal_samples,
+)
 
 
 STATUS_NORMAL = "normal"
@@ -52,7 +59,7 @@ ITEM_DEFINITIONS = (
     ("gas_o2", "O2"),
     ("gas_co", "CO"),
     ("gas_h2s", "H2S"),
-    ("thermal", "红外热像"),
+    ("thermal", "托辊卡死检测"),
 )
 
 VISUAL_ITEM_IDS = {
@@ -203,8 +210,10 @@ def build_batch_report(
     sensor_samples = repository.sensor_samples_for_batch(batch_id)
     gas_summaries = summarize_gas_samples(sensor_samples)
     details.extend(_gas_assessments(gas_summaries))
-    thermal_summary = _thermal_assessment(batch, sensor_samples)
+    thermal_analysis = analyze_thermal_samples(sensor_samples, captures)
+    thermal_summary = _thermal_assessment(batch, sensor_samples, thermal_analysis)
     details.append(thermal_summary)
+    details.extend(_thermal_event_assessments(thermal_analysis))
 
     for diagnostic in batch.get("diagnostics") or []:
         if not isinstance(diagnostic, Mapping):
@@ -224,9 +233,12 @@ def build_batch_report(
         [
             "安全标牌类别与业务判定规则待补充训练",
             "数字表已记录读数，正常范围待补充后才能自动判定",
-            "红外热像仅完成归档，温度异常模型与阈值待补充训练",
         ]
     )
+    if thermal_analysis.unreadable_count:
+        quality_issues.append(
+            f"有 {thermal_analysis.unreadable_count} 帧热像温度元数据不可读，需人工复核"
+        )
 
     overview = _aggregate_overview(details)
     overall_status = max(
@@ -375,8 +387,9 @@ def build_prototype_report(evidence_path: str | None = None) -> BatchReport:
     ]
     details.extend(_gas_assessments(gas_summaries))
     thermal = Assessment(
-        "thermal", "红外热像", STATUS_REVIEW, "已归档 24 帧热像",
-        "温度异常模型与阈值待补充训练",
+        "thermal", "托辊卡死检测", STATUS_NORMAL,
+        "已分析 24 帧；批次最高温 52.40℃；未发现超过 65.00℃ 的热像",
+        "全部可读热像最高温均不超过 65.00℃",
     )
     details.append(thermal)
     overview = _aggregate_overview(details)
@@ -400,7 +413,6 @@ def build_prototype_report(evidence_path: str | None = None) -> BatchReport:
             "安全标牌类别与业务判定规则待补充训练",
             "数字表已记录读数，正常范围待补充后才能自动判定",
             "H2S 有 2 条通信超时样本，需人工复核传感器连接",
-            "红外热像仅完成归档，温度异常模型与阈值待补充训练",
         ],
     )
 
@@ -642,6 +654,7 @@ def _gas_assessments(summaries: Sequence[GasSummary]) -> list[Assessment]:
 def _thermal_assessment(
     batch: Mapping[str, Any],
     samples: Sequence[Mapping[str, Any]],
+    analysis: ThermalAnalysis,
 ) -> Assessment:
     recorded = int(batch.get("thermal_frame_count") or 0)
     stored = [
@@ -651,15 +664,81 @@ def _thermal_assessment(
     ]
     valid = sum(1 for path in stored if path.is_file())
     missing = max(0, recorded - valid)
-    result = f"已登记 {recorded} 帧；可访问 {valid} 帧"
+    result = (
+        f"已登记 {recorded} 帧；可访问 {valid} 帧；"
+        f"温度可读 {analysis.readable_count} 帧"
+    )
+    if analysis.maximum_c is not None:
+        result += f"；批次最高温 {analysis.maximum_c:.2f}℃"
+    result += (
+        f"；超温候选 {len(analysis.candidates)} 条；"
+        f"10秒抑制 {analysis.suppressed_count} 条；"
+        f"报告异常 {len(analysis.events)} 条"
+    )
     if missing:
         result += f"；缺失 {missing} 帧"
-    basis = (
-        "温度异常模型与阈值待补充训练"
-        if recorded
-        else "未发现可用于分析的红外热像"
-    )
-    return Assessment("thermal", "红外热像", STATUS_REVIEW, result, basis)
+    if analysis.events:
+        status = STATUS_ABNORMAL
+        basis = (
+            f"检测到最高温严格超过 {THERMAL_THRESHOLD_C:.2f}℃ 的热像；"
+            f"同编号异常在 {THERMAL_COOLDOWN_SECONDS:.0f} 秒内只报告一次"
+        )
+    elif (
+        not recorded
+        or not analysis.readable_count
+        or analysis.unreadable_count
+        or missing
+    ):
+        status = STATUS_REVIEW
+        basis = (
+            "未发现可用于分析的红外热像"
+            if not recorded
+            else "存在温度元数据不可读或归档文件缺失"
+        )
+    else:
+        status = STATUS_NORMAL
+        basis = f"全部可读热像最高温均不超过 {THERMAL_THRESHOLD_C:.2f}℃"
+    return Assessment("thermal", "托辊卡死检测", status, result, basis)
+
+
+def _thermal_event_assessments(
+    analysis: ThermalAnalysis,
+) -> list[Assessment]:
+    details: list[Assessment] = []
+    for event in analysis.events:
+        if event.station_number is None:
+            station_text = "编号未知"
+            location = "编号未知（需复核）"
+            association = (
+                f"前后 {THERMAL_ASSOCIATION_WINDOW_SECONDS:.0f} 秒内"
+                "没有可信编号识别结果"
+            )
+        else:
+            station_text = f"关联 {event.station_number} 号编号牌"
+            location = f"{event.station_number} 号牌位置"
+            association = (
+                f"最近编号帧 {event.station_capture_id}，"
+                f"时间差 {event.association_delta_seconds or 0.0:.3f} 秒"
+            )
+        image_path = event.image_path
+        capture_id = Path(image_path).stem if image_path else event.sample_key
+        details.append(
+            Assessment(
+                "thermal_event",
+                "疑似托辊卡死",
+                STATUS_ABNORMAL,
+                f"最高温 {event.maximum_c:.2f}℃；{station_text}",
+                (
+                    f"最高温严格超过 {THERMAL_THRESHOLD_C:.2f}℃；"
+                    f"{association}"
+                ),
+                capture_id=capture_id,
+                capture_time=event.captured_at,
+                location=location,
+                evidence_path=image_path,
+            )
+        )
+    return details
 
 
 def _aggregate_overview(details: Sequence[Assessment]) -> list[Assessment]:
@@ -1311,4 +1390,3 @@ def _time_range(start: str | None, end: str | None) -> str:
     if start == end or not end:
         return _display_time(start)
     return f"{_display_time(start)} 至 {_display_time(end)}"
-

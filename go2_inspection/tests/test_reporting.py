@@ -157,6 +157,10 @@ class ReportJudgementTests(unittest.TestCase):
                         "h2s_unit": "ppm",
                         "h2s_status": "normal",
                         "thermal_stored_path": str(thermal),
+                        "thermal_minimum_c": 24.0,
+                        "thermal_maximum_c": 70.0,
+                        "thermal_average_c": 30.0,
+                        "thermal_metadata_status": "valid",
                     }
                 ],
                 gas_row_count=1,
@@ -175,7 +179,26 @@ class ReportJudgementTests(unittest.TestCase):
             self.assertEqual(overview["digital_meter"].status, STATUS_REVIEW)
             self.assertEqual(overview["analog_meter"].status, STATUS_ABNORMAL)
             self.assertEqual(overview["gas_o2"].status, STATUS_ABNORMAL)
-            self.assertEqual(overview["thermal"].status, STATUS_REVIEW)
+            self.assertEqual(overview["thermal"].status, STATUS_ABNORMAL)
+            thermal_events = [
+                item for item in report.details if item.item_id == "thermal_event"
+            ]
+            self.assertEqual(len(thermal_events), 1)
+            self.assertIn("70.00℃", thermal_events[0].result)
+            self.assertIn("9 号编号牌", thermal_events[0].result)
+            self.assertEqual(thermal_events[0].evidence_path, str(thermal))
+
+            payload = render_report_docx(report)
+            document = Document(BytesIO(payload))
+            table_text = "\n".join(
+                cell.text
+                for table in document.tables
+                for row in table.rows
+                for cell in row.cells
+            )
+            self.assertIn("最高温 70.00℃", table_text)
+            self.assertIn("9 号牌位置", table_text)
+            self.assertEqual(len(document.inline_shapes), 2)
 
             corrected = result.to_dict()
             corrected["objects"] = []

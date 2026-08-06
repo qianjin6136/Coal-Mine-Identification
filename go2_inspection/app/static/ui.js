@@ -210,7 +210,7 @@ function offlineBatchCard(batch) {
     batchMetric("可见光抓拍", `${finished} / ${batch.capture_total || 0}`,
       `${batch.capture_failed || 0} 个失败`),
     batchMetric("气体记录", String(batch.gas_row_count || 0), "已归档，待模块分析"),
-    batchMetric("红外热像", String(batch.thermal_frame_count || 0), "已归档，待模块分析"),
+    batchMetric("红外热像", String(batch.thermal_frame_count || 0), "上位机按最高温 > 65℃ 判定"),
   );
   card.appendChild(metrics);
 

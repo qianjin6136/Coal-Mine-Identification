@@ -1,10 +1,12 @@
 from datetime import datetime, timedelta, timezone
+import json
 from math import nan
 
 import pytest
 from PIL import Image
 
 from sensor_logger.thermal import (
+    THERMAL_STATS_METADATA_KEY,
     ThermalImageWriter,
     _median_filter_3x3,
     _percentile,
@@ -33,7 +35,31 @@ def test_writes_timestamped_png_atomically(tmp_path) -> None:
         assert image.format == "PNG"
         assert image.size == (640, 544)
         assert image.getbbox() is not None
+        stats = json.loads(image.text[THERMAL_STATS_METADATA_KEY])
+    assert stats == {
+        "schema_version": 1,
+        "captured_at": "2026-08-03T15:30:05+08:00",
+        "sample_id": 7,
+        "width": 32,
+        "height": 24,
+        "minimum_c": 20.0,
+        "maximum_c": 27.67,
+        "average_c": pytest.approx(sum(temperatures) / len(temperatures)),
+    }
     assert not list(path.parent.glob("*.tmp"))
+
+
+@pytest.mark.parametrize("maximum", [64.99, 65.0, 65.01])
+def test_writes_all_frames_regardless_of_temperature(tmp_path, maximum) -> None:
+    temperatures = [25.0] * 768
+    temperatures[-1] = maximum
+
+    path = ThermalImageWriter(tmp_path).write(temperatures, NOW, 1)
+
+    assert path.is_file()
+    with Image.open(path) as image:
+        stats = json.loads(image.text[THERMAL_STATS_METADATA_KEY])
+    assert stats["maximum_c"] == maximum
 
 
 def test_renders_constant_temperature_frame(tmp_path) -> None:

@@ -196,6 +196,10 @@ class CaptureRepository:
                     raw_row_json TEXT,
                     thermal_stored_path TEXT,
                     thermal_sha256 TEXT,
+                    thermal_minimum_c REAL,
+                    thermal_maximum_c REAL,
+                    thermal_average_c REAL,
+                    thermal_metadata_status TEXT,
                     warning TEXT,
                     PRIMARY KEY(batch_id, sample_key),
                     FOREIGN KEY(batch_id) REFERENCES offline_batches(batch_id)
@@ -224,6 +228,18 @@ class CaptureRepository:
                 "detection_confirmed_at",
                 "TEXT",
             )
+            for column, declaration in (
+                ("thermal_minimum_c", "REAL"),
+                ("thermal_maximum_c", "REAL"),
+                ("thermal_average_c", "REAL"),
+                ("thermal_metadata_status", "TEXT"),
+            ):
+                self._ensure_column(
+                    connection,
+                    "sensor_samples",
+                    column,
+                    declaration,
+                )
             self._ensure_column(
                 connection,
                 "offline_batches",
@@ -1128,7 +1144,8 @@ class CaptureRepository:
             "co_value", "co_unit", "co_status",
             "h2s_value", "h2s_unit", "h2s_status",
             "gas_error", "raw_row_json", "thermal_stored_path",
-            "thermal_sha256", "warning",
+            "thermal_sha256", "thermal_minimum_c", "thermal_maximum_c",
+            "thermal_average_c", "thermal_metadata_status", "warning",
         )
         with self._connection() as connection:
             connection.execute(

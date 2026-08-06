@@ -1,5 +1,6 @@
 """MLX90640 帧读取、降噪与平滑伪彩色 PNG 生成。"""
 
+import json
 import math
 import statistics
 import time
@@ -7,7 +8,7 @@ from collections.abc import Sequence
 from datetime import datetime
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, PngImagePlugin
 
 WIDTH = 32
 HEIGHT = 24
@@ -15,6 +16,8 @@ PIXEL_COUNT = WIDTH * HEIGHT
 OUTPUT_WIDTH = 640
 OUTPUT_HEIGHT = 480
 HEADER_HEIGHT = 64
+THERMAL_STATS_METADATA_KEY = "thermal_stats_v1"
+THERMAL_STATS_SCHEMA_VERSION = 1
 
 # 每次温度采样读取三帧并逐像素取中值，降低偶发跳点。
 FRAMES_PER_READING = 3
@@ -239,8 +242,26 @@ class ThermalImageWriter:
         filename = f"thermal_{timestamp:%Y%m%d_%H%M%S}_{sample_id:06d}.png"
         final_path = self.directory / filename
         temporary_path = final_path.with_suffix(".tmp")
+        png_info = PngImagePlugin.PngInfo()
+        png_info.add_text(
+            THERMAL_STATS_METADATA_KEY,
+            json.dumps(
+                {
+                    "schema_version": THERMAL_STATS_SCHEMA_VERSION,
+                    "captured_at": timestamp.isoformat(timespec="seconds"),
+                    "sample_id": sample_id,
+                    "width": WIDTH,
+                    "height": HEIGHT,
+                    "minimum_c": minimum,
+                    "maximum_c": maximum,
+                    "average_c": average,
+                },
+                ensure_ascii=False,
+                separators=(",", ":"),
+            ),
+        )
         try:
-            output.save(temporary_path, format="PNG")
+            output.save(temporary_path, format="PNG", pnginfo=png_info)
             temporary_path.replace(final_path)
         finally:
             temporary_path.unlink(missing_ok=True)

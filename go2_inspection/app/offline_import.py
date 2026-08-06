@@ -20,6 +20,7 @@ from PIL import Image
 from .domain import CaptureMetadata, RobotPose
 from .errors import CaptureNotFoundError, ValidationError
 from .storage import CaptureRepository, validate_image_bytes
+from .thermal_analysis import THERMAL_STATS_METADATA_KEY, parse_thermal_stats
 
 if TYPE_CHECKING:
     from .service import InspectionService
@@ -444,6 +445,18 @@ class OfflineBatchManager:
                         (thermal or {}).get("thermal_stored_path")
                     ),
                     "thermal_sha256": (thermal or {}).get("thermal_sha256"),
+                    "thermal_minimum_c": (thermal or {}).get(
+                        "thermal_minimum_c"
+                    ),
+                    "thermal_maximum_c": (thermal or {}).get(
+                        "thermal_maximum_c"
+                    ),
+                    "thermal_average_c": (thermal or {}).get(
+                        "thermal_average_c"
+                    ),
+                    "thermal_metadata_status": (thermal or {}).get(
+                        "thermal_metadata_status"
+                    ),
                     "warning": "; ".join(warnings) or None,
                 }
             )
@@ -608,26 +621,65 @@ class OfflineBatchManager:
             try:
                 payload = source_path.read_bytes()
                 validate_image_bytes(payload, self.inspection_service.max_image_bytes)
+                sample_id = match.group("sample")
+                filename_timestamp = datetime.strptime(
+                    match.group("date") + match.group("time"), "%Y%m%d%H%M%S"
+                ).replace(tzinfo=_CHINA_TIMEZONE)
+                stats = None
+                metadata_status = "valid"
+                metadata_error: str | None = None
                 with Image.open(source_path) as image:
                     if image.format != "PNG":
                         raise ValidationError("thermal file must be PNG")
+                    try:
+                        stats = parse_thermal_stats(
+                            image.info.get(THERMAL_STATS_METADATA_KEY),
+                            expected_timestamp=filename_timestamp,
+                            expected_sample_id=sample_id,
+                        )
+                    except ValidationError as exc:
+                        metadata_error = str(exc)
+                        metadata_status = (
+                            "missing"
+                            if metadata_error.startswith("missing ")
+                            else "invalid"
+                        )
                     image.verify()
                 destination = archive_root / relative
                 self._copy_atomic(source_path, destination)
-                sample_id = match.group("sample")
                 sample_key = (
                     f"{match.group('date')}_{match.group('time')}_{sample_id}"
                 )
                 if sample_key in samples:
                     raise ValidationError(f"duplicate thermal sample: {sample_key}")
-                captured_at = datetime.strptime(
-                    match.group("date") + match.group("time"), "%Y%m%d%H%M%S"
-                ).isoformat()
+                if metadata_error:
+                    diagnostics.append(
+                        {
+                            "scope": "thermal",
+                            "level": "warning",
+                            "path": relative.as_posix(),
+                            "message": metadata_error,
+                        }
+                    )
                 samples[sample_key] = {
                     "sample_id": sample_id,
-                    "captured_at": captured_at,
+                    "captured_at": (
+                        stats.captured_at
+                        if stats is not None
+                        else filename_timestamp.isoformat(timespec="seconds")
+                    ),
                     "thermal_stored_path": str(destination),
                     "thermal_sha256": hashlib.sha256(payload).hexdigest(),
+                    "thermal_minimum_c": (
+                        stats.minimum_c if stats is not None else None
+                    ),
+                    "thermal_maximum_c": (
+                        stats.maximum_c if stats is not None else None
+                    ),
+                    "thermal_average_c": (
+                        stats.average_c if stats is not None else None
+                    ),
+                    "thermal_metadata_status": metadata_status,
                 }
             except Exception as exc:
                 diagnostics.append(
