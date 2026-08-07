@@ -22,9 +22,10 @@
 /models/base/*
 !/models/base/.gitkeep
 
-# Local virtualenv if created inside this package
+# Local virtualenv / project-built CPython if created inside this package
 .venv/
 venv/
+.python/
 
 # Python / test caches
 __pycache__/
