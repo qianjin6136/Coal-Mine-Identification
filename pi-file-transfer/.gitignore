@@ -1,0 +1,15 @@
+# Machine-specific transfer config (use the example file instead)
+transfer-config.json
+
+# Python / test caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+
+# Tests (keep local only)
+/tests/
+
+# Editor
+.vscode/
+.idea/

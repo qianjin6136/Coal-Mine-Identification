@@ -54,6 +54,10 @@ ARM 树莓派通过 `apt` 安装 `python3-opencv`，避免 `pip` 在设备上长
 
 ## 3. 复制代码
 
+如果发送端是 Ubuntu 22.04，并希望直接在 VS Code 中操作，推荐使用仓库根目录下的独立工具
+[`pi-file-transfer`](../pi-file-transfer/README.md)。它会只打包本采集端所需文件，保护树莓派已有的
+`data/`、`logs/` 和 `.venv/`，并在远端校验上传包。
+
 在 Windows PowerShell 中，只复制树莓派采集端即可：
 
 ```powershell

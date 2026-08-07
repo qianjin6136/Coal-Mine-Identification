@@ -1,10 +1,24 @@
-.worktrees/
+# Virtual environments
 .venv/
+venv/
+
+# Python / packaging
 __pycache__/
-.pytest_cache/
 *.py[cod]
 *.egg-info/
 build/
 dist/
-data/
-logs/
+
+# Tests (keep local only)
+/tests/
+.pytest_cache/
+.mypy_cache/
+
+# Runtime capture output
+/data/
+/logs/
+
+# Editor
+.vscode/
+.idea/
+.worktrees/

@@ -1,0 +1,69 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+.eggs/
+build/
+dist/
+.Python
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Test / coverage / type caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+
+# IDE / editor
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Local secrets / machine config
+*.env
+.env.*
+!.env.example
+transfer-config.json
+
+# Model weights (train or download locally; keep directory placeholders)
+*.pt
+*.pth
+*.onnx
+*.engine
+*.npz
+*.npzite
+*.mlmodel
+
+# Databases / logs / archives
+*.db
+*.sqlite
+*.sqlite3
+*.log
+*.zip
+*.tar
+*.tar.gz
+*.rar
+*.7z
+
+# Fonts / Ultralytics auto cache
+*.ttf
+*.otf
+**/Ultralytics/

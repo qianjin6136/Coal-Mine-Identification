@@ -79,6 +79,10 @@ I2C 地址为 `0x33`。
 
 ## 树莓派安装与运行
 
+如需从 Ubuntu 22.04 的 VS Code 把采集程序传到树莓派，可使用独立目录
+[`pi-file-transfer`](pi-file-transfer/README.md)。它只发送树莓派所需代码与脚本，默认排除
+`data/`、`logs/`、`.venv/` 和上位机程序，并在树莓派端校验上传包后再解压。
+
 推荐系统为 64 位 Raspberry Pi OS Bookworm，也支持树莓派 Ubuntu 22.04/24.04；
 Python 要求已放宽到 3.9 及以上。把 `raspberry-pi-sensor-logger` 复制到树莓派，
 不要复用 Windows 或 x86 电脑生成的 `.venv`：
