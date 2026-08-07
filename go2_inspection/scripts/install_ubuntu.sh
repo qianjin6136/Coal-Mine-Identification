@@ -39,6 +39,7 @@ Environment:
   GO2_PYTHON_SOURCE_URL=<URL>  Use a source mirror; SHA-256 is still verified.
                                If unset, official URL is tried first, then
                                Huawei Cloud and npmmirror fallbacks.
+  GO2_PIP_INDEX_URL=<URL>      Prefer a PyPI mirror (default: Tsinghua).
 EOF
 }
 
@@ -355,8 +356,23 @@ if ! is_compatible_python "${venv_python}"; then
 fi
 
 echo "[4/5] 安装 ${profile} Python 依赖"
-"${venv_python}" -m pip install --upgrade pip setuptools wheel
-"${venv_python}" -m pip install --requirement "${requirements_file}"
+pip_index_url="${GO2_PIP_INDEX_URL:-https://pypi.tuna.tsinghua.edu.cn/simple}"
+pip_trusted_host="$(
+    "${venv_python}" - <<'PY' "${pip_index_url}"
+from urllib.parse import urlparse
+import sys
+print(urlparse(sys.argv[1]).hostname or "")
+PY
+)"
+pip_args=(--upgrade pip setuptools wheel -i "${pip_index_url}")
+req_args=(--requirement "${requirements_file}" -i "${pip_index_url}")
+if [[ -n "${pip_trusted_host}" ]]; then
+    pip_args+=(--trusted-host "${pip_trusted_host}")
+    req_args+=(--trusted-host "${pip_trusted_host}")
+fi
+echo "使用 PyPI 索引：${pip_index_url}"
+"${venv_python}" -m pip install "${pip_args[@]}"
+"${venv_python}" -m pip install "${req_args[@]}"
 
 echo "[5/5] 验证应用导入与运行环境"
 cd -- "${project_root}"
