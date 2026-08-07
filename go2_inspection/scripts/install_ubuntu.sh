@@ -7,6 +7,8 @@ readonly python_version="3.12.13"
 readonly python_sha256="c08bc65a81971c1dd5783182826503369466c7e67374d1646519adf05207b684"
 readonly python_archive="Python-${python_version}.tar.xz"
 readonly official_python_url="https://www.python.org/ftp/python/${python_version}/${python_archive}"
+readonly huawei_python_url="https://mirrors.huaweicloud.com/python/${python_version}/${python_archive}"
+readonly npmmirror_python_url="https://cdn.npmmirror.com/binaries/python/${python_version}/${python_archive}"
 readonly python_url="${GO2_PYTHON_SOURCE_URL:-${official_python_url}}"
 
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
@@ -35,6 +37,8 @@ Options:
 Environment:
   GO2_BUILD_JOBS=2             Limit parallel CPython compilation jobs.
   GO2_PYTHON_SOURCE_URL=<URL>  Use a source mirror; SHA-256 is still verified.
+                               If unset, official URL is tried first, then
+                               Huawei Cloud and npmmirror fallbacks.
 EOF
 }
 
@@ -208,15 +212,46 @@ build_project_python() (
     trap cleanup EXIT
 
     cd -- "${build_root}"
-    echo "下载 CPython ${python_version}：${python_url}"
-    curl \
-        --fail \
-        --location \
-        --retry 3 \
-        --connect-timeout 20 \
-        --output "${python_archive}" \
-        "${python_url}"
-    printf '%s  %s\n' "${python_sha256}" "${python_archive}" | sha256sum --check -
+
+    download_urls=()
+    if [[ -n "${GO2_PYTHON_SOURCE_URL:-}" ]]; then
+        download_urls+=("${GO2_PYTHON_SOURCE_URL}")
+    else
+        download_urls+=(
+            "${official_python_url}"
+            "${huawei_python_url}"
+            "${npmmirror_python_url}"
+        )
+    fi
+
+    downloaded=false
+    for candidate_url in "${download_urls[@]}"; do
+        echo "下载 CPython ${python_version}：${candidate_url}"
+        rm -f -- "${python_archive}"
+        if curl \
+            --fail \
+            --location \
+            --retry 5 \
+            --retry-all-errors \
+            --retry-delay 2 \
+            --connect-timeout 20 \
+            --max-time 600 \
+            --output "${python_archive}" \
+            "${candidate_url}"
+        then
+            if printf '%s  %s\n' "${python_sha256}" "${python_archive}" | sha256sum --check -; then
+                downloaded=true
+                break
+            fi
+            echo "校验失败，尝试下一个镜像：${candidate_url}" >&2
+        else
+            echo "下载失败，尝试下一个镜像：${candidate_url}" >&2
+        fi
+    done
+    if [[ "${downloaded}" != true ]]; then
+        echo "无法下载 CPython ${python_version} 源码包；可设置 GO2_PYTHON_SOURCE_URL 指定镜像。" >&2
+        exit 1
+    fi
     tar --extract --file "${python_archive}"
     cd -- "Python-${python_version}"
     ./configure \
