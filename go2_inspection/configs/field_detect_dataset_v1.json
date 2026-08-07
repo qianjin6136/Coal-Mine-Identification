@@ -1,0 +1,16 @@
+{
+  "name": "field_detect_v1",
+  "description": "现场 number/light/pointertable/cloth 多类检测数据集",
+  "sample_root": "../sample",
+  "field_root": "sample/field_v3",
+  "dataset_root": "runtime_data/datasets/field_detect_v1",
+  "classes_path": "configs/classes_field_detect.json",
+  "prepare_script": "scripts/prepare_field_v3_samples.py",
+  "train": {
+    "weights": "models/base/yolo26n.pt",
+    "epochs": 40,
+    "imgsz": 640,
+    "batch": 8,
+    "name": "field_detect_v1"
+  }
+}

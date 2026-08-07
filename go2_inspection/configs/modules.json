@@ -1,11 +1,19 @@
 {
   "coal_presence": {
     "enabled": true,
-    "training_enabled": false,
-    "model_ready": false,
-    "reason": "coal_field_model_not_trained",
+    "training_enabled": true,
+    "model_ready": true,
+    "allow_image_fallback": true,
+    "reason": "coal_cv_fallback_enabled",
     "mode": "binary_presence",
     "positive_class": "coal_pile"
+  },
+  "foreign_object": {
+    "enabled": true,
+    "training_enabled": true,
+    "model_ready": true,
+    "allow_image_fallback": true,
+    "reason": "foreign_object_cv_fallback_enabled"
   },
   "station_number": {
     "enabled": true,
@@ -21,16 +29,24 @@
   "digital_meter": {
     "enabled": true,
     "training_enabled": true,
-    "samples_path": "configs/digital_meter_samples.json",
-    "model_path": "runtime_data/models/digital_meter_templates_v2.npz",
+    "samples_path": "configs/digital_meter_samples_v3.json",
+    "model_path": "runtime_data/models/digital_meter_templates_v3.npz",
     "digit_counts": [3, 4],
     "decimal_places": 2,
     "allow_negative": true,
     "minimum_frame_confidence": 0.55
   },
+  "indicator_lights": {
+    "enabled": true,
+    "training_enabled": true,
+    "model_ready": true,
+    "reason": "indicator_hsv_ready"
+  },
   "analog_meter": {
-    "enabled": false,
-    "training_enabled": false,
-    "reason": "normal and abnormal reference images are not available"
+    "enabled": true,
+    "training_enabled": true,
+    "allow_image_fallback": true,
+    "mode": "detect_only",
+    "reason": "detect_and_attach_evidence"
   }
 }

@@ -1,0 +1,13 @@
+{
+  "format": {
+    "digit_counts": [3, 4],
+    "decimal_places": 2,
+    "allow_negative": true
+  },
+  "discovery": {
+    "directory": "sample/数字表",
+    "glob": "*.jpg",
+    "skip_unreadable": true
+  },
+  "samples": []
+}

@@ -51,6 +51,10 @@ def build_service(settings_path: str | None = None) -> InspectionService:
             return NoopDetector()
         if mode == "json_replay":
             return JsonReplayDetector()
+        if mode == "field_cv":
+            from .detectors.field_cv_backend import FieldCvDetector
+
+            return FieldCvDetector(confidence=confidence)
         if mode != "gpu":
             raise ConfigurationError(f"unsupported inference mode: {mode}")
 

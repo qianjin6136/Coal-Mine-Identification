@@ -76,8 +76,11 @@ VISUAL_ITEM_IDS = {
 }
 
 CAPTURE_ITEM_IDS = {
+    "foreign_object",
     "coal_pile",
     "substation_led_meter",
+    "indicator_red",
+    "indicator_green",
     "pump_analog_meters",
 }
 
@@ -216,7 +219,9 @@ def build_batch_report(
 
     if not captures:
         details.extend(_empty_capture_assessments())
-    details.extend(_pending_required_assessments())
+    else:
+        details.extend(_batch_visual_assessments(captures, details))
+    details.extend(_pending_required_assessments(details))
 
     sensor_samples = repository.sensor_samples_for_batch(batch_id)
     gas_summaries = summarize_gas_samples(sensor_samples)
@@ -241,9 +246,8 @@ def build_batch_report(
     )
     if manually_corrected:
         quality_issues.append(f"本报告采用 {manually_corrected} 条人工修正后的有效结果")
-    quality_issues.append(
-        "皮带异物、5类巡检标牌、红绿指示灯及3个水泵仪表尚待现场样本与标定"
-    )
+    if not any(item.item_id == "inspection_marker" and item.status != STATUS_REVIEW for item in details):
+        quality_issues.append("5类巡检标牌现场样本尚未提供；编号牌仅用于托辊位置关联")
     if thermal_analysis.unreadable_count:
         quality_issues.append(
             f"有 {thermal_analysis.unreadable_count} 帧热像温度元数据不可读，需人工复核"
@@ -359,18 +363,21 @@ def build_prototype_report(evidence_path: str | None = None) -> BatchReport:
         Assessment(
             "roller_jam", "托辊卡死检测", STATUS_ABNORMAL,
             "已识别 3/3 处；最高温 72.30℃",
-            "热像最高温严格超过 65.00℃，并关联到 3 个不同编号位置",
+            "热像最高温严格超过 45.00℃，并关联到 3 个不同编号位置",
             "thermal_demo_001",
             "2026-08-05T09:15:12+08:00", "08号区段；map (1.20, 2.40, 90.0°)",
             evidence_path=evidence_path,
         ),
         Assessment(
-            "foreign_object", "皮带机异物检测", STATUS_REVIEW,
-            "待样本/不可用", "彩色布条现场正负样本尚未提供",
+            "foreign_object", "皮带机异物检测", STATUS_ABNORMAL,
+            "检测到异物 1 处", "编号牌确认后检出彩色布条",
+            "demo_capture_002", "2026-08-05T09:16:00+08:00", "05号区段", 0.82,
+            evidence_path=evidence_path,
         ),
         Assessment(
-            "coal_pile", "堆煤检测", STATUS_REVIEW,
-            "待样本/不可用", "现有样本不足，煤堆检测模型未配置",
+            "coal_pile", "堆煤检测", STATUS_NORMAL,
+            "未检测到堆煤", "编号牌确认后堆煤检测已运行",
+            "demo_capture_002", "2026-08-05T09:16:00+08:00", "05号区段",
         ),
         Assessment(
             "inspection_marker", "沿线巡检标牌", STATUS_REVIEW,
@@ -382,16 +389,20 @@ def build_prototype_report(evidence_path: str | None = None) -> BatchReport:
             "2026-08-05T09:15:12+08:00", "08号区段", 0.91,
         ),
         Assessment(
-            "indicator_red", "红色指示灯", STATUS_REVIEW,
-            "待样本/不可用", "红色指示灯现场样本尚未提供",
+            "indicator_red", "红色指示灯", STATUS_NORMAL,
+            "红色指示灯亮", "HSV 指示灯识别已确认", "demo_capture_001",
+            "2026-08-05T09:15:12+08:00", "变电硐室", 0.88,
         ),
         Assessment(
-            "indicator_green", "绿色指示灯", STATUS_REVIEW,
-            "待样本/不可用", "绿色指示灯现场样本尚未提供",
+            "indicator_green", "绿色指示灯", STATUS_NORMAL,
+            "绿色指示灯亮", "HSV 指示灯识别已确认", "demo_capture_001",
+            "2026-08-05T09:15:12+08:00", "变电硐室", 0.90,
         ),
         Assessment(
             "pump_analog_meters", "水泵硐室仪表", STATUS_REVIEW,
-            "待样本/不可用；已读取 0/3 个", "3 个仪表的现场样本、读数真值和刻度标定尚未提供",
+            "已检出 1 个指针表并附证据", "本阶段仅检出插图，读数待人工确认",
+            "demo_capture_003", "2026-08-05T09:18:00+08:00", "水泵硐室", 0.8,
+            evidence_path=evidence_path,
         ),
     ]
     gas_summaries = [
@@ -426,7 +437,8 @@ def build_prototype_report(evidence_path: str | None = None) -> BatchReport:
         gas_summaries=gas_summaries,
         thermal_summary=thermal,
         quality_issues=[
-            "皮带异物、5类巡检标牌、红绿指示灯及3个水泵仪表尚待现场样本与标定",
+            "5类巡检标牌现场样本尚未提供；编号牌仅用于托辊位置关联",
+            "指针表本阶段仅检出插图，读数/刻度标定待后续完成",
             "H2S 有 2 条通信超时样本，需人工复核传感器连接",
         ],
     )
@@ -441,48 +453,81 @@ def _assess_capture(capture: Mapping[str, Any]) -> list[Assessment]:
     location = _capture_location(capture, objects, modules)
     evidence = _capture_evidence_path(capture, result)
     manual = bool(capture.get("manually_corrected"))
+    station_confirmed = _station_confirmed(modules)
 
     capture_assessments: list[Assessment] = []
+    foreign_module = modules.get("foreign_object") if isinstance(modules, Mapping) else None
     foreign_objects = [
         item for item in objects if item.get("type") == "foreign_object"
     ]
-    if foreign_objects:
+    if isinstance(foreign_module, Mapping) and foreign_module.get("status") == "confirmed":
+        foreign_objects = foreign_objects or [
+            item
+            for item in foreign_module.get("detections") or []
+            if isinstance(item, Mapping)
+        ]
+    if foreign_objects and (station_confirmed or manual):
         capture_assessments.append(
             Assessment(
                 "foreign_object", "皮带机异物检测", STATUS_ABNORMAL,
-                f"检测到异物 {len(foreign_objects)} 处", "皮带机上检测到异物目标",
+                f"检测到异物 {len(foreign_objects)} 处",
+                "编号牌确认后检出皮带异物/彩布",
                 capture_id, capture_time, location,
                 _max_confidence(foreign_objects), evidence, manual,
+            )
+        )
+    elif (
+        isinstance(foreign_module, Mapping)
+        and foreign_module.get("status") == "confirmed"
+        and foreign_module.get("present") is False
+        and (station_confirmed or manual)
+    ):
+        capture_assessments.append(
+            Assessment(
+                "foreign_object", "皮带机异物检测", STATUS_NORMAL,
+                "未检测到异物/彩布", "编号牌确认后异物检测已运行",
+                capture_id, capture_time, location, manually_corrected=manual,
             )
         )
 
     coal_objects = [item for item in objects if item.get("type") == "coal_pile"]
     coal_module = modules.get("coal_presence") if isinstance(modules, Mapping) else None
-    if coal_objects or (
-        isinstance(coal_module, Mapping)
-        and coal_module.get("status") == "confirmed"
-        and coal_module.get("present") is True
-        and not manual
+    if (station_confirmed or manual) and (
+        coal_objects
+        or (
+            isinstance(coal_module, Mapping)
+            and coal_module.get("status") == "confirmed"
+            and coal_module.get("present") is True
+        )
     ):
         coal = Assessment(
             "coal_pile", "堆煤检测", STATUS_ABNORMAL, "检测到堆煤",
-            "检测到煤堆即判为异常", capture_id, capture_time, location,
+            "编号牌确认后检测到煤堆即判为异常", capture_id, capture_time, location,
             _max_confidence(coal_objects), evidence, manual,
         )
-    elif manual or (
-        isinstance(coal_module, Mapping)
-        and coal_module.get("status") == "confirmed"
-        and coal_module.get("present") is False
+    elif (station_confirmed or manual) and (
+        manual
+        or (
+            isinstance(coal_module, Mapping)
+            and coal_module.get("status") == "confirmed"
+            and coal_module.get("present") is False
+        )
     ):
         coal = Assessment(
             "coal_pile", "堆煤检测", STATUS_NORMAL, "未检测到堆煤",
-            "检测模型已运行且 present=false", capture_id, capture_time, location,
+            "编号牌确认后检测模型已运行且 present=false",
+            capture_id, capture_time, location,
             manually_corrected=manual,
         )
     else:
         coal = Assessment(
-            "coal_pile", "堆煤检测", STATUS_REVIEW, "待样本/不可用",
-            _module_reason(coal_module, "煤堆检测模型未配置或未运行"),
+            "coal_pile", "堆煤检测", STATUS_REVIEW,
+            "待编号牌确认" if not station_confirmed else "待样本/不可用",
+            (
+                "堆煤/异物在确认编号牌后才计入有效巡检项"
+                if not station_confirmed
+                else _module_reason(coal_module, "煤堆检测模型未配置或未运行")
+            ),
             capture_id, capture_time, location, manually_corrected=manual,
         )
 
@@ -490,11 +535,17 @@ def _assess_capture(capture: Mapping[str, Any]) -> list[Assessment]:
     digital = _digital_assessment(
         digital_module, objects, capture_id, capture_time, location, evidence, manual
     )
+    indicator_module = (
+        modules.get("indicator_lights") if isinstance(modules, Mapping) else None
+    )
+    indicators = _indicator_assessments(
+        indicator_module, capture_id, capture_time, location, evidence, manual
+    )
     analog_module = modules.get("analog_meter") if isinstance(modules, Mapping) else None
     analog = _analog_assessment(
         analog_module, objects, capture_id, capture_time, location, evidence, manual
     )
-    return [*capture_assessments, coal, digital, analog]
+    return [*capture_assessments, coal, digital, *indicators, analog]
 
 
 def _digital_assessment(
@@ -558,23 +609,114 @@ def _analog_assessment(
         for value in (_meter_display_value(item),)
         if value is not None
     ]
-    complete = len(readings) == 3
-    status = STATUS_NORMAL if complete else STATUS_REVIEW
-    result = (
-        f"已读取 3/3 个：{'、'.join(readings)}"
-        if complete
-        else f"待样本/不可用；已读取 {len(readings)}/3 个"
-    )
-    basis = (
-        "3 个水泵硐室仪表读数均已确认"
-        if complete
-        else "3 个仪表的现场样本、读数真值和刻度标定尚未完整提供"
-    )
+    if readings and len(readings) == 3:
+        return Assessment(
+            "pump_analog_meters", "水泵硐室仪表", STATUS_NORMAL,
+            f"已读取 3/3 个：{'、'.join(readings)}",
+            "3 个水泵硐室仪表读数均已确认",
+            capture_id, capture_time, location, _max_meter_confidence(meters),
+            evidence, manual,
+        )
+    if meters or (
+        isinstance(module, Mapping) and module.get("status") == "confirmed"
+    ):
+        count = len(meters)
+        return Assessment(
+            "pump_analog_meters", "水泵硐室仪表", STATUS_REVIEW,
+            f"已检出 {count} 个指针表并附证据",
+            "本阶段仅检出并插入证据图，读数待人工确认",
+            capture_id, capture_time, location, _max_meter_confidence(meters),
+            evidence if meters or evidence else None, manual,
+        )
     return Assessment(
-        "pump_analog_meters", "水泵硐室仪表", status, result, basis,
-        capture_id, capture_time, location, _max_meter_confidence(meters),
-        evidence if meters else None, manual,
+        "pump_analog_meters", "水泵硐室仪表", STATUS_REVIEW,
+        "未检出指针表",
+        _module_reason(module, "指针表未检测到或模块未启用"),
+        capture_id, capture_time, location, None, None, manual,
     )
+
+
+def _indicator_assessments(
+    module: object,
+    capture_id: str,
+    capture_time: str,
+    location: str,
+    evidence: str | None,
+    manual: bool,
+) -> list[Assessment]:
+    if not isinstance(module, Mapping) or module.get("status") not in {
+        "confirmed",
+        "unreadable",
+    }:
+        return []
+    assessments: list[Assessment] = []
+    for item_id, label, key in (
+        ("indicator_red", "红色指示灯", "red"),
+        ("indicator_green", "绿色指示灯", "green"),
+    ):
+        color = module.get(key) if isinstance(module.get(key), Mapping) else {}
+        on = color.get("on")
+        if on is None:
+            continue
+        assessments.append(
+            Assessment(
+                item_id,
+                label,
+                STATUS_NORMAL if on else STATUS_REVIEW,
+                f"{label}{'亮' if on else '灭'}",
+                "HSV/亮度指示灯识别结果",
+                capture_id,
+                capture_time,
+                location,
+                _as_float(color.get("confidence")),
+                evidence if on else None,
+                manual,
+            )
+        )
+    return assessments
+
+
+def _station_confirmed(modules: Mapping[str, Any] | None) -> bool:
+    if not isinstance(modules, Mapping):
+        return False
+    station = modules.get("station_number")
+    if not isinstance(station, Mapping):
+        return False
+    if station.get("status") != "confirmed":
+        return False
+    number = station.get("number")
+    try:
+        value = int(number)
+    except (TypeError, ValueError):
+        return False
+    return 1 <= value <= 10
+
+
+def _batch_visual_assessments(
+    captures: Sequence[Mapping[str, Any]],
+    existing: Sequence[Assessment],
+) -> list[Assessment]:
+    """把批次级仍缺失的视觉项补齐为汇总结论，避免重复占位。"""
+
+    present_ids = {item.item_id for item in existing}
+    assessments: list[Assessment] = []
+    if "foreign_object" not in present_ids:
+        station_ready = any(
+            _station_confirmed(
+                (capture.get("result") or {}).get("modules")
+                if isinstance(capture.get("result"), Mapping)
+                else None
+            )
+            for capture in captures
+        )
+        if station_ready:
+            assessments.append(
+                Assessment(
+                    "foreign_object", "皮带机异物检测", STATUS_NORMAL,
+                    "未检测到异物/彩布", "编号牌已确认且本批未检出异物",
+                )
+            )
+    return assessments
 
 
 def _empty_capture_assessments() -> list[Assessment]:
@@ -585,25 +727,42 @@ def _empty_capture_assessments() -> list[Assessment]:
     ]
 
 
-def _pending_required_assessments() -> list[Assessment]:
-    return [
-        Assessment(
-            "foreign_object", "皮带机异物检测", STATUS_REVIEW,
-            "待样本/不可用", "彩色布条现场正负样本尚未提供",
-        ),
-        Assessment(
-            "inspection_marker", "沿线巡检标牌", STATUS_REVIEW,
-            "待样本/不可用；已识别 0/5 个", "5 类巡检标牌现场样本尚未提供；编号牌不能替代巡检标牌",
-        ),
-        Assessment(
-            "indicator_red", "红色指示灯", STATUS_REVIEW,
-            "待样本/不可用", "红色指示灯现场样本尚未提供",
-        ),
-        Assessment(
-            "indicator_green", "绿色指示灯", STATUS_REVIEW,
-            "待样本/不可用", "绿色指示灯现场样本尚未提供",
-        ),
-    ]
+def _pending_required_assessments(
+    existing: Sequence[Assessment] | None = None,
+) -> list[Assessment]:
+    present_ids = {item.item_id for item in existing or []}
+    pending: list[Assessment] = []
+    if "inspection_marker" not in present_ids:
+        pending.append(
+            Assessment(
+                "inspection_marker", "沿线巡检标牌", STATUS_REVIEW,
+                "待样本/不可用；已识别 0/5 个",
+                "5 类巡检标牌现场样本尚未提供；编号牌不能替代巡检标牌",
+            )
+        )
+    if "foreign_object" not in present_ids:
+        pending.append(
+            Assessment(
+                "foreign_object", "皮带机异物检测", STATUS_REVIEW,
+                "待编号牌确认/待检测",
+                "需在确认编号牌后由异物模块给出有/无结论",
+            )
+        )
+    if "indicator_red" not in present_ids:
+        pending.append(
+            Assessment(
+                "indicator_red", "红色指示灯", STATUS_REVIEW,
+                "本批未覆盖指示灯场景", "无变电硐室指示灯抓拍或识别未确认",
+            )
+        )
+    if "indicator_green" not in present_ids:
+        pending.append(
+            Assessment(
+                "indicator_green", "绿色指示灯", STATUS_REVIEW,
+                "本批未覆盖指示灯场景", "无变电硐室指示灯抓拍或识别未确认",
+            )
+        )
+    return pending
 
 
 def _gas_assessments(summaries: Sequence[GasSummary]) -> list[Assessment]:

@@ -12,6 +12,8 @@ from .analog_meter import AnalogMeterModule
 from .base import InspectionModule, ModuleContext
 from .coal_presence import CoalPresenceModule
 from .digital_meter import DigitalMeterModule
+from .foreign_object import ForeignObjectModule
+from .indicator_lights import IndicatorLightsModule
 from .station_number import StationNumberModule
 
 
@@ -44,9 +46,25 @@ class ModuleRegistry:
             ):
                 status = "unavailable"
                 reason = str(config.get("reason") or "coal_field_model_not_trained")
-            elif isinstance(module, CoalPresenceModule) and not detector_configured:
+            elif (
+                isinstance(module, CoalPresenceModule)
+                and not detector_configured
+                and not config.get("allow_image_fallback", True)
+            ):
                 status = "unavailable"
                 reason = "coal_detector_not_configured"
+            elif isinstance(module, ForeignObjectModule) and not config.get(
+                "model_ready", False
+            ):
+                status = "unavailable"
+                reason = str(
+                    config.get("reason") or "foreign_object_model_not_ready"
+                )
+            elif isinstance(module, IndicatorLightsModule) and not config.get(
+                "model_ready", True
+            ):
+                status = "unavailable"
+                reason = str(config.get("reason") or "indicator_lights_not_ready")
             elif (
                 isinstance(module, StationNumberModule)
                 and module.recognition_mode == "image_classifier"
@@ -119,9 +137,11 @@ def build_module_registry_from_config(
 
     return ModuleRegistry(
         [
-            CoalPresenceModule(config.get("coal_presence", {})),
             StationNumberModule(config.get("station_number", {}), project_root),
+            CoalPresenceModule(config.get("coal_presence", {})),
+            ForeignObjectModule(config.get("foreign_object", {})),
             DigitalMeterModule(config.get("digital_meter", {}), project_root),
+            IndicatorLightsModule(config.get("indicator_lights", {})),
             AnalogMeterModule(config.get("analog_meter", {})),
         ]
     )

@@ -8,10 +8,12 @@ from .runtime_settings import RETIRED_MODULE_IDS
 
 
 MODULE_NAMES = {
-    "coal_presence": "堆煤检测（待现场模型）",
+    "coal_presence": "堆煤检测",
+    "foreign_object": "皮带异物/彩布",
     "station_number": "编号位置关联（内部）",
     "digital_meter": "变电硐室 LED 仪表",
-    "analog_meter": "水泵三表（待样本）",
+    "indicator_lights": "红绿指示灯",
+    "analog_meter": "水泵指针表（检出）",
 }
 
 # 只在读取历史结果时过滤；不会改写原始识别 JSON。
@@ -20,12 +22,14 @@ RETIRED_OBJECT_TYPES = {"tool", "safety_sign"}
 _PRIMARY_PRIORITY = {
     "station_number": 0,
     "digital_meter": 1,
-    "analog_meter": 2,
-    "coal_presence": 3,
-    "manual_review": 4,
-    "yolo": 5,
-    "json_replay": 6,
-    "detector": 7,
+    "indicator_lights": 2,
+    "analog_meter": 3,
+    "coal_presence": 4,
+    "foreign_object": 5,
+    "manual_review": 6,
+    "yolo": 7,
+    "json_replay": 8,
+    "detector": 9,
 }
 
 
@@ -163,6 +167,18 @@ def _module_value(
         meters = result.get("meters")
         count = len(meters) if isinstance(meters, list) else 0
         return count, f"识别到 {count} 个指针表" if count else "未检测到指针表"
+    if module_id == "foreign_object":
+        present = result.get("present")
+        return present, "检测到异物/彩布" if present else "未检测到异物/彩布"
+    if module_id == "indicator_lights":
+        red = result.get("red") if isinstance(result.get("red"), Mapping) else {}
+        green = result.get("green") if isinstance(result.get("green"), Mapping) else {}
+        red_on = red.get("on")
+        green_on = green.get("on")
+        display = (
+            f"红{'亮' if red_on else '灭'}/绿{'亮' if green_on else '灭'}"
+        )
+        return {"red": red_on, "green": green_on}, display
     for field in ("raw_text", "number", "value", "present"):
         if result.get(field) is not None:
             value = result[field]

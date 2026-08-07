@@ -1,14 +1,20 @@
 {
+  "station_marker": {
+    "id": "station_marker",
+    "type": "station_marker",
+    "name_cn": "托辊位置编号牌",
+    "train": true
+  },
   "coal_pile": {
     "id": "coal_pile",
     "type": "coal_pile",
     "name_cn": "堆煤",
     "train": true
   },
-  "analog_meter": {
-    "id": "analog_meter",
-    "type": "analog_meter",
-    "name_cn": "水泵硐室仪表",
+  "foreign_object": {
+    "id": "foreign_object",
+    "type": "foreign_object",
+    "name_cn": "皮带异物/彩布",
     "train": true
   },
   "digital_meter": {
@@ -17,16 +23,10 @@
     "name_cn": "变电硐室 LED 数字仪表",
     "train": true
   },
-  "station_marker": {
-    "id": "station_marker",
-    "type": "station_marker",
-    "name_cn": "托辊位置编号牌（内部关联）",
-    "train": true
-  },
-  "foreign_object": {
-    "id": "foreign_object",
-    "type": "foreign_object",
-    "name_cn": "皮带异物/彩布",
+  "analog_meter": {
+    "id": "analog_meter",
+    "type": "analog_meter",
+    "name_cn": "指针表",
     "train": true
   },
   "indicator_red": {

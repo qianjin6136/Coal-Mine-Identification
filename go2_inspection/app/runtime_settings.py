@@ -13,15 +13,17 @@ from .errors import ConfigurationError, ValidationError
 
 
 MODULE_IDS = (
-    "coal_presence",
     "station_number",
+    "coal_presence",
+    "foreign_object",
     "digital_meter",
+    "indicator_lights",
     "analog_meter",
 )
 
 RETIRED_MODULE_IDS = {"tool_and_safety_sign"}
 
-INFERENCE_MODES = {"noop", "gpu", "json_replay"}
+INFERENCE_MODES = {"noop", "gpu", "json_replay", "field_cv"}
 
 
 class RuntimeSettingsManager:

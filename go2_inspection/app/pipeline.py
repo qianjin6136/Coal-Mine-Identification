@@ -70,6 +70,7 @@ class InspectionPipeline:
             if self.module_registry is not None
             else {}
         )
+        objects = merge_module_detections(objects, modules)
 
         annotated_relative: str | None = None
         if image_paths:
@@ -96,6 +97,42 @@ class InspectionPipeline:
     def _location_text(self, station_id: str) -> str:
         station = self.stations.get(station_id, {})
         return str(station.get("location_name", f"{station_id}号区段"))
+
+
+def merge_module_detections(
+    objects: list[dict[str, Any]],
+    modules: dict[str, dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """把模块产出的检测框并入 objects，供证据图与报告复用。"""
+
+    merged = list(objects)
+    existing_types = {str(item.get("type") or "") for item in merged}
+
+    def _extend(items: Any) -> None:
+        if not isinstance(items, list):
+            return
+        for item in items:
+            if isinstance(item, dict):
+                merged.append(item)
+
+    coal = modules.get("coal_presence") if isinstance(modules, dict) else None
+    if isinstance(coal, dict) and coal.get("status") == "confirmed":
+        _extend(coal.get("detections"))
+    foreign = modules.get("foreign_object") if isinstance(modules, dict) else None
+    if isinstance(foreign, dict) and foreign.get("status") == "confirmed":
+        _extend(foreign.get("detections"))
+    indicators = modules.get("indicator_lights") if isinstance(modules, dict) else None
+    if isinstance(indicators, dict) and indicators.get("status") == "confirmed":
+        for color in ("red", "green"):
+            color_result = indicators.get(color)
+            if isinstance(color_result, dict):
+                _extend(color_result.get("detections"))
+    analog = modules.get("analog_meter") if isinstance(modules, dict) else None
+    if isinstance(analog, dict) and analog.get("status") == "confirmed":
+        # Prefer module meters when detector did not already emit analog boxes.
+        if "analog_meter" not in existing_types:
+            _extend(analog.get("meters"))
+    return merged
 
 
 def fuse_detections(

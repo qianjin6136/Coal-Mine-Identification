@@ -55,4 +55,7 @@ def _color_for_type(object_type: str) -> tuple[int, int, int]:
         "analog_meter": (148, 0, 211),
         "digital_meter": (220, 20, 60),
         "station_marker": (0, 160, 70),
+        "foreign_object": (255, 0, 128),
+        "indicator_red": (220, 20, 60),
+        "indicator_green": (0, 180, 80),
     }.get(object_type, (255, 215, 0))

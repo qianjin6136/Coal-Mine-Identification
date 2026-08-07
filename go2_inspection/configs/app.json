@@ -9,6 +9,7 @@
   "detector": {
     "backend": "noop",
     "weights": "models/station_marker_best.pt",
+    "field_detect_weights": "runtime_data/models/field_detect_v1_best.pt",
     "confidence": 0.35
   },
   "pipeline": {
