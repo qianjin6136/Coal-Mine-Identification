@@ -67,3 +67,6 @@ transfer-config.json
 *.ttf
 *.otf
 **/Ultralytics/
+
+# Local sample dumps at repo root
+/sample/
